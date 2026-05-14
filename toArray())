@@ -1,0 +1,21 @@
+
+   ErrorException 
+
+  Writing to directory C:/Users/arind/AppData/Roaming/PsySH is not allowed.
+
+  at vendor\psy\psysh\src\ConfigPaths.php:331
+    327▕             @\mkdir($dir, 0700, true);
+    328▕         }
+    329▕ 
+    330▕         if (!\is_dir($dir) || !\is_writable($dir)) {
+  ➜ 331▕             \trigger_error(\sprintf('Writing to directory %s is not allowed.', $dir), \E_USER_NOTICE);
+    332▕ 
+    333▕             return false;
+    334▕         }
+    335▕
+
+  1   vendor\psy\psysh\src\ConfigPaths.php:331
+
+  2   vendor\psy\psysh\src\ConfigPaths.php:360
+      Psy\ConfigPaths::ensureDir("C:/Users/arind/AppData/Roaming/PsySH")
+

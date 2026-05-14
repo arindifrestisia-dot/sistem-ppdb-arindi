@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --brand-navy: #0f2d46;
+        --brand-emerald: #176b5b;
+        --brand-gold: #e4b74f;
+        --brand-blue: #0f4f8c;
+        --brand-yellow: #efc332;
+        --surface: #ffffff;
+        --surface-alt: #f8fbff;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background: var(--surface);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: Georgia, "Times New Roman", serif;
+        letter-spacing: -0.02em;
+    }
+
+    ::selection {
+        background: rgba(23, 107, 91, 0.18);
+        color: #08263a;
+    }
+}
+
+@layer utilities {
+    .section-title {
+        @apply text-center text-3xl font-black uppercase tracking-wide text-[var(--brand-blue)] sm:text-4xl;
+    }
+
+    .section-accent {
+        @apply mx-auto mt-3 h-1.5 w-16 rounded-full bg-[var(--brand-yellow)];
+    }
+}
