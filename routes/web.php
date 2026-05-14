@@ -92,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->name('panitia.')->group(function () {
     Route::get('/dashboard', [PanitiaDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/jumlah-siswa-tahunan', [PanitiaDashboardController::class, 'updateAnnualStudentCounts'])->name('dashboard.annual-student-counts.update');
     Route::get('/pendaftaran', [PanitiaRegistrationController::class, 'index'])->name('registrations.index');
     Route::get('/pendaftaran/export', [PanitiaRegistrationController::class, 'export'])->name('registrations.export');
     Route::get('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'show'])->name('registrations.show');

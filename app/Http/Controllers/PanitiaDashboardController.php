@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\AnnualStudentCount;
 use App\Models\SchoolContent;
 use App\Models\StudentRegistration;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -40,6 +43,7 @@ class PanitiaDashboardController extends Controller
                 'verification' => $this->buildVerificationChart($dashboardRegistrations),
                 'classQuota' => $this->buildClassQuotaChart($dashboardRegistrations, $classColumns),
                 'regions' => $this->buildRegionTreemapChart($dashboardRegistrations),
+                'annualRegistrations' => $this->buildAnnualRegistrationChart(),
             ],
             'recentRegistrations' => StudentRegistration::with('user')
                 ->latest()
@@ -53,6 +57,23 @@ class PanitiaDashboardController extends Controller
                     ],
                 ]),
         ]);
+    }
+
+    public function updateAnnualStudentCounts(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'counts' => ['required', 'array'],
+            'counts.*' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        foreach (range(2019, 2025) as $year) {
+            AnnualStudentCount::updateOrCreate(
+                ['year' => $year],
+                ['total' => (int) ($validated['counts'][$year] ?? 0)],
+            );
+        }
+
+        return back()->with('status', 'Jumlah siswa manual berhasil disimpan.');
     }
 
     private function buildGenderChart(Collection $registrations): array
@@ -122,6 +143,44 @@ class PanitiaDashboardController extends Controller
             ->sortByDesc('y')
             ->values()
             ->all();
+    }
+
+    private function buildAnnualRegistrationChart(): array
+    {
+        $manualCounts = Schema::hasTable('annual_student_counts')
+            ? AnnualStudentCount::query()
+                ->whereBetween('year', [2019, 2025])
+                ->pluck('total', 'year')
+                ->mapWithKeys(fn ($total, $year) => [(int) $year => (int) $total])
+                ->all()
+            : [];
+        $systemCounts = StudentRegistration::query()
+            ->whereBetween('created_at', [
+                Carbon::create(2026, 1, 1)->startOfDay(),
+                Carbon::create(2027, 12, 31)->endOfDay(),
+            ])
+            ->get(['created_at'])
+            ->groupBy(fn (StudentRegistration $registration) => (int) $registration->created_at->format('Y'))
+            ->map(fn (Collection $items) => $items->count())
+            ->all();
+
+        $years = range(2019, 2027);
+
+        return [
+            'labels' => array_map(fn (int $year) => (string) $year, $years),
+            'series' => array_map(function (int $year) use ($manualCounts, $systemCounts) {
+                if ($year >= 2026) {
+                    return $systemCounts[$year] ?? 0;
+                }
+
+                return (int) ($manualCounts[$year] ?? 0);
+            }, $years),
+            'manualInputs' => collect(range(2019, 2025))
+                ->mapWithKeys(fn (int $year) => [$year => (int) ($manualCounts[$year] ?? 0)])
+                ->all(),
+            'manualYears' => ['2019-2025'],
+            'systemYears' => ['2026-2027'],
+        ];
     }
 
     private function getStudentClassColumns(): array

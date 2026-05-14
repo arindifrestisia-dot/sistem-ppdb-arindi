@@ -22,6 +22,51 @@
         </article>
     </div>
 
+    <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Jumlah Siswa Terdaftar per Tahun</h2>
+                <p class="mt-2 text-sm text-slate-500">Isi tahun 2019-2025 langsung dari dashboard. Tahun 2026-2027 dihitung otomatis dari pendaftaran sistem.</p>
+            </div>
+            <span class="w-fit rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                2019 - 2027
+            </span>
+        </div>
+        <div id="annualRegistrationChart" class="mt-6 h-[360px]"></div>
+
+        <form method="POST" action="{{ route('panitia.dashboard.annual-student-counts.update') }}" class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            @csrf
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-900">Input Manual Tahun 2019-2025</h3>
+                    <p class="mt-1 text-sm text-slate-500">Angka yang disimpan akan langsung dipakai pada grafik batang di atas.</p>
+                </div>
+                <button type="submit" class="w-fit rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                    Simpan Jumlah
+                </button>
+            </div>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+                @foreach ($chartData['annualRegistrations']['manualInputs'] as $year => $total)
+                    <label class="block">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{{ $year }}</span>
+                        <input
+                            type="number"
+                            name="counts[{{ $year }}]"
+                            value="{{ old("counts.$year", $total) }}"
+                            min="0"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                        >
+                    </label>
+                @endforeach
+            </div>
+
+            @error('counts')
+                <p class="mt-4 text-sm font-semibold text-rose-600">{{ $message }}</p>
+            @enderror
+        </form>
+    </section>
+
     <div class="mt-8 grid gap-6 xl:grid-cols-2">
         <section class="rounded-[2rem] bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-4">
@@ -206,7 +251,69 @@
             }).render();
         }
 
-        function renderBarChart() {
+        function renderAnnualRegistrationChart() {
+            const { labels, series } = dashboardChartData.annualRegistrations;
+
+            if (!hasNonZeroSeries(series)) {
+                renderEmptyState('annualRegistrationChart', 'Grafik akan muncul setelah angka manual atau data pendaftaran sistem tersedia.');
+                return;
+            }
+
+            new ApexCharts(document.querySelector('#annualRegistrationChart'), {
+                chart: {
+                    type: 'bar',
+                    height: 360,
+                    toolbar: { show: false },
+                },
+                series: [{
+                    name: 'Siswa Terdaftar',
+                    data: series,
+                }],
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        style: {
+                            fontFamily: 'Poppins, sans-serif',
+                        },
+                    },
+                },
+                yaxis: {
+                    labels: {
+                        formatter: (value) => `${value.toFixed(0)} siswa`,
+                    },
+                },
+                colors: ['#0ea5e9'],
+                dataLabels: {
+                    enabled: true,
+                    formatter: (value) => `${value} siswa`,
+                    style: {
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '12px',
+                    },
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        columnWidth: '46%',
+                    },
+                },
+                tooltip: {
+                    y: {
+                        formatter: (value, { dataPointIndex }) => {
+                            const year = Number(labels[dataPointIndex]);
+                            const source = year >= 2026 ? 'data sistem' : 'data manual';
+
+                            return `${value} siswa (${source})`;
+                        },
+                    },
+                },
+                grid: {
+                    borderColor: '#e2e8f0',
+                },
+            }).render();
+        }
+
+        function renderClassQuotaChart() {
             const { labels, series, counts } = dashboardChartData.classQuota;
 
             if (!hasNonZeroSeries(counts)) {
@@ -299,6 +406,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof ApexCharts === 'undefined') {
+                renderEmptyState('annualRegistrationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('genderChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('verificationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('classQuotaChart', 'Library chart tidak berhasil dimuat.');
@@ -320,7 +428,8 @@
                 ['#10b981', '#f59e0b', '#ef4444']
             );
 
-            renderBarChart();
+            renderAnnualRegistrationChart();
+            renderClassQuotaChart();
             renderTreemapChart();
         });
     </script>

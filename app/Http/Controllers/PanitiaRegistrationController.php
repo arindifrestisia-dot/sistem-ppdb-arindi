@@ -142,17 +142,6 @@ class PanitiaRegistrationController extends Controller
     public function update(Request $request, StudentRegistration $registration): RedirectResponse
     {
         $validated = $request->validate([
-            'full_name' => ['required', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'in:Laki-laki,Perempuan'],
-            'birth_place' => ['required', 'string', 'max:255'],
-            'birth_date' => ['required', 'date'],
-            'home_address' => ['required', 'string'],
-            'origin_region' => ['required', 'string', 'max:255'],
-            'father_name' => ['required', 'string', 'max:255'],
-            'father_phone' => ['required', 'string', 'max:30'],
-            'mother_name' => ['required', 'string', 'max:255'],
-            'mother_phone' => ['required', 'string', 'max:30'],
             'verification_status' => ['required', 'in:belum_diperiksa,revisi,terverifikasi,ditolak'],
             'verification_notes' => ['nullable', 'string'],
             'selection_result' => ['nullable', 'in:lulus,tidak_lulus'],
@@ -160,17 +149,6 @@ class PanitiaRegistrationController extends Controller
         ]);
 
         $registration->fill([
-            'full_name' => $validated['full_name'],
-            'nickname' => $validated['nickname'],
-            'gender' => $validated['gender'],
-            'birth_place' => $validated['birth_place'],
-            'birth_date' => $validated['birth_date'],
-            'home_address' => $validated['home_address'],
-            'origin_region' => $validated['origin_region'],
-            'father_name' => $validated['father_name'],
-            'father_phone' => $validated['father_phone'],
-            'mother_name' => $validated['mother_name'],
-            'mother_phone' => $validated['mother_phone'],
             'verification_status' => $validated['verification_status'],
             'verification_notes' => $validated['verification_notes'] ?? null,
             'selection_result' => $validated['selection_result'] ?? null,

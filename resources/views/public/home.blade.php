@@ -93,8 +93,6 @@
         ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
     ]);
 
-    $alAzharNews = $newsItems->take(6);
-
     $testimonials = collect([
         [
             'name' => 'Bunda Alleryk',
@@ -378,30 +376,6 @@
                     </article>
                 @endforeach
             </div>
-        </div>
-    </section>
-
-    <section class="mx-auto max-w-[1260px] px-4 py-10 sm:px-6">
-        <h2 class="section-title">Berita Yayasan Fadhilah</h2>
-        <div class="section-accent"></div>
-
-        <div class="mt-12 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            @foreach ($alAzharNews as $item)
-                <article class="overflow-hidden border border-slate-200 bg-white shadow-sm">
-                    <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" class="h-60 w-full object-cover">
-                    <div class="p-6">
-                        <h3 class="text-2xl font-black uppercase leading-8 text-slate-800">{{ $item['title'] }}</h3>
-                        <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
-                            <span>{{ $item['date'] }}</span>
-                            <span>YPI Al Azhar</span>
-                        </div>
-                        <p class="mt-4 text-sm leading-8 text-slate-600">{{ $item['excerpt'] }}</p>
-                        <a href="{{ url('/blog/berita') }}" class="mt-6 inline-flex items-center justify-center bg-[var(--brand-yellow)] px-5 py-3 text-sm font-black text-white">
-                            Read More
-                        </a>
-                    </div>
-                </article>
-            @endforeach
         </div>
     </section>
 
