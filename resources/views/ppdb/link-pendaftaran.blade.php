@@ -36,6 +36,13 @@
                 <a href="{{ route('login') }}" class="rounded-full bg-yellow-300 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-slate-900 shadow-lg shadow-sky-700/20 transition hover:-translate-y-0.5">
                     Portal Masuk
                 </a>
+                <a href="{{ route('home') }}" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-sky-800 shadow-lg shadow-sky-700/15 ring-1 ring-sky-200 transition hover:-translate-y-0.5 hover:bg-sky-50 hover:text-sky-950" aria-label="Kembali ke profil sekolah" title="Kembali ke profil sekolah">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m3 11 9-8 9 8" />
+                        <path d="M5 10v10h14V10" />
+                        <path d="M9 20v-6h6v6" />
+                    </svg>
+                </a>
             </nav>
         </div>
     </header>
@@ -151,54 +158,56 @@
         </section>
 
         <section id="hubungi-kami" class="scroll-mt-28 bg-sky-50 px-4 py-16 sm:px-6 lg:px-8">
-            <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-                <div class="rounded-[2rem] bg-white p-8 text-center shadow-[0_24px_50px_rgba(15,23,42,0.16)]">
-                    <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="mx-auto h-28 w-28 object-contain">
-                    <h3 class="mt-6 text-2xl font-extrabold text-slate-900">RA Fadhilah</h3>
-                    <p class="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Yayasan Darel Fadhilah</p>
-                    <div class="mt-8 space-y-3 text-sm text-slate-600">
-                        <p>Akreditasi A</p>
-                        <p>NPSN 10407224</p>
-                    </div>
-                </div>
-
-                <div class="rounded-[2rem] bg-white p-8 shadow-[0_24px_50px_rgba(15,23,42,0.16)]">
-                    <p class="text-sm font-bold uppercase tracking-[0.35em] text-sky-600">Hubungi Kami</p>
-                    <h3 class="mt-3 text-3xl font-extrabold text-slate-900">Kontak Sekolah</h3>
-                    <p class="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                        Saat menu `Hubungi Kami` diklik, halaman akan bergulir ke bagian ini untuk menampilkan alamat, email, telepon, dan jam operasional sekolah.
-                    </p>
-
-                    <div class="mt-8 space-y-6 text-sm leading-7 text-slate-700 sm:text-base">
-                        <div>
-                            <p class="font-extrabold text-slate-900">Alamat Kantor</p>
-                            <p>CCV9+42C, Jl. Muhajirin, Sidomulyo Barat, Kec. Tampan, Kota Pekanbaru, Riau 28294</p>
-                        </div>
-                        <div>
-                            <p class="font-extrabold text-slate-900">Email</p>
-                            <a href="mailto:admin@rafadhilah.sch.id" class="text-sky-600 hover:underline">admin@rafadhilah.sch.id</a>
-                        </div>
-                        <div>
-                            <p class="font-extrabold text-slate-900">Telepon</p>
-                            <p>(0761) 27483</p>
-                        </div>
-                        <div>
-                            <p class="font-extrabold text-slate-900">WhatsApp</p>
-                            <p>+62 811-5860-111</p>
-                        </div>
-                        <div>
-                            <p class="font-extrabold text-slate-900">Jam Kerja</p>
-                            <p>Senin - Jumat, 07.00 - 16.00 WIB</p>
+            <div class="mx-auto max-w-6xl rounded-[2rem] bg-white p-8 shadow-[0_24px_50px_rgba(15,23,42,0.16)] sm:p-10">
+                <div class="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
+                    <div class="text-center lg:border-r lg:border-slate-200 lg:pr-10">
+                        <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="mx-auto h-28 w-28 object-contain">
+                        <h3 class="mt-6 text-2xl font-extrabold text-slate-900">RA Fadhilah</h3>
+                        <p class="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Yayasan Darel Fadhilah</p>
+                        <div class="mt-8 space-y-3 text-sm text-slate-600">
+                            <p>Akreditasi A</p>
+                            <p>NPSN 10407224</p>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-2xl bg-sky-600 px-6 py-4 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-sky-700">
-                            Masuk ke Portal PPDB
-                        </a>
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-6 py-4 text-sm font-bold uppercase tracking-wide text-slate-900 transition hover:bg-slate-50">
-                            Saya Sudah Punya Akun
-                        </a>
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.35em] text-sky-600">Hubungi Kami</p>
+                        <h3 class="mt-3 text-3xl font-extrabold text-slate-900">Kontak Sekolah</h3>
+                        <p class="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+                            Saat menu `Hubungi Kami` diklik, halaman akan bergulir ke bagian ini untuk menampilkan alamat, email, telepon, dan jam operasional sekolah.
+                        </p>
+
+                        <div class="mt-8 space-y-6 text-sm leading-7 text-slate-700 sm:text-base">
+                            <div>
+                                <p class="font-extrabold text-slate-900">Alamat Kantor</p>
+                                <p>CCV9+42C, Jl. Muhajirin, Sidomulyo Barat, Kec. Tampan, Kota Pekanbaru, Riau 28294</p>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-slate-900">Email</p>
+                                <a href="mailto:admin@rafadhilah.sch.id" class="text-sky-600 hover:underline">admin@rafadhilah.sch.id</a>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-slate-900">Telepon</p>
+                                <p>(0761) 27483</p>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-slate-900">WhatsApp</p>
+                                <p>+62 811-5860-111</p>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-slate-900">Jam Kerja</p>
+                                <p>Senin - Jumat, 07.00 - 16.00 WIB</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-2xl bg-sky-600 px-6 py-4 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-sky-700">
+                                Masuk ke Portal PPDB
+                            </a>
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-6 py-4 text-sm font-bold uppercase tracking-wide text-slate-900 transition hover:bg-slate-50">
+                                Saya Sudah Punya Akun
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -21,16 +21,17 @@
                 <div class="mt-8 space-y-8 text-slate-700">
                     <div class="rounded-3xl bg-blue-50 p-6 ring-1 ring-blue-100">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">Visi</p>
-                        <p class="mt-3 text-lg font-semibold italic leading-8 text-slate-800">"Mewujudkan generasi yang Islami, berakhlak mulia, cerdas, dan mandiri."</p>
+                        <p class="mt-3 text-lg font-semibold italic leading-8 text-slate-800">"Terwujudnya anak usia dini yang beriman dan bertakwa kepada Allah SWT, berakhlak mulia, sehat, cerdas, ceria, dan siap melanjutkan pendidikan ke jenjang berikutnya."</p>
                     </div>
 
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800">Misi</h2>
                         <div class="mt-4 grid gap-4">
-                            <div class="rounded-2xl border border-slate-200 p-5">Mengupayakan RA Fadhilah sebagai lembaga pendidikan yang diminati oleh masyarakat.</div>
-                            <div class="rounded-2xl border border-slate-200 p-5">Menciptakan suasana lingkungan belajar yang Islami.</div>
-                            <div class="rounded-2xl border border-slate-200 p-5">Mengembangkan bakat dan minat anak melalui kegiatan pembelajaran.</div>
-                            <div class="rounded-2xl border border-slate-200 p-5">Bekerja sama dengan semua pihak dalam meningkatkan mutu pendidikan.</div>
+                            <div class="rounded-2xl border border-slate-200 p-5">Menanamkan nilai-nilai keimanan dan ketakwaan sejak dini melalui pembiasaan ibadah dan akhlak mulia.</div>
+                            <div class="rounded-2xl border border-slate-200 p-5">Mengembangkan potensi anak secara optimal, meliputi moral agama, fisik motorik, kognitif, bahasa, sosial emosional, dan seni.</div>
+                            <div class="rounded-2xl border border-slate-200 p-5">Menciptakan lingkungan belajar yang nyaman, menyenangkan, dan Islami.</div>
+                            <div class="rounded-2xl border border-slate-200 p-5">Membiasakan anak untuk mandiri, disiplin, dan bertanggung jawab.</div>
+                            <div class="rounded-2xl border border-slate-200 p-5">Menjalin kerja sama yang baik antara sekolah, orang tua, dan masyarakat.</div>
                         </div>
                     </div>
 
