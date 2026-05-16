@@ -64,6 +64,12 @@ class PanitiaSchoolContentController extends Controller
             ]);
         }
 
+        if ($this->isTeacherType($type)) {
+            return view('dashboard.panitia.contents.teacher-form', [
+                'contentItem' => new SchoolContent(['type' => $type, 'is_published' => true]),
+            ]);
+        }
+
         return view('dashboard.panitia.contents.form', [
             'contentItem' => new SchoolContent(['type' => $type, 'is_published' => true]),
             'typeOptions' => SchoolContent::typeOptions(),
@@ -126,6 +132,23 @@ class PanitiaSchoolContentController extends Controller
                 ->with('status', 'Fasilitas berhasil ditambahkan.');
         }
 
+        if ($this->isTeacherType($type)) {
+            $validated = $this->validateTeacherRequest($request);
+
+            $content = DB::transaction(function () use ($request, $validated) {
+                $content = new SchoolContent($validated);
+                $content->save();
+
+                $this->storeImages($request, $content);
+
+                return $content;
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Tenaga pendidik berhasil ditambahkan.');
+        }
+
         $validated = $this->validateRequest($request);
         $content = DB::transaction(function () use ($request, $validated) {
             $content = new SchoolContent($validated);
@@ -154,6 +177,12 @@ class PanitiaSchoolContentController extends Controller
 
         if ($this->isFacilityType($content->type)) {
             return view('dashboard.panitia.contents.facility-form', [
+                'contentItem' => $content,
+            ]);
+        }
+
+        if ($this->isTeacherType($content->type)) {
+            return view('dashboard.panitia.contents.teacher-form', [
                 'contentItem' => $content,
             ]);
         }
@@ -189,6 +218,28 @@ class PanitiaSchoolContentController extends Controller
             return redirect()
                 ->route('panitia.contents.index', ['type' => $content->type])
                 ->with('status', 'Fasilitas berhasil diperbarui.');
+        }
+
+        if ($this->isTeacherType($content->type)) {
+            $validated = $this->validateTeacherRequest($request, true);
+
+            DB::transaction(function () use ($request, $validated, $content) {
+                $content->fill($validated);
+                $content->save();
+
+                if ($request->hasFile('images')) {
+                    $this->removeAllImages($content);
+                } else {
+                    $this->removeSelectedImages($request, $content);
+                }
+
+                $this->storeImages($request, $content);
+                $this->syncCoverImage($content->fresh('images'));
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Tenaga pendidik berhasil diperbarui.');
         }
 
         $validated = $this->validateRequest($request);
@@ -284,6 +335,24 @@ class PanitiaSchoolContentController extends Controller
         ];
     }
 
+    protected function validateTeacherRequest(Request $request, bool $isUpdate = false): array
+    {
+        return $request->validate([
+            'type' => ['required', 'in:' . SchoolContent::TYPE_TEACHER],
+            'title' => ['required', 'string', 'max:255'],
+            'excerpt' => ['required', 'string', 'max:255'],
+            'images' => [$isUpdate ? 'nullable' : 'required', 'array', 'max:1'],
+            'images.*' => ['image', 'max:4096'],
+            'remove_images' => ['nullable', 'array'],
+            'remove_images.*' => ['integer'],
+        ]) + [
+            'content' => null,
+            'published_at' => now()->toDateString(),
+            'is_published' => true,
+            'sort_order' => 0,
+        ];
+    }
+
     protected function storeImages(Request $request, SchoolContent $content): void
     {
         if (! $request->hasFile('images')) {
@@ -321,6 +390,21 @@ class PanitiaSchoolContentController extends Controller
         foreach ($images as $image) {
             Storage::disk('public')->delete($image->image_path);
             $image->delete();
+        }
+    }
+
+    protected function removeAllImages(SchoolContent $content): void
+    {
+        $content->loadMissing('images');
+
+        foreach ($content->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
+        }
+
+        if ($content->image_path) {
+            Storage::disk('public')->delete($content->image_path);
+            $content->forceFill(['image_path' => null])->save();
         }
     }
 
@@ -366,5 +450,10 @@ class PanitiaSchoolContentController extends Controller
     protected function isFacilityType(string $type): bool
     {
         return $type === SchoolContent::TYPE_FACILITY;
+    }
+
+    protected function isTeacherType(string $type): bool
+    {
+        return $type === SchoolContent::TYPE_TEACHER;
     }
 }

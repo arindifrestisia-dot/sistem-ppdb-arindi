@@ -221,7 +221,7 @@
             <p class="font-bold text-gray-800">YAYASAN DAREL FADHILAH</p>
             
             <p class="mt-4 font-bold text-gray-800">Akreditasi A</p>
-            <p class="text-gray-700">NPSN : 30407224</p>
+            <p class="text-gray-700">NPSN : 69731079</p>
         </div>
 
         <!-- Detail Kontak -->
@@ -238,11 +238,11 @@
                 </a>
             </p>
             
-            <p><span class="font-bold">No Telepon :</span><br>(0548) 27483</p>
+            <p><span class="font-bold">No Telepon :</span><br>0821 6207 736</p>
             
-            <p><span class="font-bold">Whatsapp :</span><br>+628115860111</p>
+            <p><span class="font-bold">Whatsapp :</span><br>0821 6207 736<br>0822 8681 7315</p>
             
-            <p><span class="font-bold">Jam Kerja :</span><br>Senin s.d Jumat (07:00 - 16:00)</p>
+            <p><span class="font-bold">Jam Kerja :</span><br>Senin - Sabtu, 08.00 - 13.00 WIB</p>
         </div>
     </div>
 </div>

@@ -16,7 +16,7 @@ class PublicPageController extends Controller
             'galleryItems' => $this->getContents(SchoolContent::TYPE_GALLERY, 8),
             'facilityItems' => $this->getContents(SchoolContent::TYPE_FACILITY, 4),
             'activityItems' => $this->getContents(SchoolContent::TYPE_ACTIVITY, 4),
-            'teacherItems' => $this->getContents(SchoolContent::TYPE_TEACHER, 5),
+            'teacherItems' => $this->getContents(SchoolContent::TYPE_TEACHER, 8),
         ]);
     }
 
@@ -38,6 +38,13 @@ class PublicPageController extends Controller
     {
         return view('public.activities', [
             'activityItems' => $this->getContents(SchoolContent::TYPE_ACTIVITY),
+        ]);
+    }
+
+    public function teachers(): View
+    {
+        return view('profile.tenaga-pendidik', [
+            'teacherItems' => $this->getContents(SchoolContent::TYPE_TEACHER),
         ]);
     }
 

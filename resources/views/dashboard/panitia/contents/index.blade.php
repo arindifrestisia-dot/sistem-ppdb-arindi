@@ -1,4 +1,8 @@
 <x-panitia-layout title="Kelola Konten Sekolah">
+    @php
+        $isTeacherType = $type === \App\Models\SchoolContent::TYPE_TEACHER;
+    @endphp
+
     <section class="rounded-[2rem] bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -11,7 +15,7 @@
                 @foreach ($typeOptions as $typeKey => $label)
                     <a href="{{ route('panitia.contents.index', ['type' => $typeKey]) }}" class="rounded-full px-4 py-2 text-sm font-semibold {{ $type === $typeKey ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700' }}">{{ $label }}</a>
                 @endforeach
-                <a href="{{ route('panitia.contents.create', ['type' => $type]) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950">Tambah Konten</a>
+                <a href="{{ route('panitia.contents.create', ['type' => $type]) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950">{{ $isTeacherType ? 'Tambah Guru' : 'Tambah Konten' }}</a>
             </div>
         </div>
 
@@ -20,11 +24,17 @@
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold text-slate-600">Foto</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Judul</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Publikasi</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Jumlah Foto</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Urutan</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ $isTeacherType ? 'Nama Guru' : 'Judul' }}</th>
+                        @unless ($isTeacherType)
+                            <th class="px-4 py-3 text-left font-semibold text-slate-600">Publikasi</th>
+                            <th class="px-4 py-3 text-left font-semibold text-slate-600">Jumlah Foto</th>
+                        @endunless
+                        @unless ($isTeacherType)
+                            <th class="px-4 py-3 text-left font-semibold text-slate-600">Urutan</th>
+                        @endunless
+                        @unless ($isTeacherType)
+                            <th class="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
+                        @endunless
                         <th class="px-4 py-3 text-left font-semibold text-slate-600">Aksi</th>
                     </tr>
                 </thead>
@@ -34,7 +44,7 @@
                             <td class="px-4 py-3">
                                 <div class="h-16 w-16 overflow-hidden rounded-2xl bg-slate-100">
                                     <img
-                                        src="{{ $content->image_path ? asset('storage/' . $content->image_path) : asset('image/berita1.png') }}"
+                                        src="{{ $content->image_path ? asset('storage/' . $content->image_path) : asset($isTeacherType ? 'image/fotoguru.png' : 'image/berita1.png') }}"
                                         alt="{{ $content->title }}"
                                         class="h-full w-full object-cover"
                                     >
@@ -42,16 +52,22 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-semibold text-slate-800">{{ $content->title }}</p>
-                                <p class="text-xs text-slate-500">{{ \Illuminate\Support\Str::limit($content->excerpt, 80) }}</p>
+                                <p class="text-xs text-slate-500">{{ $isTeacherType ? $content->excerpt : \Illuminate\Support\Str::limit($content->excerpt, 80) }}</p>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">{{ optional($content->published_at)->format('d-m-Y') ?? '-' }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ max($content->images->count(), $content->image_path ? 1 : 0) }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $content->sort_order }}</td>
-                            <td class="px-4 py-3 text-slate-600">
-                                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $content->is_published ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
-                                    {{ $content->is_published ? 'Tayang' : 'Draft' }}
-                                </span>
-                            </td>
+                            @unless ($isTeacherType)
+                                <td class="px-4 py-3 text-slate-600">{{ optional($content->published_at)->format('d-m-Y') ?? '-' }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ max($content->images->count(), $content->image_path ? 1 : 0) }}</td>
+                            @endunless
+                            @unless ($isTeacherType)
+                                <td class="px-4 py-3 text-slate-600">{{ $content->sort_order }}</td>
+                            @endunless
+                            @unless ($isTeacherType)
+                                <td class="px-4 py-3 text-slate-600">
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $content->is_published ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                                        {{ $content->is_published ? 'Tayang' : 'Draft' }}
+                                    </span>
+                                </td>
+                            @endunless
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <a href="{{ route('panitia.contents.edit', $content) }}" class="font-semibold text-sky-700">Edit</a>
@@ -65,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-5 text-center text-slate-500">Belum ada konten untuk kategori ini.</td>
+                            <td colspan="{{ $isTeacherType ? 3 : 7 }}" class="px-4 py-5 text-center text-slate-500">{{ $isTeacherType ? 'Belum ada data guru.' : 'Belum ada konten untuk kategori ini.' }}</td>
                         </tr>
                     @endforelse
                 </tbody>

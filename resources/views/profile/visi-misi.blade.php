@@ -7,7 +7,7 @@
             Anda berada di:
             <a href="{{ url('/profile/dashboard') }}" class="font-semibold text-blue-700 hover:text-blue-800">Beranda</a>
             <span class="mx-2">/</span>
-            <span class="text-slate-800">Visi, Misi, dan Tujuan</span>
+            <span class="text-slate-800">Visi, Misi, dan Strategi Pembelajaran</span>
         </div>
     </div>
 
@@ -15,7 +15,7 @@
         <div class="grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
             <section class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200 p-6 sm:p-8">
                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Arah Pendidikan</p>
-                <h1 class="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-800 leading-tight">Visi, Misi, dan Tujuan RA Fadhilah</h1>
+                <h1 class="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-800 leading-tight">Visi, Misi, dan Strategi Pembelajaran RA Fadhilah</h1>
                 <div class="mt-6 h-1.5 w-24 rounded-full bg-gradient-to-r from-blue-700 to-emerald-500"></div>
 
                 <div class="mt-8 space-y-8 text-slate-700">
@@ -36,14 +36,15 @@
                     </div>
 
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Tujuan</h2>
+                        <h2 class="text-2xl font-bold text-slate-800">Strategi Pembelajaran</h2>
                         <div class="mt-4 grid gap-4 md:grid-cols-2">
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Menghasilkan peserta didik yang berakhlak mulia.</div>
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Membiasakan anak membaca Al-Qur'an dan melaksanakan praktik salat berjamaah sejak dini.</div>
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Mempersiapkan peserta didik yang cerdas dan terampil untuk melanjutkan ke jenjang pendidikan dasar.</div>
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Mengoptimalkan potensi anak usia dini agar terbentuk perilaku Islami dan kemampuan dasar sesuai tahap perkembangannya.</div>
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Mengembangkan kecerdasan spiritual, intelektual, emosional, kinestetik, dan sosial peserta didik.</div>
-                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Mengembangkan kemampuan kognitif dan fisik motorik agar siap memasuki pendidikan dasar.</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Adab First</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Active Learning</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Deep Learning</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Outing Class</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Integrasi Nilai Islam</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Pembinaan Prestasi</div>
+                            <div class="rounded-2xl bg-white ring-1 ring-slate-200 p-5">Kolaborasi Orang Tua</div>
                         </div>
                     </div>
                 </div>

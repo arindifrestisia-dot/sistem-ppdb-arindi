@@ -166,7 +166,7 @@
                         <p class="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Yayasan Darel Fadhilah</p>
                         <div class="mt-8 space-y-3 text-sm text-slate-600">
                             <p>Akreditasi A</p>
-                            <p>NPSN 10407224</p>
+                            <p>NPSN 69731079</p>
                         </div>
                     </div>
 
@@ -188,15 +188,15 @@
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900">Telepon</p>
-                                <p>(0761) 27483</p>
+                                <p>0821 6207 736</p>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900">WhatsApp</p>
-                                <p>+62 811-5860-111</p>
+                                <p>0821 6207 736 / 0822 8681 7315</p>
                             </div>
                             <div>
                                 <p class="font-extrabold text-slate-900">Jam Kerja</p>
-                                <p>Senin - Jumat, 07.00 - 16.00 WIB</p>
+                                <p>Senin - Sabtu, 08.00 - 13.00 WIB</p>
                             </div>
                         </div>
 

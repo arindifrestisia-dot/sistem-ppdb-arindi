@@ -50,7 +50,7 @@
                             <li>1. Pilih jadwal wawancara yang tersedia di portal PPDB.</li>
                             <li>2. Pantau status verifikasi berkas di portal PPDB.</li>
                             <li>3. Siapkan proses daftar ulang jika dinyatakan diterima.</li>
-                            <li>4. Hubungi sekolah jika ada pertanyaan: <span class="font-bold text-blue-700">(0761) 27483</span></li>
+                            <li>4. Hubungi sekolah jika ada pertanyaan: <span class="font-bold text-blue-700">0821 6207 736 / 0822 8681 7315</span></li>
                         </ol>
                     </div>
 

@@ -18,11 +18,14 @@
                 </div>
                 <div class="rounded-[1.5rem] bg-slate-50 p-5">
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Telepon</p>
-                    <p class="mt-2 text-sm text-slate-700">(0548) 27483</p>
+                    <p class="mt-2 text-sm text-slate-700">0821 6207 736</p>
                 </div>
                 <div class="rounded-[1.5rem] bg-slate-50 p-5">
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">WhatsApp</p>
-                    <a href="https://wa.me/628115860111" target="_blank" rel="noreferrer" class="mt-2 inline-block text-sm font-semibold text-[var(--brand-emerald)] hover:text-[var(--brand-navy)]">+62 811 5860 111</a>
+                    <div class="mt-2 space-y-2">
+                        <a href="https://wa.me/628216207736" target="_blank" rel="noreferrer" class="block text-sm font-semibold text-[var(--brand-emerald)] hover:text-[var(--brand-navy)]">0821 6207 736</a>
+                        <a href="https://wa.me/6282286817315" target="_blank" rel="noreferrer" class="block text-sm font-semibold text-[var(--brand-emerald)] hover:text-[var(--brand-navy)]">0822 8681 7315</a>
+                    </div>
                 </div>
             </div>
 

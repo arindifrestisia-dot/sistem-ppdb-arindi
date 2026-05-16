@@ -2,14 +2,17 @@
 
 @section('content')
 @php
-    $teachers = [
-        ['name' => 'Ibunda Sri Dewi, S.E.', 'role' => 'Kepala RA', 'photo' => 'image/contoh.fotobunda.png'],
-        ['name' => 'Nurisa, S.Pd.', 'role' => 'Guru Kelas A', 'photo' => 'image/fotoguru.png'],
-        ['name' => 'Dwi Rahayu, S.Pd.AUD', 'role' => 'Guru Kelas B', 'photo' => 'image/fotoguru.png'],
-        ['name' => 'Fitri Handayani', 'role' => 'Guru Pendamping', 'photo' => 'image/fotoguru.png'],
-        ['name' => 'Rahmawati', 'role' => 'Guru Agama', 'photo' => 'image/fotoguru.png'],
-        ['name' => 'Tenaga Pendidik RA Fadhilah', 'role' => 'Guru Pendamping', 'photo' => 'image/fotoguru.png'],
-    ];
+    $teachers = $teacherItems->isNotEmpty()
+        ? $teacherItems->map(fn ($item) => [
+            'name' => $item->title,
+            'role' => $item->excerpt,
+            'photo' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/fotoguru.png'),
+        ])
+        : collect([
+            ['name' => 'Ibunda Sri Dewi, S.E.', 'role' => 'Kepala RA', 'photo' => asset('image/kepala-sekolah-sri-dewi.png')],
+            ['name' => 'Guru Kelas A', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas B', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png')],
+        ]);
 @endphp
 
 <div class="min-h-screen bg-slate-50">
@@ -34,7 +37,7 @@
                 <div class="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     @foreach ($teachers as $teacher)
                         <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                            <img src="{{ asset($teacher['photo']) }}" alt="{{ $teacher['name'] }}" class="h-72 w-full object-cover">
+                            <img src="{{ $teacher['photo'] }}" alt="{{ $teacher['name'] }}" class="h-72 w-full object-cover">
                             <div class="p-5 text-center">
                                 <h3 class="text-lg font-bold text-slate-800">{{ $teacher['name'] }}</h3>
                                 <p class="mt-2 text-sm font-medium text-blue-700">{{ $teacher['role'] }}</p>

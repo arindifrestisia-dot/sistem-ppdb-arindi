@@ -42,9 +42,7 @@ Route::get('/profile/visi-misi', function () {
     return view('profile.visi-misi');
 });
 
-Route::get('/profile/tenaga-pendidik', function () {
-    return view('profile.tenaga-pendidik');
-});
+Route::get('/profile/tenaga-pendidik', [PublicPageController::class, 'teachers']);
 
 Route::get('/profile/kontak-kami', function () {
     return view('profile.kontak-kami');

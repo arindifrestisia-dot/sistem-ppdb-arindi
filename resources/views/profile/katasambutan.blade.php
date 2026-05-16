@@ -18,7 +18,7 @@
                     <div class="w-full sm:w-56 shrink-0">
                         <div class="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-3 ring-1 ring-blue-100 shadow-sm">
                             <img
-                                src="{{ asset('image/contoh.fotobunda.png') }}"
+                                src="{{ asset('image/kepala-sekolah-sri-dewi.png') }}"
                                 alt="Foto Kepala RA Fadhilah"
                                 class="w-full rounded-2xl object-cover"
                             >
@@ -77,7 +77,7 @@
                         </div>
                         <div class="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-slate-700">
                             <span class="font-semibold text-slate-500">NPSN</span>
-                            <span>30407224</span>
+                            <span>69731079</span>
 
                             <span class="font-semibold text-slate-500">Akreditasi</span>
                             <span>A</span>
@@ -86,13 +86,16 @@
                             <span>Ibunda Sri Dewi, S.E.</span>
 
                             <span class="font-semibold text-slate-500">Telepon</span>
-                            <span>(0548) 27483</span>
+                            <span>0821 6207 736</span>
 
                             <span class="font-semibold text-slate-500">Email</span>
                             <a href="mailto:admin@rafadhilah.sch.id" class="text-blue-700 hover:text-blue-800">admin@rafadhilah.sch.id</a>
 
                             <span class="font-semibold text-slate-500">WhatsApp</span>
-                            <a href="https://wa.me/628115860111" target="_blank" class="text-blue-700 hover:text-blue-800">+62 811 5860 111</a>
+                            <div class="space-y-1">
+                                <a href="https://wa.me/628216207736" target="_blank" class="block text-blue-700 hover:text-blue-800">0821 6207 736</a>
+                                <a href="https://wa.me/6282286817315" target="_blank" class="block text-blue-700 hover:text-blue-800">0822 8681 7315</a>
+                            </div>
                         </div>
                     </div>
                 </div>

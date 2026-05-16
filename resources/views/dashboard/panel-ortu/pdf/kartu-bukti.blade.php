@@ -41,7 +41,7 @@
                 <li>Pantau status verifikasi berkas di portal PPDB.</li>
                 <li>Pengumuman penerimaan akan diinformasikan oleh sekolah.</li>
                 <li>Siapkan proses daftar ulang jika dinyatakan diterima.</li>
-                <li>Hubungi sekolah jika ada pertanyaan: (0761) 27483</li>
+                <li>Hubungi sekolah jika ada pertanyaan: 0821 6207 736 / 0822 8681 7315</li>
             </ol>
         </div>
     </div>

@@ -42,7 +42,7 @@
                         </span>
                         <div>
                             <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Phone</p>
-                            <p class="text-sm font-semibold text-slate-800">Telp: (0548) 27483, WA: 0821 1145 6122</p>
+                            <p class="text-sm font-semibold text-slate-800">Telp: 0821 6207 736, WA: 0822 8681 7315</p>
                         </div>
                     </div>
                 </div>
