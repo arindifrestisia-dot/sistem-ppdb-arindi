@@ -87,12 +87,17 @@
             ['name' => 'Guru Pendamping', 'role' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png')],
         ]);
 
-    $activityMenu = collect([
-        ['title' => 'Practical Life', 'image' => asset('image/berita1.png')],
-        ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png')],
-        ['title' => 'Literasi', 'image' => asset('image/berita.png')],
-        ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
-    ]);
+    $activityMenu = $activityItems->isNotEmpty()
+        ? $activityItems->map(fn ($item) => [
+            'title' => $item->title,
+            'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/berita1.png'),
+        ])
+        : collect([
+            ['title' => 'Practical Life', 'image' => asset('image/berita1.png')],
+            ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png')],
+            ['title' => 'Literasi', 'image' => asset('image/berita.png')],
+            ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
+        ]);
 
     $testimonials = collect([
         [
