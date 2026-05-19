@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; }
+        .required-star { color: #e11d48; font-size: 0.8em; margin-left: 0.2rem; vertical-align: super; }
+        .field-error { border-color: #fb7185 !important; box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18); }
     </style>
 </head>
 <body class="bg-[#cfe0f8] text-slate-900">
@@ -117,6 +119,18 @@
                                     </select>
                                 </div>
                                 <div>
+                                    <label for="religion" class="text-sm font-medium text-slate-600">Agama</label>
+                                    <select id="religion" name="religion" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                        <option value="">Pilih agama</option>
+                                        @foreach (['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha'] as $option)
+                                            <option value="{{ $option }}" @selected(old('religion', $registration?->religion) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <div>
                                     <label for="special_needs" class="text-sm font-medium text-slate-600">Berkebutuhan Khusus</label>
                                     <select id="special_needs" name="special_needs" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
                                         <option value="">Pilih opsi</option>
@@ -124,9 +138,24 @@
                                         <option value="Tidak" @selected(old('special_needs', $registration ? ($registration->special_needs ? 'Ya' : 'Tidak') : '') === 'Tidak')>Tidak</option>
                                     </select>
                                 </div>
-                            </div>
-
-                            <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                <div>
+                                    <label for="child_status" class="text-sm font-medium text-slate-600">Status Anak</label>
+                                    <select id="child_status" name="child_status" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                        <option value="">Pilih status anak</option>
+                                        @foreach (['Kandung', 'Tiri', 'Angkat'] as $option)
+                                            <option value="{{ $option }}" @selected(old('child_status', $registration?->child_status) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="blood_type" class="text-sm font-medium text-slate-600">Golongan Darah</label>
+                                    <select id="blood_type" name="blood_type" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                        <option value="">Pilih golongan darah</option>
+                                        @foreach (['A', 'B', 'AB', 'O', 'Tidak Tahu'] as $option)
+                                            <option value="{{ $option }}" @selected(old('blood_type', $registration?->blood_type) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div>
                                     <label for="child_order" class="text-sm font-medium text-slate-600">Anak ke-</label>
                                     <input id="child_order" name="child_order" type="number" min="1" required value="{{ old('child_order', $registration?->child_order) }}" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none" placeholder="Contoh: 2">
@@ -139,8 +168,12 @@
 
                             <div class="mt-6 grid gap-4 lg:grid-cols-2">
                                 <div>
-                                    <label for="home_address" class="text-sm font-medium text-slate-600">Alamat Rumah</label>
+                                    <label for="home_address" class="text-sm font-medium text-slate-600">Alamat Rumah (Lengkap)</label>
                                     <textarea id="home_address" name="home_address" required class="mt-2 h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none" placeholder="Masukkan alamat rumah lengkap">{{ old('home_address', $registration?->home_address) }}</textarea>
+                                </div>
+                                <div id="specialNeedsDescriptionWrapper" class="{{ old('special_needs', $registration ? ($registration->special_needs ? 'Ya' : 'Tidak') : '') === 'Ya' ? '' : 'hidden' }}">
+                                    <label for="special_needs_description" class="text-sm font-medium text-slate-600">Keterangan Kebutuhan Khusus</label>
+                                    <textarea id="special_needs_description" name="special_needs_description" class="mt-2 h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none" placeholder="Tuliskan kebutuhan khusus anak">{{ old('special_needs_description', $registration?->special_needs_description) }}</textarea>
                                 </div>
                                 <div>
                                     <label for="medical_history" class="text-sm font-medium text-slate-600">Penyakit Bawaan yang Pernah Diderita</label>
@@ -176,6 +209,32 @@
                                     <input id="father_birth_info" name="father_birth_info" type="text" required value="{{ old('father_birth_info', $registration?->father_birth_info) }}" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none" placeholder="Contoh: Jakarta, 15 Januari 1985">
                                 </div>
                                 <div>
+                                    <label for="father_religion" class="text-sm font-medium text-slate-600">Agama Ayah</label>
+                                    <select id="father_religion" name="father_religion" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih agama</option>
+                                        @foreach (['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha'] as $option)
+                                            <option value="{{ $option }}" @selected(old('father_religion', $registration?->father_religion) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="father_citizenship" class="text-sm font-medium text-slate-600">Kewarganegaraan Ayah</label>
+                                    <select id="father_citizenship" name="father_citizenship" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih kewarganegaraan</option>
+                                        <option value="WNI" @selected(old('father_citizenship', $registration?->father_citizenship) === 'WNI')>WNI</option>
+                                        <option value="WNA" @selected(old('father_citizenship', $registration?->father_citizenship) === 'WNA')>WNA</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="father_status" class="text-sm font-medium text-slate-600">Status Ayah</label>
+                                    <select id="father_status" name="father_status" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih status ayah</option>
+                                        @foreach (['Kandung', 'Tiri', 'Angkat', 'Wali'] as $option)
+                                            <option value="{{ $option }}" @selected(old('father_status', $registration?->father_status) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
                                     <label for="father_job" class="text-sm font-medium text-slate-600">Pekerjaan</label>
                                     <input id="father_job" name="father_job" type="text" required value="{{ old('father_job', $registration?->father_job) }}" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none" placeholder="Masukkan pekerjaan ayah">
                                 </div>
@@ -203,6 +262,26 @@
                                 </div>
                             </div>
 
+                            <div class="mt-6">
+                                <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                    <label for="father_same_address" class="flex cursor-pointer items-start gap-3 text-sm font-semibold text-slate-700">
+                                        <input
+                                            id="father_same_address"
+                                            name="father_same_address"
+                                            type="checkbox"
+                                            value="1"
+                                            @checked((filled(old('father_address', $registration?->father_address)) && old('father_address', $registration?->father_address) === old('home_address', $registration?->home_address)))
+                                            class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500"
+                                        >
+                                        <span>Alamat ayah sama dengan alamat anak</span>
+                                    </label>
+                                    <div>
+                                        <label for="father_address" class="text-sm font-medium text-slate-600">Alamat Lengkap Ayah</label>
+                                        <textarea id="father_address" name="father_address" required class="mt-2 h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 focus:border-fuchsia-400 focus:outline-none" placeholder="Masukkan alamat lengkap ayah">{{ old('father_address', $registration?->father_address) }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-10 rounded-2xl border border-fuchsia-100 bg-fuchsia-50 px-5 py-4">
                                 <h3 class="text-xl font-bold text-blue-950">Data Ibu</h3>
                                 <p class="mt-1 text-sm text-slate-500">Lengkapi identitas ibu atau wali pendamping dengan format yang sama.</p>
@@ -216,6 +295,32 @@
                                 <div>
                                     <label for="mother_birth_info" class="text-sm font-medium text-slate-600">Tempat dan Tanggal Lahir</label>
                                     <input id="mother_birth_info" name="mother_birth_info" type="text" required value="{{ old('mother_birth_info', $registration?->mother_birth_info) }}" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none" placeholder="Contoh: Bandung, 20 Februari 1987">
+                                </div>
+                                <div>
+                                    <label for="mother_religion" class="text-sm font-medium text-slate-600">Agama Ibu</label>
+                                    <select id="mother_religion" name="mother_religion" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih agama</option>
+                                        @foreach (['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha'] as $option)
+                                            <option value="{{ $option }}" @selected(old('mother_religion', $registration?->mother_religion) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="mother_citizenship" class="text-sm font-medium text-slate-600">Kewarganegaraan Ibu</label>
+                                    <select id="mother_citizenship" name="mother_citizenship" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih kewarganegaraan</option>
+                                        <option value="WNI" @selected(old('mother_citizenship', $registration?->mother_citizenship) === 'WNI')>WNI</option>
+                                        <option value="WNA" @selected(old('mother_citizenship', $registration?->mother_citizenship) === 'WNA')>WNA</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="mother_status" class="text-sm font-medium text-slate-600">Status Ibu</label>
+                                    <select id="mother_status" name="mother_status" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
+                                        <option value="">Pilih status ibu</option>
+                                        @foreach (['Kandung', 'Tiri', 'Angkat', 'Wali'] as $option)
+                                            <option value="{{ $option }}" @selected(old('mother_status', $registration?->mother_status) === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
                                     <label for="mother_job" class="text-sm font-medium text-slate-600">Pekerjaan</label>
@@ -245,6 +350,26 @@
                                 </div>
                             </div>
 
+                            <div class="mt-6">
+                                <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                    <label for="mother_same_address" class="flex cursor-pointer items-start gap-3 text-sm font-semibold text-slate-700">
+                                        <input
+                                            id="mother_same_address"
+                                            name="mother_same_address"
+                                            type="checkbox"
+                                            value="1"
+                                            @checked((filled(old('mother_address', $registration?->mother_address)) && old('mother_address', $registration?->mother_address) === old('home_address', $registration?->home_address)))
+                                            class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500"
+                                        >
+                                        <span>Alamat ibu sama dengan alamat anak</span>
+                                    </label>
+                                    <div>
+                                        <label for="mother_address" class="text-sm font-medium text-slate-600">Alamat Lengkap Ibu</label>
+                                        <textarea id="mother_address" name="mother_address" required class="mt-2 h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 focus:border-fuchsia-400 focus:outline-none" placeholder="Masukkan alamat lengkap ibu">{{ old('mother_address', $registration?->mother_address) }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-between">
                                 <button type="button" class="rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-50" data-prev-step="1">Kembali</button>
                                 <button type="button" class="rounded-2xl bg-blue-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-800" data-next-step="3">Lanjut</button>
@@ -261,32 +386,32 @@
 
                             <div class="mt-6 grid gap-4 md:grid-cols-2">
                                 <div>
-                                    <label for="child_photo" class="text-sm font-medium text-slate-600">Pas Foto 3x4 Anak</label>
-                                    <input id="child_photo" name="child_photo" type="file" accept=".jpg,.jpeg,.png,.pdf" class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                    <label for="child_photo" class="text-sm font-medium text-slate-600" data-required-label="true">Pas Foto 3x4 Anak</label>
+                                    <input id="child_photo" name="child_photo" type="file" accept=".jpg,.jpeg,.png,.pdf" @required(! $registration?->child_photo_path) class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
                                     <p class="file-name-preview mt-2 text-sm text-slate-500" data-existing="{{ $registration?->child_photo_path ? basename($registration->child_photo_path) : 'Belum ada file dipilih' }}">{{ $registration?->child_photo_path ? basename($registration->child_photo_path) : 'Belum ada file dipilih' }}</p>
                                     @if ($registration?->child_photo_path)
                                         <a href="{{ asset('storage/' . $registration->child_photo_path) }}" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-blue-700 hover:underline">Lihat file tersimpan</a>
                                     @endif
                                 </div>
                                 <div>
-                                    <label for="parents_id_card" class="text-sm font-medium text-slate-600">Scan KTP Kedua Orang Tua</label>
-                                    <input id="parents_id_card" name="parents_id_card" type="file" accept=".jpg,.jpeg,.png,.pdf" class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                    <label for="parents_id_card" class="text-sm font-medium text-slate-600" data-required-label="true">Scan KTP Kedua Orang Tua</label>
+                                    <input id="parents_id_card" name="parents_id_card" type="file" accept=".jpg,.jpeg,.png,.pdf" @required(! $registration?->parents_id_card_path) class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
                                     <p class="file-name-preview mt-2 text-sm text-slate-500" data-existing="{{ $registration?->parents_id_card_path ? basename($registration->parents_id_card_path) : 'Belum ada file dipilih' }}">{{ $registration?->parents_id_card_path ? basename($registration->parents_id_card_path) : 'Belum ada file dipilih' }}</p>
                                     @if ($registration?->parents_id_card_path)
                                         <a href="{{ asset('storage/' . $registration->parents_id_card_path) }}" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-blue-700 hover:underline">Lihat file tersimpan</a>
                                     @endif
                                 </div>
                                 <div>
-                                    <label for="birth_certificate" class="text-sm font-medium text-slate-600">Akte Lahir Anak</label>
-                                    <input id="birth_certificate" name="birth_certificate" type="file" accept=".jpg,.jpeg,.png,.pdf" class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                    <label for="birth_certificate" class="text-sm font-medium text-slate-600" data-required-label="true">Akte Lahir Anak</label>
+                                    <input id="birth_certificate" name="birth_certificate" type="file" accept=".jpg,.jpeg,.png,.pdf" @required(! $registration?->birth_certificate_path) class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
                                     <p class="file-name-preview mt-2 text-sm text-slate-500" data-existing="{{ $registration?->birth_certificate_path ? basename($registration->birth_certificate_path) : 'Belum ada file dipilih' }}">{{ $registration?->birth_certificate_path ? basename($registration->birth_certificate_path) : 'Belum ada file dipilih' }}</p>
                                     @if ($registration?->birth_certificate_path)
                                         <a href="{{ asset('storage/' . $registration->birth_certificate_path) }}" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-blue-700 hover:underline">Lihat file tersimpan</a>
                                     @endif
                                 </div>
                                 <div>
-                                    <label for="family_card" class="text-sm font-medium text-slate-600">Kartu Keluarga</label>
-                                    <input id="family_card" name="family_card" type="file" accept=".jpg,.jpeg,.png,.pdf" class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
+                                    <label for="family_card" class="text-sm font-medium text-slate-600" data-required-label="true">Kartu Keluarga</label>
+                                    <input id="family_card" name="family_card" type="file" accept=".jpg,.jpeg,.png,.pdf" @required(! $registration?->family_card_path) class="file-upload mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-blue-400 focus:outline-none">
                                     <p class="file-name-preview mt-2 text-sm text-slate-500" data-existing="{{ $registration?->family_card_path ? basename($registration->family_card_path) : 'Belum ada file dipilih' }}">{{ $registration?->family_card_path ? basename($registration->family_card_path) : 'Belum ada file dipilih' }}</p>
                                     @if ($registration?->family_card_path)
                                         <a href="{{ asset('storage/' . $registration->family_card_path) }}" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-blue-700 hover:underline">Lihat file tersimpan</a>
@@ -339,6 +464,146 @@
         const registrationForm = document.getElementById('registrationForm');
         const submitRegistrationButton = document.getElementById('submitRegistrationButton');
         const saveDraftButton = document.getElementById('saveDraftButton');
+        const specialNeedsSelect = document.getElementById('special_needs');
+        const specialNeedsDescription = document.getElementById('special_needs_description');
+        const specialNeedsDescriptionWrapper = document.getElementById('specialNeedsDescriptionWrapper');
+        const childAddressInput = document.getElementById('home_address');
+        const sameAddressControls = [
+            {
+                checkbox: document.getElementById('father_same_address'),
+                textarea: document.getElementById('father_address'),
+            },
+            {
+                checkbox: document.getElementById('mother_same_address'),
+                textarea: document.getElementById('mother_address'),
+            },
+        ];
+
+        function syncRequiredStars() {
+            registrationForm?.querySelectorAll('label[for]').forEach((label) => {
+                const control = document.getElementById(label.htmlFor);
+                const existingStar = label.querySelector('.required-star');
+
+                if ((control?.required || label.dataset.requiredLabel === 'true') && !existingStar) {
+                    const star = document.createElement('span');
+                    star.className = 'required-star';
+                    star.textContent = '*';
+                    label.appendChild(star);
+                }
+
+                if (!control?.required && label.dataset.requiredLabel !== 'true' && existingStar) {
+                    existingStar.remove();
+                }
+            });
+        }
+
+        function syncSpecialNeedsDescription() {
+            const needsDescription = specialNeedsSelect?.value === 'Ya';
+
+            specialNeedsDescriptionWrapper?.classList.toggle('hidden', !needsDescription);
+
+            if (specialNeedsDescription) {
+                specialNeedsDescription.required = needsDescription;
+
+                if (!needsDescription) {
+                    specialNeedsDescription.value = '';
+                    specialNeedsDescription.classList.remove('field-error');
+                }
+            }
+
+            syncRequiredStars();
+        }
+
+        function syncSameAddress(control) {
+            if (!control.checkbox || !control.textarea || !childAddressInput) {
+                return;
+            }
+
+            if (control.checkbox.checked) {
+                control.textarea.value = childAddressInput.value;
+                control.textarea.readOnly = true;
+                control.textarea.classList.remove('bg-white');
+                control.textarea.classList.add('bg-slate-100');
+                control.textarea.classList.remove('field-error');
+            } else {
+                control.textarea.readOnly = false;
+                control.textarea.classList.remove('bg-slate-100');
+                control.textarea.classList.add('bg-white');
+            }
+        }
+
+        function syncAllSameAddresses() {
+            sameAddressControls.forEach(syncSameAddress);
+        }
+
+        function showStepValidationMessage(section) {
+            let message = section.querySelector('[data-step-validation-message]');
+
+            if (!message) {
+                message = document.createElement('p');
+                message.dataset.stepValidationMessage = 'true';
+                message.className = 'mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700';
+                section.firstElementChild?.after(message);
+            }
+
+            message.textContent = 'Mohon lengkapi semua isian bertanda bintang merah sebelum melanjutkan.';
+        }
+
+        function clearStepValidationMessage(section) {
+            if (!section) {
+                return;
+            }
+
+            section.querySelector('[data-step-validation-message]')?.remove();
+        }
+
+        function validateStep(step) {
+            const section = document.querySelector(`.form-step[data-step="${step}"]`);
+
+            if (!section) {
+                return true;
+            }
+
+            const fields = [...section.querySelectorAll('input, select, textarea')]
+                .filter((field) => field.required && !field.disabled && field.type !== 'hidden');
+            const firstInvalid = fields.find((field) => !field.checkValidity());
+
+            fields.forEach((field) => {
+                field.classList.toggle('field-error', !field.checkValidity());
+            });
+
+            if (firstInvalid) {
+                showStepValidationMessage(section);
+                firstInvalid.focus({ preventScroll: true });
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                return false;
+            }
+
+            clearStepValidationMessage(section);
+
+            return true;
+        }
+
+        function canMoveToStep(targetStep) {
+            const currentStep = Number(activeStepInput.value || 1);
+
+            if (targetStep <= currentStep) {
+                return true;
+            }
+
+            for (let step = currentStep; step < targetStep; step += 1) {
+                if (step !== currentStep) {
+                    renderStep(step);
+                }
+
+                if (!validateStep(step)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         function renderStep(step) {
             activeStepInput.value = step;
@@ -363,13 +628,21 @@
 
         nextStepButtons.forEach((button) => {
             button.addEventListener('click', () => {
-                renderStep(Number(button.dataset.nextStep));
+                const nextStep = Number(button.dataset.nextStep);
+
+                if (canMoveToStep(nextStep)) {
+                    renderStep(nextStep);
+                }
             });
         });
 
         stepIndicators.forEach((indicator) => {
             indicator.addEventListener('click', () => {
-                renderStep(Number(indicator.dataset.stepIndicator));
+                const targetStep = Number(indicator.dataset.stepIndicator);
+
+                if (canMoveToStep(targetStep)) {
+                    renderStep(targetStep);
+                }
             });
         });
 
@@ -393,6 +666,23 @@
             });
         });
 
+        registrationForm?.querySelectorAll('input, select, textarea').forEach((field) => {
+            field.addEventListener('input', () => {
+                field.classList.remove('field-error');
+                clearStepValidationMessage(field.closest('.form-step'));
+            });
+            field.addEventListener('change', () => {
+                field.classList.remove('field-error');
+                clearStepValidationMessage(field.closest('.form-step'));
+            });
+        });
+
+        specialNeedsSelect?.addEventListener('change', syncSpecialNeedsDescription);
+        childAddressInput?.addEventListener('input', syncAllSameAddresses);
+        sameAddressControls.forEach((control) => {
+            control.checkbox?.addEventListener('change', () => syncSameAddress(control));
+        });
+
         registrationForm?.addEventListener('submit', () => {
             if (!submitRegistrationButton || !saveDraftButton) {
                 return;
@@ -414,6 +704,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         @endif
 
+        syncSpecialNeedsDescription();
+        syncAllSameAddresses();
+        syncRequiredStars();
         renderStep(Number(activeStepInput.value || 1));
     </script>
 </body>

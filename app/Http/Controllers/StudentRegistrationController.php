@@ -34,6 +34,27 @@ class StudentRegistrationController extends Controller
         }
 
         $action = $request->input('action', 'submit');
+        $registration = $request->user()->studentRegistration()->firstOrNew();
+
+        $fileRules = [
+            'child_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'parents_id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'birth_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'family_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+        ];
+
+        if ($action === 'submit') {
+            foreach ([
+                'child_photo' => 'child_photo_path',
+                'parents_id_card' => 'parents_id_card_path',
+                'birth_certificate' => 'birth_certificate_path',
+                'family_card' => 'family_card_path',
+            ] as $inputName => $columnName) {
+                if (! $registration->{$columnName}) {
+                    array_unshift($fileRules[$inputName], 'required');
+                }
+            }
+        }
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
@@ -41,35 +62,45 @@ class StudentRegistrationController extends Controller
             'gender' => ['required', 'in:Laki-laki,Perempuan'],
             'birth_place' => ['required', 'string', 'max:255'],
             'birth_date' => ['required', 'date'],
+            'religion' => ['required', 'in:Islam,Kristen,Katolik,Hindu,Buddha'],
             'weight_kg' => ['required', 'numeric', 'min:0', 'max:999.99'],
             'height_cm' => ['required', 'numeric', 'min:0', 'max:999.99'],
             'home_address' => ['required', 'string'],
             'origin_region' => ['required', 'string', 'max:255'],
             'citizenship' => ['required', 'in:WNI,WNA'],
             'special_needs' => ['required', 'in:Ya,Tidak'],
+            'special_needs_description' => ['required_if:special_needs,Ya', 'nullable', 'string'],
+            'child_status' => ['required', 'in:Kandung,Tiri,Angkat'],
+            'blood_type' => ['required', 'in:A,B,AB,O,Tidak Tahu'],
             'child_order' => ['required', 'integer', 'min:1'],
             'siblings_total' => ['required', 'integer', 'min:1'],
             'medical_history' => ['nullable', 'string'],
             'father_name' => ['required', 'string', 'max:255'],
             'father_birth_info' => ['required', 'string', 'max:255'],
+            'father_religion' => ['required', 'in:Islam,Kristen,Katolik,Hindu,Buddha'],
+            'father_citizenship' => ['required', 'in:WNI,WNA'],
+            'father_status' => ['required', 'in:Kandung,Tiri,Angkat,Wali'],
             'father_job' => ['required', 'string', 'max:255'],
             'father_education' => ['required', 'string', 'max:255'],
             'father_income' => ['required', 'string', 'max:255'],
             'father_phone' => ['required', 'string', 'max:30'],
+            'father_address' => ['required', 'string'],
             'mother_name' => ['required', 'string', 'max:255'],
             'mother_birth_info' => ['required', 'string', 'max:255'],
+            'mother_religion' => ['required', 'in:Islam,Kristen,Katolik,Hindu,Buddha'],
+            'mother_citizenship' => ['required', 'in:WNI,WNA'],
+            'mother_status' => ['required', 'in:Kandung,Tiri,Angkat,Wali'],
             'mother_job' => ['required', 'string', 'max:255'],
             'mother_education' => ['required', 'string', 'max:255'],
             'mother_income' => ['required', 'string', 'max:255'],
             'mother_phone' => ['required', 'string', 'max:30'],
-            'child_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
-            'parents_id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
-            'birth_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
-            'family_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'mother_address' => ['required', 'string'],
+            'child_photo' => $fileRules['child_photo'],
+            'parents_id_card' => $fileRules['parents_id_card'],
+            'birth_certificate' => $fileRules['birth_certificate'],
+            'family_card' => $fileRules['family_card'],
             'agreement' => [$action === 'submit' ? 'accepted' : 'nullable'],
         ]);
-
-        $registration = $request->user()->studentRegistration()->firstOrNew();
 
         $registration->fill([
             'full_name' => $validated['full_name'],
@@ -77,27 +108,41 @@ class StudentRegistrationController extends Controller
             'gender' => $validated['gender'],
             'birth_place' => $validated['birth_place'],
             'birth_date' => $validated['birth_date'],
+            'religion' => $validated['religion'],
             'weight_kg' => $validated['weight_kg'],
             'height_cm' => $validated['height_cm'],
             'home_address' => $validated['home_address'],
             'origin_region' => $validated['origin_region'],
             'citizenship' => $validated['citizenship'],
             'special_needs' => $validated['special_needs'] === 'Ya',
+            'special_needs_description' => $validated['special_needs'] === 'Ya'
+                ? ($validated['special_needs_description'] ?? null)
+                : null,
+            'child_status' => $validated['child_status'],
+            'blood_type' => $validated['blood_type'],
             'child_order' => $validated['child_order'],
             'siblings_total' => $validated['siblings_total'],
             'medical_history' => $validated['medical_history'] ?? null,
             'father_name' => $validated['father_name'],
             'father_birth_info' => $validated['father_birth_info'],
+            'father_religion' => $validated['father_religion'],
+            'father_citizenship' => $validated['father_citizenship'],
+            'father_status' => $validated['father_status'],
             'father_job' => $validated['father_job'],
             'father_education' => $validated['father_education'],
             'father_income' => $validated['father_income'],
             'father_phone' => $validated['father_phone'],
+            'father_address' => $validated['father_address'],
             'mother_name' => $validated['mother_name'],
             'mother_birth_info' => $validated['mother_birth_info'],
+            'mother_religion' => $validated['mother_religion'],
+            'mother_citizenship' => $validated['mother_citizenship'],
+            'mother_status' => $validated['mother_status'],
             'mother_job' => $validated['mother_job'],
             'mother_education' => $validated['mother_education'],
             'mother_income' => $validated['mother_income'],
             'mother_phone' => $validated['mother_phone'],
+            'mother_address' => $validated['mother_address'],
         ]);
 
         $registration->user()->associate($request->user());

@@ -76,28 +76,22 @@
     $teacherItems = $teacherItems->isNotEmpty()
         ? $teacherItems->map(fn ($item) => [
             'name' => $item->title,
-            'role' => $item->excerpt,
             'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/fotoguru.png'),
         ])
         : collect([
-            ['name' => 'Guru Kelas A1', 'role' => 'Guru Kelas', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas A2', 'role' => 'Guru Kelas', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas B1', 'role' => 'Guru Kelas', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas B2', 'role' => 'Guru Kelas', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Pendamping', 'role' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas A1', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas A2', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas B1', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas B2', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png')],
         ]);
 
-    $activityMenu = $activityItems->isNotEmpty()
-        ? $activityItems->map(fn ($item) => [
-            'title' => $item->title,
-            'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/berita1.png'),
-        ])
-        : collect([
-            ['title' => 'Practical Life', 'image' => asset('image/berita1.png')],
-            ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png')],
-            ['title' => 'Literasi', 'image' => asset('image/berita.png')],
-            ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
-        ]);
+    $activityMenu = collect([
+        ['title' => 'Practical Life', 'image' => asset('image/berita1.png')],
+        ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png')],
+        ['title' => 'Literasi', 'image' => asset('image/berita.png')],
+        ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
+    ]);
 
     $testimonials = collect([
         [
@@ -284,7 +278,7 @@
                     <div class="h-12 w-12 rounded bg-[var(--brand-blue)]/10"></div>
                     <div>
                         <p class="text-xs font-bold uppercase text-slate-400">WhatsApp</p>
-                        <p class="text-sm font-semibold">0821 6207 736 / 0822 8681 7315</p>
+                        <p class="text-sm font-semibold">0822 8681 7315</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -349,73 +343,19 @@
         </div>
     </section>
 
-    <section class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6" x-data>
-        <div class="flex items-end justify-between gap-4">
-            <div class="flex-1 text-center">
-                <h2 class="section-title">Guru Pengajar</h2>
-                <div class="section-accent"></div>
-            </div>
+    <section class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6">
+        <h2 class="section-title">Guru Pengajar</h2>
+        <div class="section-accent"></div>
 
-            <div class="hidden shrink-0 items-center gap-2 sm:flex">
-                <button
-                    type="button"
-                    @click="$refs.teacherSlider.scrollBy({ left: -$refs.teacherSlider.clientWidth, behavior: 'smooth' })"
-                    class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                    aria-label="Guru sebelumnya"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                    </svg>
-                </button>
-                <button
-                    type="button"
-                    @click="$refs.teacherSlider.scrollBy({ left: $refs.teacherSlider.clientWidth, behavior: 'smooth' })"
-                    class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                    aria-label="Guru berikutnya"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <div
-            x-ref="teacherSlider"
-            class="mt-14 flex snap-x snap-mandatory gap-8 overflow-x-auto scroll-smooth pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
+        <div class="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             @foreach ($teacherItems as $teacher)
-                <article class="min-w-[76%] snap-start text-center sm:min-w-[42%] lg:min-w-[23%] xl:min-w-[18%]">
-                    <div class="mx-auto flex h-64 items-end justify-center overflow-hidden bg-white">
-                        <img src="{{ $teacher['image'] }}" alt="{{ $teacher['name'] }}" class="h-full max-w-full object-contain">
+                <article class="text-center">
+                    <div class="mx-auto flex h-52 items-end justify-center overflow-hidden">
+                        <img src="{{ $teacher['image'] }}" alt="{{ $teacher['name'] }}" class="h-full object-contain">
                     </div>
-                    <h3 class="mt-5 text-2xl font-black leading-tight text-slate-800">{{ $teacher['name'] }}</h3>
-                    <p class="mt-3 text-sm font-semibold text-blue-700">{{ $teacher['role'] }}</p>
+                    <h3 class="mt-4 text-2xl font-black text-slate-800">{{ $teacher['name'] }}</h3>
                 </article>
             @endforeach
-        </div>
-
-        <div class="mt-2 flex justify-center gap-2 sm:hidden">
-            <button
-                type="button"
-                @click="$refs.teacherSlider.scrollBy({ left: -$refs.teacherSlider.clientWidth, behavior: 'smooth' })"
-                class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-700"
-                aria-label="Guru sebelumnya"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-            </button>
-            <button
-                type="button"
-                @click="$refs.teacherSlider.scrollBy({ left: $refs.teacherSlider.clientWidth, behavior: 'smooth' })"
-                class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-700"
-                aria-label="Guru berikutnya"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-            </button>
         </div>
     </section>
 

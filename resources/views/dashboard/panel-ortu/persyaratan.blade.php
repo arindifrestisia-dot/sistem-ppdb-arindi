@@ -63,19 +63,26 @@
                                 <div><p class="text-sm font-medium text-slate-500">Jenis Kelamin</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->gender ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Tempat Lahir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->birth_place ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Tanggal Lahir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ optional($registration->birth_date)->format('d M Y') ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Agama</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->religion ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Berat Badan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->weight_kg ? $registration->weight_kg . ' kg' : '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Tinggi Badan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->height_cm ? $registration->height_cm . ' cm' : '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Asal Daerah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->origin_region ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Kewarganegaraan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->citizenship ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Berkebutuhan Khusus</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->special_needs ? 'Ya' : 'Tidak' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Status Anak</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->child_status ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Golongan Darah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->blood_type ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Anak ke-</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->child_order ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Dari Total Anak</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->siblings_total ?: '-' }}</p></div>
                             </div>
 
                             <div class="mt-6 grid gap-4 lg:grid-cols-2">
                                 <div>
-                                    <p class="text-sm font-medium text-slate-500">Alamat Rumah</p>
+                                    <p class="text-sm font-medium text-slate-500">Alamat Rumah (Lengkap)</p>
                                     <p class="mt-2 text-base leading-7 font-semibold text-slate-800">{{ $registration->home_address ?: '-' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Keterangan Kebutuhan Khusus</p>
+                                    <p class="mt-2 text-base leading-7 font-semibold text-slate-800">{{ $registration->special_needs_description ?: '-' }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-slate-500">Penyakit Bawaan yang Pernah Diderita</p>
@@ -96,10 +103,14 @@
                             <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 <div><p class="text-sm font-medium text-slate-500">Nama Ayah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_name ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Tempat dan Tanggal Lahir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_birth_info ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Agama Ayah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_religion ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Kewarganegaraan Ayah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_citizenship ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Status Ayah</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_status ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Pekerjaan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_job ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Pendidikan Terakhir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_education ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Penghasilan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_income ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">No. HP</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->father_phone ?: '-' }}</p></div>
+                                <div class="xl:col-span-3"><p class="text-sm font-medium text-slate-500">Alamat Lengkap Ayah</p><p class="mt-2 text-base leading-7 font-semibold text-slate-800">{{ $registration->father_address ?: '-' }}</p></div>
                             </div>
 
                             <div class="mt-8 rounded-2xl border border-fuchsia-100 bg-fuchsia-50 px-5 py-4">
@@ -108,10 +119,14 @@
                             <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 <div><p class="text-sm font-medium text-slate-500">Nama Ibu</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_name ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Tempat dan Tanggal Lahir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_birth_info ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Agama Ibu</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_religion ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Kewarganegaraan Ibu</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_citizenship ?: '-' }}</p></div>
+                                <div><p class="text-sm font-medium text-slate-500">Status Ibu</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_status ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Pekerjaan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_job ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Pendidikan Terakhir</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_education ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">Penghasilan</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_income ?: '-' }}</p></div>
                                 <div><p class="text-sm font-medium text-slate-500">No. HP</p><p class="mt-2 text-base font-semibold text-slate-800">{{ $registration->mother_phone ?: '-' }}</p></div>
+                                <div class="xl:col-span-3"><p class="text-sm font-medium text-slate-500">Alamat Lengkap Ibu</p><p class="mt-2 text-base leading-7 font-semibold text-slate-800">{{ $registration->mother_address ?: '-' }}</p></div>
                             </div>
                         </section>
 

@@ -33,14 +33,11 @@
                     </div>
                     <div class="rounded-2xl border border-slate-200 p-5">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">WhatsApp</p>
-                        <div class="mt-3 space-y-2">
-                            <a href="https://wa.me/628216207736" target="_blank" class="block text-blue-700 hover:text-blue-800">0821 6207 736</a>
-                            <a href="https://wa.me/6282286817315" target="_blank" class="block text-blue-700 hover:text-blue-800">0822 8681 7315</a>
-                        </div>
+                        <a href="https://wa.me/628115860111" target="_blank" class="mt-3 block text-blue-700 hover:text-blue-800">+62 822 8681 7315</a>
                     </div>
                     <div class="rounded-2xl border border-slate-200 p-5 md:col-span-2">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Jam Kerja</p>
-                        <p class="mt-3 text-slate-700">Senin - Sabtu, 08.00 - 13.00 WIB</p>
+                        <p class="mt-3 text-slate-700">Senin sampai Jumat, pukul 07.00 - 16.00 WIB</p>
                     </div>
                 </div>
 
