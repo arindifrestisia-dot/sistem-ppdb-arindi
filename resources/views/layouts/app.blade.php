@@ -9,6 +9,11 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-white text-slate-900">
+    @php
+        $mainNavItemClass = 'px-4 py-4 text-sm font-semibold transition hover:bg-white/10';
+        $mainNavActiveClass = 'bg-[var(--brand-yellow)] px-5 py-4 text-sm font-bold text-white';
+    @endphp
+
     <header x-data="{ mobileOpen: false }" class="sticky top-0 z-50 shadow-sm">
         <div class="bg-white">
             <div class="mx-auto flex max-w-[1260px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -16,7 +21,7 @@
                     <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="h-16 w-16 object-contain sm:h-20 sm:w-20">
                     <div class="min-w-0">
                         <p class="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand-emerald)]">Raudhatul Athfal</p>
-                        <h1 class="truncate text-2xl font-black text-[var(--brand-blue)] sm:text-4xl">Fadhilah</h1>
+                        <h1 class="truncate text-2xl font-black text-[var(--brand-blue)] sm:text-4xl">FADHILAH</h1>
                         <p class="truncate text-xs font-semibold text-slate-500 sm:text-sm">Pekanbaru, Riau</p>
                     </div>
                 </a>
@@ -75,7 +80,7 @@
         <nav class="bg-[var(--brand-blue)] text-white">
             <div class="mx-auto hidden max-w-[1260px] items-center justify-between gap-6 px-4 sm:px-6 lg:flex">
                 <div class="flex items-center">
-                    <a href="{{ route('profile.dashboard') }}" class="bg-[var(--brand-yellow)] px-5 py-4 text-sm font-bold text-white">Home</a>
+                    <a href="{{ route('profile.dashboard') }}" class="{{ request()->routeIs('profile.dashboard') || request()->routeIs('home') ? $mainNavActiveClass : $mainNavItemClass }}">Home</a>
                     <div class="relative" x-data="{ open: false }">
                         <button
                             type="button"
@@ -83,7 +88,7 @@
                             @keydown.escape.window="open = false"
                             class="flex items-center gap-2 px-4 py-4 text-sm font-semibold transition hover:bg-white/10"
                         >
-                            Profil Sekolah
+                            Tentang Kami
                             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.293l3.71-4.06a.75.75 0 1 1 1.1 1.02l-4.25 4.65a.75.75 0 0 1-1.1 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                             </svg>
@@ -100,13 +105,14 @@
                             <a href="{{ url('/profile/visi-misi') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Visi-Misi dan Tujuan RA Fadhilah</a>
                             <a href="{{ url('/profile/tenaga-pendidik') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Tenaga Pendidik</a>
                             <a href="{{ url('/profile/sejarah') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Sejarah</a>
-                            <a href="{{ route('profile.fasilitas') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Fasilitas</a>
+                            <a href="{{ route('profile.program-kegiatan-ra') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Program Kegiatan RA</a>
                         </div>
                     </div>
-                    <a href="{{ url('/blog/berita') }}" class="px-4 py-4 text-sm font-semibold transition hover:bg-white/10">Berita</a>
-                    <a href="{{ route('blog.prestasi') }}" class="px-4 py-4 text-sm font-semibold transition hover:bg-white/10">Prestasi</a>
-                    <a href="{{ route('ppdb.info') }}" class="px-4 py-4 text-sm font-semibold transition hover:bg-white/10">Penerimaan Murid Baru</a>
-                    <a href="{{ url('/profile/kontak-kami') }}" class="px-4 py-4 text-sm font-semibold transition hover:bg-white/10">Kontak Kami</a>
+                    <a href="{{ url('/blog/berita') }}" class="{{ request()->is('blog/berita') ? $mainNavActiveClass : $mainNavItemClass }}">Berita</a>
+                    <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi') ? $mainNavActiveClass : $mainNavItemClass }}">Prestasi</a>
+                    <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">Fasilitas</a>
+                    <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">Penerimaan Murid Baru</a>
+                    <a href="{{ url('/profile/kontak-kami') }}" class="{{ request()->is('profile/kontak-kami') ? $mainNavActiveClass : $mainNavItemClass }}">Kontak Kami</a>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -128,17 +134,18 @@
                     <div class="grid gap-2">
                         <a href="{{ route('profile.dashboard') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Home</a>
                         <div class="rounded-md bg-white/5 px-4 py-3">
-                            <p class="text-sm font-semibold">Profil Sekolah</p>
+                            <p class="text-sm font-semibold">Tentang Kami</p>
                             <div class="mt-3 grid gap-1 pl-2 text-sm text-white/80">
                                 <a href="{{ url('/profile/kata-sambutan') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Kata Sambutan</a>
                                 <a href="{{ url('/profile/visi-misi') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Visi-Misi dan Tujuan RA Fadhilah</a>
                                 <a href="{{ url('/profile/tenaga-pendidik') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Tenaga Pendidik</a>
                                 <a href="{{ url('/profile/sejarah') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Sejarah</a>
-                                <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Fasilitas</a>
+                                <a href="{{ route('profile.program-kegiatan-ra') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Program Kegiatan RA</a>
                             </div>
                         </div>
                         <a href="{{ url('/blog/berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Berita</a>
                         <a href="{{ route('blog.prestasi') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Prestasi</a>
+                        <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Fasilitas</a>
                         <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Penerimaan Murid Baru</a>
                     <a href="{{ url('/profile/kontak-kami') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Kontak Kami</a>
                 </div>

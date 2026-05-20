@@ -50,6 +50,10 @@ Route::get('/profile/kontak-kami', function () {
 
 Route::get('/profile/fasilitas', [PublicPageController::class, 'facilities'])->name('profile.fasilitas');
 
+Route::get('/profile/program-kegiatan-ra', function () {
+    return view('profile.program-kegiatan-ra');
+})->name('profile.program-kegiatan-ra');
+
 Route::get('/blog/berita', function () {
     return view('blog.berita');
 });
