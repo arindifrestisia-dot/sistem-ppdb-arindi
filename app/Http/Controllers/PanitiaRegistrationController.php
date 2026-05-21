@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\StudentRegistration;
+use App\Services\PpdbNotificationService;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,11 @@ use Illuminate\View\View;
 
 class PanitiaRegistrationController extends Controller
 {
+    public function __construct(
+        private readonly PpdbNotificationService $notifications,
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->string('q'));
@@ -141,6 +147,11 @@ class PanitiaRegistrationController extends Controller
 
     public function update(Request $request, StudentRegistration $registration): RedirectResponse
     {
+        $registration->loadMissing('user');
+        $previousVerificationStatus = $registration->verification_status;
+        $previousSelectionResult = $registration->selection_result;
+        $previousSelectionPublishedAt = $registration->selection_published_at;
+
         $validated = $request->validate([
             'verification_status' => ['required', 'in:belum_diperiksa,revisi,terverifikasi,ditolak'],
             'verification_notes' => ['nullable', 'string'],
@@ -160,6 +171,26 @@ class PanitiaRegistrationController extends Controller
             ? now()
             : null;
         $registration->save();
+
+        if ($registration->verification_status === 'terverifikasi' && $previousVerificationStatus !== 'terverifikasi') {
+            $this->notifications->send('registration_verified', $registration->user, $registration);
+        }
+
+        $selectionWasJustPublished = $registration->selection_published_at !== null
+            && ($previousSelectionPublishedAt === null || $previousSelectionResult !== $registration->selection_result);
+
+        if ($selectionWasJustPublished) {
+            $this->notifications->send('selection_announced', $registration->user, $registration);
+
+            if ($registration->selection_result === 'lulus') {
+                $this->notifications->send('selection_passed', $registration->user, $registration);
+                $this->notifications->send('re_registration_instruction', $registration->user, $registration);
+            }
+
+            if ($registration->selection_result === 'tidak_lulus') {
+                $this->notifications->send('selection_failed', $registration->user, $registration);
+            }
+        }
 
         return redirect()
             ->route('panitia.registrations.show', array_filter([

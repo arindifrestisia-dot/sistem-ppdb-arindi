@@ -15,6 +15,8 @@
 <body class="bg-[#cfe0f8] text-slate-900">
     @php
         $registration = Auth::user()->studentRegistration;
+        $formPayment = Auth::user()->ppdbFormPayment;
+        $isFormPaid = Auth::user()->hasPaidPpdbForm();
         $isSelectionPublished = (bool) ($registration && $registration->selection_published_at);
     @endphp
     <div class="flex min-h-screen flex-col md:flex-row">
@@ -34,23 +36,25 @@
                     <article class="rounded-3xl bg-white p-6 shadow-[0_10px_25px_rgba(15,23,42,0.12)] ring-1 ring-blue-100">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="text-3xl font-extrabold text-blue-950">Belum</p>
+                                <p class="text-3xl font-extrabold text-blue-950">{{ $isFormPaid ? 'Lunas' : 'Belum' }}</p>
                                 <p class="mt-1 text-sm text-slate-600">Pembelian Formulir</p>
                             </div>
-                            <span class="rounded-2xl bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Tahap 1</span>
+                            <span class="rounded-2xl {{ $isFormPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }} px-4 py-2 text-sm font-bold">Tahap 1</span>
                         </div>
-                        <a href="{{ route('ortu.formulir') }}" class="mt-8 inline-flex text-sm font-semibold text-blue-900">Lanjut beli formulir &rarr;</a>
+                        <a href="{{ route('ortu.formulir') }}" class="mt-8 inline-flex text-sm font-semibold text-blue-900">{{ $isFormPaid ? 'Lihat bukti pembelian ->' : 'Lanjut beli formulir ->' }}</a>
                     </article>
 
                     <article class="rounded-3xl bg-white p-6 shadow-[0_10px_25px_rgba(15,23,42,0.12)] ring-1 ring-blue-100">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="text-3xl font-extrabold text-blue-950">Belum</p>
+                                <p class="text-3xl font-extrabold text-blue-950">{{ $registration?->submitted_at ? 'Selesai' : 'Belum' }}</p>
                                 <p class="mt-1 text-sm text-slate-600">Pengisian Data Diri</p>
                             </div>
-                            <span class="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600">Tahap 2</span>
+                            <span class="rounded-2xl {{ $isFormPaid ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600' }} px-4 py-2 text-sm font-bold">Tahap 2</span>
                         </div>
-                        <a href="{{ route('data-diri') }}" class="mt-8 inline-flex text-sm font-semibold text-blue-900">Buka menu data diri &rarr;</a>
+                        <a href="{{ $isFormPaid ? route('data-diri') : route('ortu.formulir') }}" class="mt-8 inline-flex text-sm font-semibold {{ $isFormPaid ? 'text-blue-900' : 'text-slate-400' }}">
+                            {{ $isFormPaid ? 'Buka menu data diri ->' : 'Lunasi formulir dulu ->' }}
+                        </a>
                     </article>
 
                     <article class="rounded-3xl bg-white p-6 shadow-[0_10px_25px_rgba(15,23,42,0.12)] ring-1 ring-blue-100">

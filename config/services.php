@@ -44,4 +44,17 @@ return [
         'num_predict' => (int) env('OLLAMA_NUM_PREDICT', 256),
     ],
 
+    'wablas' => [
+        'base_url' => env('WABLAS_BASE_URL', ''),
+        'token' => env('WABLAS_TOKEN', ''),
+        'timeout' => (int) env('WABLAS_TIMEOUT', 15),
+    ],
+
+    'midtrans' => [
+        'server_key' => env('MIDTRANS_SERVER_KEY', ''),
+        'client_key' => env('MIDTRANS_CLIENT_KEY', ''),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'timeout' => (int) env('MIDTRANS_TIMEOUT', 20),
+    ],
+
 ];

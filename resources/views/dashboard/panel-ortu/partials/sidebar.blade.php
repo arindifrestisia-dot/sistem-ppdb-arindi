@@ -66,6 +66,16 @@
                 </svg>
                 Status Lulus
             </a>
+            @if ($studentRegistration?->selection_result === 'lulus' && $studentRegistration?->selection_published_at)
+                <a href="{{ route('status-lulus') }}#pendaftaran-ulang" class="flex items-center gap-3 rounded-lg px-4 py-3 transition {{ ($activeMenu ?? '') === 'pendaftaran-ulang' ? 'bg-yellow-400 text-blue-950' : 'text-sky-100 hover:bg-blue-800' }}">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                        <path d="M3 10h18"></path>
+                        <path d="M7 15h4"></path>
+                    </svg>
+                    Pendaftaran Ulang
+                </a>
+            @endif
         </div>
     </nav>
 </aside>

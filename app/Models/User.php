@@ -57,6 +57,16 @@ class User extends Authenticatable
         return $this->hasOne(StudentRegistration::class);
     }
 
+    public function ppdbFormPayment(): HasOne
+    {
+        return $this->hasOne(PpdbFormPayment::class)->latestOfMany();
+    }
+
+    public function hasPaidPpdbForm(): bool
+    {
+        return (bool) $this->ppdbFormPayment?->isPaid();
+    }
+
     public function isPanitia(): bool
     {
         return $this->hasRole(self::ROLE_COMMITTEE, 'panitia');

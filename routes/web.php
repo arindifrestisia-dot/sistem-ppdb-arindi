@@ -10,6 +10,7 @@ use App\Http\Controllers\PanitiaInterviewScheduleController;
 use App\Http\Controllers\PanitiaRegistrationController;
 use App\Http\Controllers\PanitiaSchoolContentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PpdbFormPaymentController;
 use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\StudentRegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +61,10 @@ Route::get('/blog/berita', function () {
 
 Route::get('/blog/kegiatan', [PublicPageController::class, 'activities'])->name('blog.kegiatan');
 Route::get('/blog/prestasi', [PublicPageController::class, 'achievements'])->name('blog.prestasi');
+Route::post('/midtrans/formulir/notification', [PpdbFormPaymentController::class, 'notification'])
+    ->name('midtrans.formulir.notification');
+Route::post('/midtrans/daftar-ulang/notification', [StudentRegistrationController::class, 'handleMidtransReRegistrationNotification'])
+    ->name('midtrans.daftar-ulang.notification');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/panel-ortu', function () {
@@ -70,13 +75,9 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard.panel-ortu.home');
     })->name('panel.ortu');
 
-    Route::get('/panel-ortu/formulir', function () {
-        if (auth()->user()->isStaff()) {
-            return redirect()->route('dashboard');
-        }
-
-        return view('dashboard.panel-ortu.formulir');
-    })->name('ortu.formulir');
+    Route::get('/panel-ortu/formulir', [PpdbFormPaymentController::class, 'show'])->name('ortu.formulir');
+    Route::post('/panel-ortu/formulir/midtrans/token', [PpdbFormPaymentController::class, 'createToken'])->name('ortu.formulir.midtrans.token');
+    Route::post('/panel-ortu/formulir/midtrans/sync', [PpdbFormPaymentController::class, 'sync'])->name('ortu.formulir.midtrans.sync');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -88,6 +89,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wawancara', [StudentRegistrationController::class, 'interview'])->name('wawancara');
     Route::post('/wawancara', [StudentRegistrationController::class, 'storeInterview'])->name('wawancara.update');
     Route::get('/status-lulus', [StudentRegistrationController::class, 'graduationStatus'])->name('status-lulus');
+    Route::post('/daftar-ulang/midtrans/token', [StudentRegistrationController::class, 'createReRegistrationPayment'])->name('daftar-ulang.midtrans.token');
+    Route::post('/daftar-ulang/midtrans/sync', [StudentRegistrationController::class, 'syncReRegistrationPayment'])->name('daftar-ulang.midtrans.sync');
     Route::get('/data-diri/download/formulir', [StudentRegistrationController::class, 'downloadFormPdf'])->name('data-diri.download.formulir');
     Route::get('/data-diri/download/kartu-bukti', [StudentRegistrationController::class, 'downloadCardPdf'])->name('data-diri.download.kartu');
 });

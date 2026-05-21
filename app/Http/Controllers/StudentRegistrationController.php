@@ -3,22 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\StudentRegistration;
+use App\Services\MidtransSnapService;
+use App\Services\PpdbNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Illuminate\View\View;
 
 class StudentRegistrationController extends Controller
 {
+    public function __construct(
+        private readonly PpdbNotificationService $notifications,
+        private readonly MidtransSnapService $midtrans,
+    ) {
+    }
+
     public function edit(Request $request): View|RedirectResponse
     {
         $redirect = $this->redirectPanitia($request);
         if ($redirect) {
             return $redirect;
+        }
+
+        if (! $request->user()->hasPaidPpdbForm()) {
+            return redirect()
+                ->route('ortu.formulir')
+                ->with('status', 'Silakan lunasi pembelian formulir terlebih dahulu sebelum mengisi data diri.');
         }
 
         return view('dashboard.panel-ortu.data-diri-page', [
@@ -31,6 +47,12 @@ class StudentRegistrationController extends Controller
         $redirect = $this->redirectPanitia($request);
         if ($redirect) {
             return $redirect;
+        }
+
+        if (! $request->user()->hasPaidPpdbForm()) {
+            return redirect()
+                ->route('ortu.formulir')
+                ->with('status', 'Silakan lunasi pembelian formulir terlebih dahulu sebelum mengisi data diri.');
         }
 
         $action = $request->input('action', 'submit');
@@ -154,10 +176,14 @@ class StudentRegistrationController extends Controller
             'family_card' => 'family_card_path',
         ];
 
+        $hasUploadedDocuments = false;
+
         foreach ($fileMap as $inputName => $columnName) {
             if (! $request->hasFile($inputName)) {
                 continue;
             }
+
+            $hasUploadedDocuments = true;
 
             if ($registration->{$columnName}) {
                 Storage::disk('public')->delete($registration->{$columnName});
@@ -167,6 +193,10 @@ class StudentRegistrationController extends Controller
         }
 
         $registration->save();
+
+        if ($hasUploadedDocuments) {
+            $this->notifications->send('documents_uploaded', $request->user(), $registration);
+        }
 
         if ($action !== 'submit') {
             return redirect()
@@ -181,6 +211,10 @@ class StudentRegistrationController extends Controller
         $registration->submitted_at = now();
         $registration->locked_at ??= now();
         $registration->save();
+
+        $this->notifications->send('form_payment_instruction', $request->user(), $registration);
+        $this->notifications->send('form_submitted', $request->user(), $registration);
+        $this->notifications->send('registration_processing', $request->user(), $registration);
 
         return redirect()
             ->route('data-diri.success')
@@ -280,7 +314,116 @@ class StudentRegistrationController extends Controller
             'isSelectionPublished' => $isSelectionPublished,
             'selectionResultLabel' => $this->getSelectionResultLabel($registration?->selection_result),
             'selectionResultTone' => $this->getSelectionResultTone($registration?->selection_result),
+            'canPayReRegistration' => $this->canPayReRegistration($registration),
+            'reRegistrationAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1500000)),
+            'reRegistrationDeadline' => $registration?->selection_published_at
+                ? $registration->selection_published_at->copy()->addDays((int) config('ppdb_notifications.deadlines.re_registration_days', 7))
+                : null,
+            'midtransClientKey' => (string) config('services.midtrans.client_key'),
+            'isMidtransConfigured' => $this->midtrans->isConfigured(),
+            'isReRegistrationPaid' => $this->isReRegistrationPaid($registration),
         ]);
+    }
+
+    public function createReRegistrationPayment(Request $request): JsonResponse
+    {
+        if ($request->user()?->isPanitia()) {
+            return response()->json(['message' => 'Akses panitia tidak dapat membuat pembayaran daftar ulang.'], 403);
+        }
+
+        $registration = $request->user()->studentRegistration;
+
+        if (! $this->canPayReRegistration($registration)) {
+            return response()->json(['message' => 'Pembayaran daftar ulang hanya tersedia untuk calon siswa yang dinyatakan lulus.'], 403);
+        }
+
+        if ($this->isReRegistrationPaid($registration)) {
+            return response()->json(['status' => 'paid', 'message' => 'Pembayaran daftar ulang sudah lunas.']);
+        }
+
+        if (! $this->midtrans->isConfigured()) {
+            return response()->json(['message' => 'Konfigurasi Midtrans sandbox belum lengkap.'], 422);
+        }
+
+        $amount = (int) config('ppdb_notifications.amounts.re_registration', 1500000);
+
+        if (! $registration->reregistration_order_id || in_array($registration->reregistration_status, ['deny', 'cancel', 'expire', 'failure'], true)) {
+            $registration->forceFill([
+                'reregistration_order_id' => $this->generateReRegistrationOrderId($registration),
+                'reregistration_snap_token' => null,
+                'reregistration_snap_redirect_url' => null,
+                'reregistration_amount' => $amount,
+                'reregistration_status' => 'pending',
+            ])->save();
+        }
+
+        if ($registration->reregistration_snap_token && $registration->reregistration_status === 'pending') {
+            return response()->json([
+                'status' => 'pending',
+                'snap_token' => $registration->reregistration_snap_token,
+            ]);
+        }
+
+        try {
+            $transaction = $this->midtrans->createReRegistrationTransaction($registration, $request->user(), $amount);
+        } catch (RuntimeException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        $registration->forceFill([
+            'reregistration_snap_token' => (string) ($transaction['token'] ?? ''),
+            'reregistration_snap_redirect_url' => $transaction['redirect_url'] ?? null,
+            'reregistration_status' => 'pending',
+            'reregistration_midtrans_payload' => $transaction,
+        ])->save();
+
+        return response()->json([
+            'status' => 'pending',
+            'snap_token' => $registration->reregistration_snap_token,
+            'redirect_url' => $registration->reregistration_snap_redirect_url,
+        ]);
+    }
+
+    public function syncReRegistrationPayment(Request $request): JsonResponse
+    {
+        $registration = $request->user()->studentRegistration;
+
+        if (! $this->canPayReRegistration($registration) || ! $registration->reregistration_order_id) {
+            return response()->json(['message' => 'Transaksi daftar ulang tidak ditemukan.'], 404);
+        }
+
+        try {
+            $payload = $this->midtrans->getTransactionStatus($registration->reregistration_order_id);
+        } catch (RuntimeException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        $this->applyMidtransReRegistrationStatus($registration, $payload);
+        $registration->refresh();
+
+        return response()->json([
+            'status' => $registration->reregistration_status,
+            'paid' => $this->isReRegistrationPaid($registration),
+        ]);
+    }
+
+    public function handleMidtransReRegistrationNotification(Request $request): JsonResponse
+    {
+        $payload = $request->all();
+
+        if (! $this->midtrans->verifySignature($payload)) {
+            return response()->json(['message' => 'Signature Midtrans tidak valid.'], 403);
+        }
+
+        $registration = StudentRegistration::where('reregistration_order_id', $payload['order_id'] ?? null)->first();
+
+        if (! $registration) {
+            return response()->json(['message' => 'Transaksi daftar ulang tidak ditemukan.'], 404);
+        }
+
+        $this->applyMidtransReRegistrationStatus($registration, $payload);
+
+        return response()->json(['message' => 'OK']);
     }
 
     public function storeInterview(Request $request): RedirectResponse
@@ -326,6 +469,8 @@ class StudentRegistrationController extends Controller
         ]);
 
         $registration->save();
+
+        $this->notifications->send('interview_schedule_selected', $request->user(), $registration);
 
         return redirect()
             ->route('wawancara')
@@ -443,6 +588,75 @@ class StudentRegistrationController extends Controller
             'tidak_lulus' => 'rose',
             default => 'slate',
         };
+    }
+
+    protected function canPayReRegistration(?StudentRegistration $registration): bool
+    {
+        return (bool) (
+            $registration
+            && $registration->selection_result === 'lulus'
+            && $registration->selection_published_at
+        );
+    }
+
+    protected function isReRegistrationPaid(?StudentRegistration $registration): bool
+    {
+        return (bool) (
+            $registration
+            && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+            && $registration->reregistration_paid_at
+        );
+    }
+
+    protected function applyMidtransReRegistrationStatus(StudentRegistration $registration, array $payload): void
+    {
+        $wasPaid = $this->isReRegistrationPaid($registration);
+        $transactionStatus = (string) ($payload['transaction_status'] ?? $registration->reregistration_status ?? 'pending');
+        $fraudStatus = $payload['fraud_status'] ?? null;
+        $isPaid = $transactionStatus === 'settlement'
+            || ($transactionStatus === 'capture' && in_array($fraudStatus, [null, 'accept'], true));
+
+        $registration->forceFill([
+            'reregistration_status' => $transactionStatus,
+            'reregistration_payment_type' => $payload['payment_type'] ?? $registration->reregistration_payment_type,
+            'reregistration_midtrans_payload' => $payload,
+        ]);
+
+        if ($isPaid && ! $registration->reregistration_paid_at) {
+            $registration->reregistration_paid_at = $this->parseMidtransDate(
+                $payload['settlement_time'] ?? $payload['transaction_time'] ?? null
+            );
+        }
+
+        $registration->save();
+
+        if ($isPaid && ! $wasPaid && $registration->user) {
+            $this->notifications->send('re_registration_approved', $registration->user, $registration);
+            $this->notifications->send('student_officially_registered', $registration->user, $registration);
+        }
+    }
+
+    protected function generateReRegistrationOrderId(StudentRegistration $registration): string
+    {
+        do {
+            $orderId = 'DU-' . now()->format('Ymd') . '-' . $registration->id . '-' . Str::upper(Str::random(6));
+        } while (StudentRegistration::where('reregistration_order_id', $orderId)->exists());
+
+        return $orderId;
+    }
+
+    protected function parseMidtransDate(?string $date): Carbon
+    {
+        if (! $date) {
+            return now();
+        }
+
+        return Carbon::parse($date);
+    }
+
+    protected function formatCurrency(int $amount): string
+    {
+        return 'Rp ' . number_format($amount, 0, ',', '.');
     }
 
     protected function redirectPanitia(Request $request): ?RedirectResponse

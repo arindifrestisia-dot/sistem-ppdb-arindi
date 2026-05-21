@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PpdbFormPayment;
 use App\Models\StudentRegistration;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PanitiaFinanceController extends Controller
@@ -23,24 +25,24 @@ class PanitiaFinanceController extends Controller
         $status = (string) $request->string('status');
         $academicYear = (string) $request->string('ta');
 
-        $allPayments = StudentRegistration::query()
-            ->with('user')
+        $allPayments = PpdbFormPayment::query()
+            ->with('user.studentRegistration')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->get()
-            ->map(fn (StudentRegistration $registration) => $this->decorateFormPayment($registration));
+            ->map(fn (PpdbFormPayment $payment) => $this->decorateFormPayment($payment));
 
         $filteredPayments = $allPayments
-            ->filter(function (StudentRegistration $registration) use ($search) {
+            ->filter(function (PpdbFormPayment $payment) use ($search) {
                 if ($search === '') {
                     return true;
                 }
 
                 $haystack = collect([
-                    $registration->display_form_number,
-                    $registration->display_buyer_name,
-                    $registration->display_student_name,
-                    $registration->user?->email,
+                    $payment->display_form_number,
+                    $payment->display_buyer_name,
+                    $payment->display_student_name,
+                    $payment->user?->email,
                 ])->filter()->implode(' ');
 
                 return str_contains(strtolower($haystack), strtolower($search));
@@ -65,7 +67,7 @@ class PanitiaFinanceController extends Controller
             'academicYearOptions' => $allPayments->pluck('display_academic_year')->filter()->unique()->sortDesc()->values(),
             'stats' => [
                 'total_forms' => $allPayments->count(),
-                'total_income' => $paidPayments->count() * self::FORM_PAYMENT_AMOUNT,
+            'total_income' => $paidPayments->sum('amount'),
                 'unconfirmed_count' => $pendingCount,
                 'current_academic_year' => $academicYear !== '' ? $academicYear : ($allPayments->pluck('display_academic_year')->filter()->first() ?? $this->resolveAcademicYear(now())),
             ],
@@ -80,22 +82,22 @@ class PanitiaFinanceController extends Controller
         $status = (string) $request->string('status');
         $academicYear = (string) $request->string('ta');
 
-        $rows = StudentRegistration::query()
-            ->with('user')
+        $rows = PpdbFormPayment::query()
+            ->with('user.studentRegistration')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->get()
-            ->map(fn (StudentRegistration $registration) => $this->decorateFormPayment($registration))
-            ->filter(function (StudentRegistration $registration) use ($search) {
+            ->map(fn (PpdbFormPayment $payment) => $this->decorateFormPayment($payment))
+            ->filter(function (PpdbFormPayment $payment) use ($search) {
                 if ($search === '') {
                     return true;
                 }
 
                 $haystack = collect([
-                    $registration->display_form_number,
-                    $registration->display_buyer_name,
-                    $registration->display_student_name,
-                    $registration->user?->email,
+                    $payment->display_form_number,
+                    $payment->display_buyer_name,
+                    $payment->display_student_name,
+                    $payment->user?->email,
                 ])->filter()->implode(' ');
 
                 return str_contains(strtolower($haystack), strtolower($search));
@@ -107,15 +109,15 @@ class PanitiaFinanceController extends Controller
         $csv = collect([
             ['No. Formulir', 'Nama Pembeli', 'Nama Calon Siswa', 'Tanggal Bayar', 'Jumlah', 'Metode', 'Status', 'Tahun Ajaran'],
         ])->concat(
-            $rows->map(fn (StudentRegistration $registration) => [
-                $registration->display_form_number,
-                $registration->display_buyer_name,
-                $registration->display_student_name,
-                $registration->display_payment_date,
-                $registration->display_form_amount,
-                $registration->display_form_method,
-                $registration->display_payment_status_label,
-                $registration->display_academic_year,
+            $rows->map(fn (PpdbFormPayment $payment) => [
+                $payment->display_form_number,
+                $payment->display_buyer_name,
+                $payment->display_student_name,
+                $payment->display_payment_date,
+                $payment->display_form_amount,
+                $payment->display_form_method,
+                $payment->display_payment_status_label,
+                $payment->display_academic_year,
             ])
         )->map(fn (array $columns) => implode(',', array_map(fn ($value) => '"' . str_replace('"', '""', (string) $value) . '"', $columns)))
             ->implode("\n");
@@ -178,8 +180,7 @@ class PanitiaFinanceController extends Controller
             'status' => $status,
             'academicYear' => $academicYear,
             'paymentTypeOptions' => [
-                'lunas' => 'Lunas',
-                'cicil_3x' => 'Cicil 3x',
+                'midtrans' => 'Midtrans',
             ],
             'statusOptions' => [
                 'lunas' => 'Lunas',
@@ -256,33 +257,34 @@ class PanitiaFinanceController extends Controller
         ]);
     }
 
-    private function decorateFormPayment(StudentRegistration $registration): StudentRegistration
+    private function decorateFormPayment(PpdbFormPayment $payment): PpdbFormPayment
     {
-        $purchaseDate = $registration->submitted_at ?? $registration->created_at ?? now();
-        $paymentMethods = ['Transfer BCA', 'Transfer BRI', 'Transfer BNI', 'Tunai', 'QRIS'];
-        $statusKey = $this->resolveFormPaymentStatusKey($registration);
+        $registration = $payment->user?->studentRegistration;
+        $purchaseDate = $payment->paid_at ?? $payment->created_at ?? now();
+        $statusKey = $payment->isPaid() ? 'lunas' : 'menunggu';
         $statusTone = $statusKey === 'lunas' ? 'emerald' : 'amber';
 
-        $registration->display_form_number = $this->resolveFormNumber($registration);
-        $registration->display_buyer_name = $registration->user?->name ?? '-';
-        $registration->display_student_name = filled($registration->full_name) ? $registration->full_name : '-';
-        $registration->display_payment_date = $purchaseDate->translatedFormat('j M Y');
-        $registration->display_form_amount = $this->formatCurrency(self::FORM_PAYMENT_AMOUNT);
-        $registration->display_form_method = $paymentMethods[$registration->id % count($paymentMethods)];
-        $registration->display_payment_status_key = $statusKey;
-        $registration->display_payment_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Menunggu';
-        $registration->display_payment_status_tone = $statusTone;
-        $registration->display_academic_year = $this->resolveAcademicYear($purchaseDate);
+        $payment->display_form_number = $payment->order_id;
+        $payment->display_buyer_name = $payment->user?->name ?? '-';
+        $payment->display_student_name = filled($registration?->full_name) ? $registration->full_name : '-';
+        $payment->display_payment_date = $purchaseDate->translatedFormat('j M Y');
+        $payment->display_form_amount = $this->formatCurrency($payment->amount ?: self::FORM_PAYMENT_AMOUNT);
+        $payment->display_form_method = $payment->payment_type ? Str::headline(str_replace('_', ' ', $payment->payment_type)) : 'Midtrans';
+        $payment->display_payment_status_key = $statusKey;
+        $payment->display_payment_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Menunggu';
+        $payment->display_payment_status_tone = $statusTone;
+        $payment->display_academic_year = $this->resolveAcademicYear($purchaseDate);
 
-        return $registration;
+        return $payment;
     }
 
     private function decorateReRegistrationPayment(StudentRegistration $registration): StudentRegistration
     {
-        $paymentTypeKey = $registration->id % 3 === 0 ? 'cicil_3x' : 'lunas';
-        $statusKey = $paymentTypeKey === 'lunas'
+        $amount = $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT);
+        $paymentTypeKey = 'midtrans';
+        $statusKey = $registration->reregistration_paid_at && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
             ? 'lunas'
-            : (($registration->id % 2 === 0 || $registration->selection_published_at !== null) ? 'lunas' : 'belum_lunas');
+            : 'belum_lunas';
         $installments = $this->buildInstallments($registration, $paymentTypeKey, $statusKey);
         $baseDate = $registration->selection_published_at ?? $registration->submitted_at ?? $registration->created_at ?? now();
 
@@ -290,10 +292,12 @@ class PanitiaFinanceController extends Controller
         $registration->display_student_name = filled($registration->full_name) ? $registration->full_name : '-';
         $registration->display_buyer_name = $registration->user?->name ?? '-';
         $registration->display_class = $this->resolveClassLabel($registration);
-        $registration->display_rereg_amount = $this->formatCurrency(self::REREGISTRATION_AMOUNT);
+        $registration->display_rereg_amount = $this->formatCurrency($amount);
         $registration->display_rereg_payment_type_key = $paymentTypeKey;
-        $registration->display_rereg_payment_type_label = $paymentTypeKey === 'lunas' ? 'Lunas' : 'Cicil 3x';
-        $registration->display_rereg_payment_type_tone = $paymentTypeKey === 'lunas' ? 'emerald' : 'blue';
+        $registration->display_rereg_payment_type_label = $registration->reregistration_payment_type
+            ? Str::headline(str_replace('_', ' ', $registration->reregistration_payment_type))
+            : 'Midtrans';
+        $registration->display_rereg_payment_type_tone = 'blue';
         $registration->display_rereg_status_key = $statusKey;
         $registration->display_rereg_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Belum Lunas';
         $registration->display_rereg_status_tone = $statusKey === 'lunas' ? 'emerald' : 'amber';
@@ -306,44 +310,17 @@ class PanitiaFinanceController extends Controller
         return $registration;
     }
 
-    private function resolveFormPaymentStatusKey(StudentRegistration $registration): string
-    {
-        if ($registration->submitted_at !== null || $registration->locked_at !== null) {
-            return 'lunas';
-        }
-
-        return $registration->id % 4 === 0 ? 'menunggu' : 'lunas';
-    }
-
     private function buildInstallments(StudentRegistration $registration, string $paymentTypeKey, string $statusKey): array
     {
-        if ($paymentTypeKey === 'lunas') {
-            return [
-                [
-                    'label' => 'Lunas',
-                    'tone' => 'slate',
-                    'text' => 'Dibayar penuh',
-                ],
-            ];
-        }
-
-        $amount = (int) floor(self::REREGISTRATION_AMOUNT / 3);
-        $remainder = self::REREGISTRATION_AMOUNT - ($amount * 2);
-        $baseDate = Carbon::parse($registration->selection_published_at ?? $registration->submitted_at ?? $registration->created_at ?? now())->startOfDay();
-        $amounts = [$amount, $amount, $remainder];
-
-        return collect(range(1, 3))
-            ->map(function (int $index) use ($amounts, $baseDate, $statusKey) {
-                $isPaid = $statusKey === 'lunas' || $index === 1;
-                $dueDate = $baseDate->copy()->addDays(($index - 1) * 7)->translatedFormat('j M');
-
-                return [
-                    'label' => 'Cicil ' . $index,
-                    'tone' => $isPaid ? 'emerald' : 'amber',
-                    'text' => $this->formatCurrency($amounts[$index - 1]) . ' - ' . ($isPaid ? $dueDate : 'Belum bayar'),
-                ];
-            })
-            ->all();
+        return [
+            [
+                'label' => $statusKey === 'lunas' ? 'Lunas' : 'Menunggu',
+                'tone' => $statusKey === 'lunas' ? 'emerald' : 'amber',
+                'text' => $statusKey === 'lunas'
+                    ? 'Dibayar pada ' . optional($registration->reregistration_paid_at)->translatedFormat('j M Y')
+                    : 'Belum ada pembayaran berhasil',
+            ],
+        ];
     }
 
     private function resolveFormNumber(StudentRegistration $registration): string

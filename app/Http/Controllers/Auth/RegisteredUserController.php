@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\PpdbNotificationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,11 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(
+        private readonly PpdbNotificationService $notifications,
+    ) {
+    }
+
     /**
      * Display the registration view.
      */
@@ -43,6 +49,8 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        $this->notifications->send('account_registered', $user);
 
         Auth::login($user);
 
