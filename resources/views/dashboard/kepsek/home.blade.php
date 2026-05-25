@@ -235,16 +235,22 @@
                 colors: ['#4f46e5'],
                 dataLabels: {
                     enabled: true,
-                    formatter: (value, { dataPointIndex }) => `${value.toFixed(1)}% (${counts[dataPointIndex]})`,
+                    formatter: (value) => `${value.toFixed(1)}%`,
+                    offsetY: -20,
                     style: {
                         fontFamily: 'Poppins, sans-serif',
                         fontSize: '11px',
+                        fontWeight: 700,
+                        colors: ['#0f172a'],
                     },
                 },
                 plotOptions: {
                     bar: {
                         borderRadius: 10,
                         columnWidth: '48%',
+                        dataLabels: {
+                            position: 'top',
+                        },
                     },
                 },
                 tooltip: {
