@@ -295,6 +295,10 @@ class StudentRegistrationController extends Controller
         return view('dashboard.panel-ortu.wawancara', [
             'registration' => $registration,
             'scheduleOptions' => $isInterviewAvailable ? $this->getInterviewScheduleOptions() : [],
+            'scheduleCalendar' => $isInterviewAvailable ? $this->getInterviewScheduleCalendar() : [
+                'months' => [],
+                'slotsByDate' => [],
+            ],
             'isInterviewAvailable' => $isInterviewAvailable,
         ]);
     }
@@ -532,12 +536,6 @@ class StudentRegistrationController extends Controller
     {
         Carbon::setLocale('id');
 
-        $days = [
-            ['date' => '2026-04-13', 'room' => 'Ruang Wawancara A'],
-            ['date' => '2026-04-14', 'room' => 'Ruang Wawancara B'],
-            ['date' => '2026-04-15', 'room' => 'Ruang Wawancara C'],
-        ];
-
         $sessions = [
             ['label' => 'Sesi 1', 'time' => '08.00 - 08.30 WIB'],
             ['label' => 'Sesi 2', 'time' => '09.00 - 09.30 WIB'],
@@ -545,26 +543,84 @@ class StudentRegistrationController extends Controller
         ];
 
         $options = [];
+        $period = $this->interviewSchedulePeriod();
+        $date = $period['start']->copy();
 
-        foreach ($days as $dayIndex => $day) {
-            $date = Carbon::parse($day['date']);
+        while ($date->lte($period['end'])) {
+            $room = $this->interviewRoomForDate($date);
 
             foreach ($sessions as $sessionIndex => $session) {
-                $key = 'day-' . ($dayIndex + 1) . '-session-' . ($sessionIndex + 1);
+                $key = $date->toDateString() . '-session-' . ($sessionIndex + 1);
 
                 $options[$key] = [
                     'key' => $key,
                     'session_label' => $session['label'],
-                    'date' => $date,
+                    'date' => $date->copy(),
                     'day_name' => Str::headline($date->translatedFormat('l')),
                     'formatted_date' => $date->translatedFormat('d F Y'),
                     'time' => $session['time'],
-                    'room' => $day['room'],
+                    'room' => $room,
                 ];
             }
+
+            $date->addDay();
         }
 
         return $options;
+    }
+
+    protected function getInterviewScheduleCalendar(): array
+    {
+        $options = collect($this->getInterviewScheduleOptions());
+        $slotsByDate = $options
+            ->groupBy(fn (array $option) => $option['date']->toDateString())
+            ->map(fn ($items) => $items->map(fn (array $option) => [
+                'key' => $option['key'],
+                'session_label' => $option['session_label'],
+                'date' => $option['date']->toDateString(),
+                'formatted_date' => $option['formatted_date'],
+                'day_name' => $option['day_name'],
+                'time' => $option['time'],
+                'room' => $option['room'],
+            ])->values()->all())
+            ->all();
+
+        $period = $this->interviewSchedulePeriod();
+        $months = [];
+        $month = $period['start']->copy()->startOfMonth();
+
+        while ($month->lte($period['end'])) {
+            $months[] = [
+                'key' => $month->format('Y-m'),
+                'label' => $month->translatedFormat('F Y'),
+                'year' => (int) $month->format('Y'),
+                'month' => (int) $month->format('n'),
+            ];
+
+            $month->addMonth();
+        }
+
+        return [
+            'months' => $months,
+            'slotsByDate' => $slotsByDate,
+        ];
+    }
+
+    protected function interviewSchedulePeriod(): array
+    {
+        return [
+            'start' => Carbon::create(2026, 1, 1)->startOfDay(),
+            'end' => Carbon::create(2026, 12, 31)->endOfDay(),
+        ];
+    }
+
+    protected function interviewRoomForDate(Carbon $date): string
+    {
+        return match ((int) $date->format('N') % 3) {
+            1 => 'Ruang Wawancara A',
+            2 => 'Ruang Wawancara B',
+            default => 'Ruang Wawancara C',
+        };
     }
 
     protected function canAccessInterviewSchedule(?StudentRegistration $registration): bool

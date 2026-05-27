@@ -29,11 +29,17 @@ class PpdbNotificationService
             return;
         }
 
+        $registration ??= $user?->studentRegistration;
+
+        if ($registration && ! $registration->relationLoaded('user')) {
+            $registration->loadMissing('user');
+        }
+
         $user ??= $registration?->user;
         $context = $this->buildContext($user, $registration, $data);
         $subject = $this->render($template['subject'], $context);
         $message = $this->render($template['message'], $context);
-        $deduplicationKey = $data['deduplication_key'] ?? $this->deduplicationKey($key, $registration, $data);
+        $deduplicationKey = $data['deduplication_key'] ?? $this->deduplicationKey($key, $user, $registration, $data);
 
         if (config('ppdb_notifications.channels.mail')) {
             foreach ($this->mailRecipients($user, $registration) as $email) {
@@ -83,6 +89,10 @@ class PpdbNotificationService
         }
 
         $log = $this->createLog('wablas', $phone, $subject, $message, $key, $deduplicationKey, $user, $registration);
+
+        $log->update([
+            'status' => 'queued',
+        ]);
 
         SendWablasMessage::dispatch($log->id);
     }
@@ -202,11 +212,12 @@ class PpdbNotificationService
         return $phone;
     }
 
-    private function deduplicationKey(string $key, ?StudentRegistration $registration, array $data): string
+    private function deduplicationKey(string $key, ?User $user, ?StudentRegistration $registration, array $data): string
     {
         return implode(':', array_filter([
             $key,
-            $registration?->id,
+            $registration?->id ? 'registration-' . $registration->id : null,
+            ! $registration?->id && $user?->id ? 'user-' . $user->id : null,
             $data['deduplication_suffix'] ?? null,
         ]));
     }

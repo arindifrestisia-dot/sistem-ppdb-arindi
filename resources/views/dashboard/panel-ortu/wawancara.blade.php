@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; }
+        .calendar-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
     </style>
 </head>
 <body class="bg-[#cfe0f8] text-slate-900">
@@ -20,30 +21,16 @@
         <div class="flex min-w-0 flex-1 flex-col">
             @include('dashboard.panel-ortu.partials.topbar')
 
-            <main class="flex-1 px-5 py-6 md:px-8">
-                <div class="mx-auto max-w-6xl">
-                    <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                        <div>
-                            <h1 class="text-3xl font-extrabold text-blue-950 md:text-5xl">Pilih Jadwal Wawancara</h1>
-                            <p class="mt-2 text-lg text-slate-500">Silakan pilih jadwal terbaik untuk ananda setelah pembelian formulir dan formulir pendaftaran berhasil dikirim.</p>
-                        </div>
-                        @if ($isInterviewAvailable && $registration?->interview_selected_at)
-                            <span class="inline-flex rounded-2xl bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700">Jadwal Sudah Dipilih</span>
-                        @elseif ($isInterviewAvailable)
-                            <span class="inline-flex rounded-2xl bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700">Menunggu Pilihan Jadwal</span>
-                        @else
-                            <span class="inline-flex rounded-2xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Jadwal Belum Tersedia</span>
-                        @endif
-                    </div>
-
+            <main class="flex-1 px-4 py-6 md:px-8">
+                <div class="mx-auto max-w-7xl">
                     @if (session('status'))
-                        <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700">
+                        <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700">
                             {{ session('status') }}
                         </div>
                     @endif
 
                     @if ($errors->any())
-                        <div class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+                        <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
                             <ul class="list-disc pl-5">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -52,121 +39,254 @@
                         </div>
                     @endif
 
-                    @if ($isInterviewAvailable && $registration?->interview_selected_at)
-                        <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
+                    @if (! $isInterviewAvailable)
+                        <section class="rounded-[1.5rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
+                            <div class="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-6 py-8 text-center">
+                                <h1 class="text-2xl font-bold text-amber-800">Jadwal wawancara belum tersedia</h1>
+                                <p class="mt-3 text-sm text-amber-700">Jadwal wawancara akan tampil setelah orang tua menyelesaikan pembelian formulir dan mengirim formulir pendaftaran.</p>
+                                <a href="{{ route('data-diri') }}" class="mt-5 inline-flex rounded-full bg-amber-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-amber-700">
+                                    Lengkapi Formulir
+                                </a>
+                            </div>
+                        </section>
+                    @elseif ($registration?->interview_selected_at)
+                        <section class="rounded-[1.5rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
                             <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                                 <div>
-                                    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Jadwal Terpilih</p>
-                                    <h2 class="mt-2 text-2xl font-bold text-blue-950">{{ $registration->full_name }}</h2>
-                                    <p class="mt-2 text-slate-500">Berikut jadwal wawancara yang sudah dipilih untuk ananda.</p>
+                                    <p class="text-xs font-bold uppercase tracking-[0.28em] text-sky-600">Jadwal Terpilih</p>
+                                    <h1 class="mt-2 text-2xl font-extrabold text-blue-950 md:text-4xl">{{ $registration->full_name }}</h1>
+                                    <p class="mt-2 text-sm text-slate-500">Sesi wawancara yang sudah dipilih tidak dapat diganti lagi.</p>
                                 </div>
-                                <div class="rounded-[1.75rem] bg-blue-950 px-6 py-5 text-white shadow-lg">
+                                <div class="rounded-[1rem] bg-blue-950 px-6 py-5 text-white shadow-lg">
                                     <p class="text-sm text-sky-100">Dipilih pada</p>
                                     <p class="mt-2 text-lg font-bold">{{ optional($registration->interview_selected_at)->format('d-m-Y H:i') }} WIB</p>
                                 </div>
                             </div>
 
                             <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                <div class="rounded-2xl bg-slate-50 p-5">
+                                <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Hari</p>
                                     <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_day_name ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-2xl bg-slate-50 p-5">
+                                <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Tanggal</p>
                                     <p class="mt-2 text-lg font-bold text-slate-800">{{ optional($registration->interview_date)->translatedFormat('d F Y') ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-2xl bg-slate-50 p-5">
+                                <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Jam</p>
                                     <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_time ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-2xl bg-slate-50 p-5">
+                                <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Ruangan</p>
                                     <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_room ?: '-' }}</p>
                                 </div>
                             </div>
                         </section>
-                    @endif
-
-                    <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
-                        @if (! $isInterviewAvailable)
-                            <div class="rounded-[1.75rem] border border-amber-200 bg-amber-50 px-6 py-8 text-center">
-                                <h2 class="text-2xl font-bold text-amber-800">Jadwal wawancara belum tersedia</h2>
-                                <p class="mt-3 text-sm text-amber-700">Jadwal wawancara akan tampil setelah orang tua menyelesaikan pembelian formulir dan mengirim formulir pendaftaran.</p>
-                                <a href="{{ route('data-diri') }}" class="mt-5 inline-flex rounded-full bg-amber-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-amber-700">
-                                    Lengkapi Formulir
-                                </a>
-                            </div>
-                        @else
-                            <div class="border-b border-slate-200 pb-4">
-                                <h2 class="text-2xl font-bold text-blue-950">Daftar Slot Wawancara</h2>
-                                <p class="mt-1 text-sm text-slate-500">Pilih satu sesi yang tersedia. Setelah jadwal disimpan, pilihan sesi tidak dapat diubah lagi.</p>
-                            </div>
-
-                            @if ($registration?->interview_selected_at)
-                                <div class="mt-6 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-6">
-                                    <h3 class="text-xl font-bold text-emerald-800">Pilihan sesi sudah final</h3>
-                                    <p class="mt-3 text-sm leading-7 text-emerald-700">Sesi wawancara yang sudah dipilih tidak dapat diganti lagi. Jika ada kebutuhan khusus, silakan hubungi panitia PPDB.</p>
+                    @else
+                        <section
+                            class="rounded-[1.5rem] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.14)] ring-1 ring-blue-100 md:p-8"
+                            x-data="interviewCalendar()"
+                            x-init="init()"
+                        >
+                            <div class="flex flex-col gap-5 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+                                <div>
+                                    <p class="text-xs font-extrabold uppercase tracking-[0.35em] text-sky-600">Daftar Slot Wawancara</p>
+                                    <h1 class="mt-2 text-2xl font-extrabold text-blue-950 md:text-3xl">Kalender Slot Wawancara</h1>
+                                    <p class="mt-1 text-sm text-slate-500">Tanggal bertanda memiliki slot. Klik tanggal untuk melihat sesi yang tersedia.</p>
                                 </div>
-                            @else
-                                <form action="{{ route('wawancara.update') }}" method="POST" class="mt-6">
-                                    @csrf
 
-                                    <div class="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-                                        @foreach ($scheduleOptions as $option)
-                                            @php($isSelected = old('interview_schedule_key', $registration->interview_schedule_key) === $option['key'])
-                                            <label class="group cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="interview_schedule_key"
-                                                    value="{{ $option['key'] }}"
-                                                    class="peer sr-only"
-                                                    @checked($isSelected)
+                                <label class="block w-full max-w-xs">
+                                    <span class="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Bulan</span>
+                                    <select
+                                        x-model="selectedMonth"
+                                        @change="selectFirstAvailableDate()"
+                                        class="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-blue-950 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    >
+                                        <template x-for="month in months" :key="month.key">
+                                            <option :value="month.key" x-text="month.label"></option>
+                                        </template>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <form action="{{ route('wawancara.update') }}" method="POST" class="mt-6">
+                                @csrf
+                                <input type="hidden" name="interview_schedule_key" :value="selectedSessionKey">
+
+                                <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+                                    <div class="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4 md:p-6">
+                                        <div class="grid calendar-grid gap-2 text-center text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500 md:gap-3">
+                                            <template x-for="day in dayLabels" :key="day">
+                                                <div class="py-2" x-text="day"></div>
+                                            </template>
+                                        </div>
+
+                                        <div class="mt-2 grid calendar-grid gap-2 md:gap-3">
+                                            <template x-for="cell in calendarDays" :key="cell.key">
+                                                <button
+                                                    type="button"
+                                                    @click="cell.available && selectDate(cell.date)"
+                                                    :disabled="! cell.available"
+                                                    class="min-h-[4.25rem] rounded-xl border text-center transition md:min-h-[5rem]"
+                                                    :class="dayClass(cell)"
                                                 >
-
-                                                <div class="h-full rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 transition duration-200 peer-checked:border-blue-700 peer-checked:bg-blue-950 peer-checked:text-white group-hover:-translate-y-1 group-hover:shadow-[0_18px_30px_rgba(15,23,42,0.12)]">
-                                                    <div class="flex items-start justify-between gap-3">
-                                                        <div>
-                                                            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-sky-600 peer-checked:text-sky-100">{{ $option['session_label'] }}</p>
-                                                            <h3 class="mt-2 text-xl font-bold text-blue-950 peer-checked:text-white">{{ $option['day_name'] }}</h3>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mt-5 space-y-3 text-sm">
-                                                        <div class="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 ring-1 ring-slate-200 peer-checked:bg-white/10 peer-checked:text-slate-100 peer-checked:ring-white/15">
-                                                            <span class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 peer-checked:text-sky-100">Tanggal</span>
-                                                            <span class="mt-1 block text-base font-semibold">{{ $option['formatted_date'] }}</span>
-                                                        </div>
-                                                        <div class="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 ring-1 ring-slate-200 peer-checked:bg-white/10 peer-checked:text-slate-100 peer-checked:ring-white/15">
-                                                            <span class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 peer-checked:text-sky-100">Jam</span>
-                                                            <span class="mt-1 block text-base font-semibold">{{ $option['time'] }}</span>
-                                                        </div>
-                                                        <div class="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 ring-1 ring-slate-200 peer-checked:bg-white/10 peer-checked:text-slate-100 peer-checked:ring-white/15">
-                                                            <span class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 peer-checked:text-sky-100">Ruangan</span>
-                                                            <span class="mt-1 block text-base font-semibold">{{ $option['room'] }}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        @endforeach
+                                                    <span class="block text-sm font-extrabold" x-text="cell.day"></span>
+                                                    <span
+                                                        x-show="cell.available"
+                                                        class="mx-auto mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold"
+                                                        :class="selectedDate === cell.date ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'"
+                                                    >
+                                                        <span x-text="slotCount(cell.date)"></span>&nbsp;slot
+                                                    </span>
+                                                </button>
+                                            </template>
+                                        </div>
                                     </div>
 
-                                    <div class="mt-8 flex justify-end">
+                                    <aside class="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-[0_16px_34px_rgba(15,23,42,0.10)] md:p-5">
+                                        <p class="text-xs font-extrabold uppercase tracking-[0.32em] text-sky-600">Tanggal Dipilih</p>
+                                        <h2 class="mt-2 text-2xl font-extrabold text-blue-950" x-text="selectedDateLabel"></h2>
+                                        <p class="mt-1 text-sm text-slate-500" x-text="selectedDateSummary"></p>
+
+                                        <div class="mt-5 space-y-3">
+                                            <template x-for="slot in selectedSlots" :key="slot.key">
+                                                <label class="block cursor-pointer">
+                                                    <input type="radio" class="peer sr-only" name="session_choice" :value="slot.key" @change="selectSession(slot)" :checked="selectedSessionKey === slot.key">
+                                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 transition peer-checked:border-blue-700 peer-checked:bg-blue-950 peer-checked:text-white">
+                                                        <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-sky-600 peer-checked:text-sky-100" x-text="slot.session_label"></p>
+                                                        <p class="mt-2 text-lg font-extrabold text-blue-950 peer-checked:text-white" x-text="slot.time"></p>
+                                                        <p class="mt-1 text-sm font-semibold text-slate-500 peer-checked:text-slate-100" x-text="slot.room"></p>
+                                                    </div>
+                                                </label>
+                                            </template>
+                                        </div>
+
+                                        <div class="mt-5 rounded-xl bg-blue-50 p-4">
+                                            <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-blue-600">Pilihan Anda</p>
+                                            <p class="mt-2 text-sm font-bold text-blue-950" x-text="selectedChoiceText"></p>
+                                        </div>
+
                                         <button
                                             type="submit"
-                                            class="rounded-full bg-gradient-to-r from-indigo-500 to-blue-800 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(37,99,235,0.25)] transition hover:opacity-95"
+                                            class="mt-4 h-12 w-full rounded-xl px-5 text-sm font-extrabold uppercase tracking-wide text-white transition"
+                                            :class="selectedSessionKey ? 'bg-blue-700 shadow-[0_12px_24px_rgba(37,99,235,0.22)] hover:bg-blue-800' : 'cursor-not-allowed bg-slate-300'"
+                                            :disabled="! selectedSessionKey"
                                         >
-                                            Simpan Jadwal Wawancara
+                                            Konfirmasi Jadwal
                                         </button>
-                                    </div>
-                                </form>
-                            @endif
-                        @endif
-                    </section>
+                                    </aside>
+                                </div>
+                            </form>
+                        </section>
+                    @endif
                 </div>
             </main>
 
             @include('dashboard.panel-ortu.partials.footer')
         </div>
     </div>
+
+    @if ($isInterviewAvailable && ! $registration?->interview_selected_at)
+        <script>
+            function interviewCalendar() {
+                return {
+                    months: @json($scheduleCalendar['months']),
+                    slotsByDate: @json($scheduleCalendar['slotsByDate']),
+                    selectedMonth: '',
+                    selectedDate: '',
+                    selectedSessionKey: '',
+                    selectedSession: null,
+                    dayLabels: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                    init() {
+                        this.selectedMonth = this.months[0]?.key || '';
+                        this.selectFirstAvailableDate();
+                    },
+                    get calendarDays() {
+                        if (! this.selectedMonth) {
+                            return [];
+                        }
+
+                        const [year, month] = this.selectedMonth.split('-').map(Number);
+                        const firstDay = new Date(year, month - 1, 1);
+                        const lastDay = new Date(year, month, 0);
+                        const cells = [];
+
+                        for (let i = 0; i < firstDay.getDay(); i++) {
+                            cells.push({ key: `blank-${i}`, day: '', date: '', available: false, blank: true });
+                        }
+
+                        for (let day = 1; day <= lastDay.getDate(); day++) {
+                            const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            cells.push({
+                                key: date,
+                                day,
+                                date,
+                                available: Boolean(this.slotsByDate[date]),
+                                blank: false,
+                            });
+                        }
+
+                        return cells;
+                    },
+                    get selectedSlots() {
+                        return this.slotsByDate[this.selectedDate] || [];
+                    },
+                    get selectedDateLabel() {
+                        return this.selectedSlots[0]?.formatted_date || 'Pilih tanggal';
+                    },
+                    get selectedDateSummary() {
+                        return this.selectedSlots.length
+                            ? `${this.selectedSlots[0].day_name}, ${this.selectedSlots.length} sesi tersedia`
+                            : 'Klik tanggal pada kalender.';
+                    },
+                    get selectedChoiceText() {
+                        if (! this.selectedSession) {
+                            return 'Belum ada sesi dipilih.';
+                        }
+
+                        return `${this.selectedSession.formatted_date}, ${this.selectedSession.time}, ${this.selectedSession.room}`;
+                    },
+                    slotCount(date) {
+                        return (this.slotsByDate[date] || []).length;
+                    },
+                    selectDate(date) {
+                        if (! this.slotsByDate[date]) {
+                            return;
+                        }
+
+                        this.selectedDate = date;
+                        this.selectedSessionKey = '';
+                        this.selectedSession = null;
+                    },
+                    selectSession(slot) {
+                        this.selectedSessionKey = slot.key;
+                        this.selectedSession = slot;
+                    },
+                    selectFirstAvailableDate() {
+                        const date = Object.keys(this.slotsByDate).find((item) => item.startsWith(this.selectedMonth));
+                        this.selectedDate = date || '';
+                        this.selectedSessionKey = '';
+                        this.selectedSession = null;
+                    },
+                    dayClass(cell) {
+                        if (cell.blank) {
+                            return 'border-transparent bg-transparent';
+                        }
+
+                        if (! cell.available) {
+                            return 'cursor-not-allowed border-slate-100 bg-white text-slate-300';
+                        }
+
+                        if (this.selectedDate === cell.date) {
+                            return 'border-blue-800 bg-blue-800 text-white shadow-[0_12px_24px_rgba(30,64,175,0.22)]';
+                        }
+
+                        return 'border-slate-200 bg-white text-blue-950 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm';
+                    },
+                };
+            }
+        </script>
+        <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    @endif
 </body>
 </html>

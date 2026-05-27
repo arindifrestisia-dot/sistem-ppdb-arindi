@@ -47,6 +47,8 @@ return [
     'wablas' => [
         'base_url' => env('WABLAS_BASE_URL', ''),
         'token' => env('WABLAS_TOKEN', ''),
+        'secret_key' => env('WABLAS_SECRET_KEY', ''),
+        'send_endpoint' => env('WABLAS_SEND_ENDPOINT', '/api/send-message'),
         'timeout' => (int) env('WABLAS_TIMEOUT', 15),
     ],
 

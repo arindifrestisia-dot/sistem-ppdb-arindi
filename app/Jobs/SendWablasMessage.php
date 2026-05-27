@@ -6,6 +6,7 @@ use App\Models\PpdbNotificationLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class SendWablasMessage implements ShouldQueue
@@ -26,9 +27,10 @@ class SendWablasMessage implements ShouldQueue
         }
 
         $baseUrl = rtrim((string) config('services.wablas.base_url'), '/');
-        $token = (string) config('services.wablas.token');
+        $authorization = $this->authorizationToken();
+        $endpoint = '/' . ltrim((string) config('services.wablas.send_endpoint', '/api/send-message'), '/');
 
-        if ($baseUrl === '' || $token === '') {
+        if ($baseUrl === '' || $authorization === '') {
             $log->update([
                 'status' => 'failed',
                 'error' => 'Konfigurasi Wablas belum lengkap.',
@@ -39,15 +41,16 @@ class SendWablasMessage implements ShouldQueue
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => $token,
+                'Authorization' => $authorization,
             ])->timeout((int) config('services.wablas.timeout', 15))
                 ->asForm()
-                ->post($baseUrl . '/api/send-message', [
+                ->post($baseUrl . $endpoint, [
                     'phone' => $log->recipient,
-                    'message' => $log->message,
+                    'message' => $this->messageBody($log),
+                    'ref_id' => (string) $log->id,
                 ]);
 
-            if (! $response->successful()) {
+            if (! $response->successful() || $response->json('status') === false) {
                 $log->update([
                     'status' => 'failed',
                     'error' => $response->body(),
@@ -67,7 +70,41 @@ class SendWablasMessage implements ShouldQueue
                 'error' => $exception->getMessage(),
             ]);
 
-            throw $exception;
+            Log::error('Gagal mengirim pesan Wablas.', [
+                'notification_log_id' => $log->id,
+                'recipient' => $log->recipient,
+                'error' => $exception->getMessage(),
+            ]);
         }
+    }
+
+    private function authorizationToken(): string
+    {
+        $token = trim((string) config('services.wablas.token'));
+        $secretKey = trim((string) config('services.wablas.secret_key'));
+
+        if ($token === '') {
+            return '';
+        }
+
+        if ($secretKey === '' || str_contains($token, '.')) {
+            return $token;
+        }
+
+        return $token . '.' . $secretKey;
+    }
+
+    private function messageBody(PpdbNotificationLog $log): string
+    {
+        $message = collect([
+            $log->subject,
+            $log->message,
+            config('ppdb_notifications.footer', 'RA Fadhilah'),
+        ])->filter(fn (?string $line) => filled($line))
+            ->implode("\n\n");
+
+        return mb_strlen($message) > 1024
+            ? mb_substr($message, 0, 1021) . '...'
+            : $message;
     }
 }

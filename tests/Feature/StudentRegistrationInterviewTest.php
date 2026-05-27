@@ -44,7 +44,7 @@ class StudentRegistrationInterviewTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => 'day-1-session-1',
+                'interview_schedule_key' => '2026-10-01-session-1',
             ]);
 
         $response
@@ -53,7 +53,7 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration->refresh();
 
-        $this->assertSame('day-1-session-1', $registration->interview_schedule_key);
+        $this->assertSame('2026-10-01-session-1', $registration->interview_schedule_key);
         $this->assertNotNull($registration->interview_selected_at);
         $this->assertNull($registration->locked_at);
     }
@@ -66,9 +66,9 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration = $this->createSubmittedRegistration($user, [
             'locked_at' => null,
-            'interview_schedule_key' => 'day-1-session-1',
-            'interview_date' => '2026-04-13',
-            'interview_day_name' => 'Senin',
+            'interview_schedule_key' => '2026-10-01-session-1',
+            'interview_date' => '2026-10-01',
+            'interview_day_name' => 'Kamis',
             'interview_time' => '08.00 - 08.30 WIB',
             'interview_room' => 'Ruang Wawancara A',
             'interview_selected_at' => now(),
@@ -78,7 +78,7 @@ class StudentRegistrationInterviewTest extends TestCase
             ->actingAs($user)
             ->from(route('wawancara'))
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => 'day-2-session-2',
+                'interview_schedule_key' => '2026-10-02-session-2',
             ]);
 
         $response
@@ -89,7 +89,7 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration->refresh();
 
-        $this->assertSame('day-1-session-1', $registration->interview_schedule_key);
+        $this->assertSame('2026-10-01-session-1', $registration->interview_schedule_key);
         $this->assertSame('08.00 - 08.30 WIB', $registration->interview_time);
     }
 
@@ -101,9 +101,9 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $this->createSubmittedRegistration($user, [
             'locked_at' => null,
-            'interview_schedule_key' => 'day-1-session-1',
-            'interview_date' => '2026-04-13',
-            'interview_day_name' => 'Senin',
+            'interview_schedule_key' => '2026-10-01-session-1',
+            'interview_date' => '2026-10-01',
+            'interview_day_name' => 'Kamis',
             'interview_time' => '08.00 - 08.30 WIB',
             'interview_room' => 'Ruang Wawancara A',
             'interview_selected_at' => now(),
@@ -115,7 +115,7 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Pilihan sesi sudah final')
+            ->assertSee('Jadwal Terpilih')
             ->assertDontSee('Simpan Jadwal Wawancara');
     }
 

@@ -2,4 +2,4 @@
 
 {{ $messageText }}
 
-RA Fadhilah
+{{ config('ppdb_notifications.footer', 'RA Fadhilah') }}

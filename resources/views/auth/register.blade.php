@@ -49,12 +49,25 @@
                     <div>
                         <label for="email" class="sr-only">Email Aktif</label>
                         <div class="flex items-center rounded-xl border border-slate-400 bg-white px-4 shadow-sm">
-                            <input id="email" name="email" type="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Email Aktif" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
+                            <input id="email" name="email" type="email" value="{{ old('email') }}" required autocomplete="email" placeholder="Email Aktif" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
                             <svg class="h-6 w-6 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M3.75 5.25A2.25 2.25 0 0 0 1.5 7.5v9A2.25 2.25 0 0 0 3.75 18.75h16.5A2.25 2.25 0 0 0 22.5 16.5v-9a2.25 2.25 0 0 0-2.25-2.25H3.75Zm0 1.5h16.5a.75.75 0 0 1 .49 1.32l-7.4 6.35a2 2 0 0 1-2.68 0l-7.4-6.35a.75.75 0 0 1 .49-1.32Z"/>
                             </svg>
                         </div>
                         @error('email')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="username" class="sr-only">Username</label>
+                        <div class="flex items-center rounded-xl border border-slate-400 bg-white px-4 shadow-sm">
+                            <input id="username" name="username" type="text" value="{{ old('username') }}" required autocomplete="username" placeholder="Username Login" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
+                            <svg class="h-6 w-6 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.25a9.75 9.75 0 1 0 9.75 9.75A9.76 9.76 0 0 0 12 2.25Zm0 3a3.75 3.75 0 1 1-3.75 3.75A3.75 3.75 0 0 1 12 5.25Zm0 14.25a7.44 7.44 0 0 1-5.63-2.58c.6-1.55 2.79-2.67 5.63-2.67s5.03 1.12 5.63 2.67A7.44 7.44 0 0 1 12 19.5Z"/>
+                            </svg>
+                        </div>
+                        @error('username')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

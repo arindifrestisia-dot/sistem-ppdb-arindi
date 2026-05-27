@@ -35,7 +35,7 @@
 
                 @if ($errors->any())
                     <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        Email atau password belum sesuai. Silakan coba lagi.
+                        Username atau password belum sesuai. Silakan coba lagi.
                     </div>
                 @endif
 
@@ -43,11 +43,11 @@
                     @csrf
 
                     <div>
-                        <label for="email" class="sr-only">Email</label>
+                        <label for="username" class="sr-only">Username</label>
                         <div class="flex items-center rounded-xl border border-slate-400 bg-white px-4 shadow-sm">
-                            <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Email" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
+                            <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Username" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
                         </div>
-                        @error('email')
+                        @error('username')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

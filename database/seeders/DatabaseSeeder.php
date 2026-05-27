@@ -19,18 +19,21 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'name' => 'Orang Tua Demo',
+            'username' => 'ortu',
             'email' => 'ortu@example.com',
             'role' => User::ROLE_PARENT,
         ]);
 
         User::factory()->create([
             'name' => 'Panitia PPDB',
+            'username' => 'panitia',
             'email' => 'panitia@example.com',
             'role' => User::ROLE_COMMITTEE,
         ]);
 
         User::factory()->create([
             'name' => 'Kepala Sekolah',
+            'username' => 'kepsek',
             'email' => 'kepsek@example.com',
             'role' => User::ROLE_PRINCIPAL,
         ]);

@@ -23,6 +23,8 @@ return [
         're_registration_days' => (int) env('PPDB_REREGISTRATION_DEADLINE_DAYS', 7),
     ],
 
+    'footer' => env('PPDB_NOTIFICATION_FOOTER', 'RA Fadhilah'),
+
     'templates' => [
         'account_registered' => [
             'subject' => 'Registrasi Akun Berhasil',

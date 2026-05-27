@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use App\Jobs\SendWablasMessage;
+use App\Models\PpdbNotificationLog;
 use App\Models\StudentRegistration;
 use App\Services\PpdbNotificationService;
 
@@ -49,5 +51,54 @@ Artisan::command('ppdb:send-reminders', function (PpdbNotificationService $notif
 
     $this->info('Reminder PPDB selesai diproses.');
 })->purpose('Send PPDB interview and re-registration reminders');
+
+Artisan::command('ppdb:test-wablas {phone} {message=Tes notifikasi PPDB RA Fadhilah dari sistem website.}', function () {
+    $phone = preg_replace('/\D+/', '', (string) $this->argument('phone')) ?? '';
+
+    if (str_starts_with($phone, '0')) {
+        $phone = '62' . substr($phone, 1);
+    }
+
+    if (str_starts_with($phone, '8')) {
+        $phone = '62' . $phone;
+    }
+
+    if ($phone === '') {
+        $this->error('Nomor WhatsApp wajib diisi.');
+
+        return self::FAILURE;
+    }
+
+    $log = PpdbNotificationLog::create([
+        'notification_key' => 'wablas_test',
+        'channel' => 'wablas',
+        'recipient' => $phone,
+        'subject' => 'Tes Wablas',
+        'message' => (string) $this->argument('message'),
+        'deduplication_key' => 'wablas-test:' . now()->timestamp,
+        'status' => 'pending',
+    ]);
+
+    try {
+        (new SendWablasMessage($log->id))->handle();
+    } catch (\Throwable $exception) {
+        $log->refresh();
+        $this->error('Gagal mengirim tes Wablas: ' . ($log->error ?: $exception->getMessage()));
+
+        return self::FAILURE;
+    }
+
+    $log->refresh();
+
+    if ($log->status !== 'sent') {
+        $this->error('Gagal mengirim tes Wablas: ' . ($log->error ?: 'Respons Wablas tidak berhasil.'));
+
+        return self::FAILURE;
+    }
+
+    $this->info('Tes Wablas berhasil dikirim ke ' . $phone . '.');
+
+    return self::SUCCESS;
+})->purpose('Send a test WhatsApp message through Wablas');
 
 Schedule::command('ppdb:send-reminders')->dailyAt('08:00');

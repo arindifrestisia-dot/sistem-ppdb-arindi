@@ -138,7 +138,7 @@
                     $steps = [
                         ['Langkah 1', 'Masuk ke portal PPDB', 'Calon orang tua memilih portal masuk untuk membuka halaman login PPDB.'],
                         ['Langkah 2', 'Buat akun bila belum punya', 'Jika belum memiliki akun, lakukan pendaftaran akun dari halaman login PPDB.'],
-                        ['Langkah 3', 'Login ke sistem', 'Setelah akun tersedia, masuk menggunakan email dan password yang sudah dibuat.'],
+                        ['Langkah 3', 'Login ke sistem', 'Setelah akun tersedia, masuk menggunakan username dan password yang sudah dibuat.'],
                         ['Langkah 4', 'Isi formulir awal', 'Lengkapi identitas siswa dan data dasar pendaftaran dengan benar.'],
                         ['Langkah 5', 'Lengkapi data orang tua', 'Masukkan data ayah, ibu, atau wali untuk proses verifikasi sekolah.'],
                         ['Langkah 6', 'Upload berkas', 'Unggah seluruh dokumen persyaratan sesuai panduan pendaftaran.'],
