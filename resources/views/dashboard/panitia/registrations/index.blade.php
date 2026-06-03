@@ -21,49 +21,6 @@
             </div>
         </div>
 
-        @if ($segment === 'calon')
-            <section class="rounded-[2rem] bg-white p-6 shadow-sm">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-900">Pendaftaran Terbaru</h2>
-                        <p class="mt-2 text-sm text-slate-500">Data ini langsung mengambil calon siswa dari dashboard orang tua.</p>
-                    </div>
-                </div>
-
-                <div class="mt-6 overflow-hidden rounded-3xl border border-slate-200">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-600">Nama</th>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-600">No. Registrasi</th>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-600">Status Berkas</th>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-600">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200 bg-white">
-                            @forelse ($recentCandidateRegistrations as $registration)
-                                <tr>
-                                    <td class="px-4 py-3">
-                                        <p class="font-semibold text-slate-800">{{ $registration->full_name }}</p>
-                                        <p class="text-xs text-slate-500">{{ $registration->user?->email ?? '-' }}</p>
-                                    </td>
-                                    <td class="px-4 py-3 text-slate-600">{{ $registration->registration_number ?? '-' }}</td>
-                                    <td class="px-4 py-3 text-slate-600">{{ str_replace('_', ' ', $registration->verification_status) }}</td>
-                                    <td class="px-4 py-3">
-                                        <a href="{{ route('panitia.registrations.show', ['registration' => $registration, 'segment' => 'calon']) }}" class="font-semibold text-sky-700">Lihat detail</a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-4 py-5 text-center text-slate-500">Belum ada pendaftaran masuk.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        @endif
-
         <section class="rounded-[2rem] bg-white shadow-sm">
             <div class="border-b border-slate-200 p-6">
                 <form method="GET" class="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_220px_220px_auto]">

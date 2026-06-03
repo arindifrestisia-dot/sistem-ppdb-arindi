@@ -61,14 +61,9 @@ class PanitiaRegistrationController extends Controller
             ->values();
 
         $registrations = $this->paginateCollection($filteredRegistrations, $request, 10);
-        $recentCandidateRegistrations = $allRegistrations
-            ->filter(fn (StudentRegistration $registration) => $this->matchesSegment($registration, 'calon'))
-            ->take(5)
-            ->values();
 
         return view('dashboard.panitia.registrations.index', [
             'registrations' => $registrations,
-            'recentCandidateRegistrations' => $recentCandidateRegistrations,
             'search' => $search,
             'segment' => $segment,
             'class' => $class,

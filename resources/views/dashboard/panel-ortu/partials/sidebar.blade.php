@@ -1,5 +1,6 @@
 <aside class="w-full bg-blue-900 text-white md:min-h-screen md:w-72">
     @php($studentRegistration = Auth::user()->studentRegistration)
+    @php($formMenuRoute = Auth::user()->hasPaidPpdbForm() ? route('data-diri') : route('ortu.formulir'))
     <div class="border-b border-blue-800 px-5 py-5">
         <h1 class="text-xl font-extrabold text-yellow-300">PPDB RA FADHILAH</h1>
         <p class="text-sm text-sky-100">(Penerimaan Peserta Didik Baru)</p>
@@ -32,7 +33,7 @@
                 </svg>
                 Beranda
             </a>
-            <a href="{{ route('ortu.formulir') }}" class="flex items-center gap-3 rounded-lg px-4 py-3 transition {{ ($activeMenu ?? '') === 'formulir' ? 'bg-yellow-400 text-blue-950' : 'text-sky-100 hover:bg-blue-800' }}">
+            <a href="{{ $formMenuRoute }}" class="flex items-center gap-3 rounded-lg px-4 py-3 transition {{ ($activeMenu ?? '') === 'formulir' ? 'bg-yellow-400 text-blue-950' : 'text-sky-100 hover:bg-blue-800' }}">
                 <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9 3h6"></path>
                     <path d="M10 7h4"></path>

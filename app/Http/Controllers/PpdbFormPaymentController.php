@@ -27,6 +27,12 @@ class PpdbFormPaymentController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if ($request->user()->hasPaidPpdbForm()) {
+            return redirect()
+                ->route('data-diri')
+                ->with('status', 'Pembelian formulir sudah lunas. Silakan lanjut mengisi data diri.');
+        }
+
         $payment = $request->user()->ppdbFormPayment;
 
         return view('dashboard.panel-ortu.formulir', [
@@ -94,6 +100,13 @@ class PpdbFormPaymentController extends Controller
 
     public function sync(Request $request): JsonResponse
     {
+        if ($request->user()->hasPaidPpdbForm()) {
+            return response()->json([
+                'status' => 'settlement',
+                'paid' => true,
+            ]);
+        }
+
         $payment = $request->user()->ppdbFormPayment;
 
         if (! $payment) {

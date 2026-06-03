@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -63,9 +64,17 @@ class User extends Authenticatable
         return $this->hasOne(PpdbFormPayment::class)->latestOfMany();
     }
 
+    public function ppdbFormPayments(): HasMany
+    {
+        return $this->hasMany(PpdbFormPayment::class);
+    }
+
     public function hasPaidPpdbForm(): bool
     {
-        return (bool) $this->ppdbFormPayment?->isPaid();
+        return $this->ppdbFormPayments()
+            ->whereIn('status', ['settlement', 'capture'])
+            ->whereNotNull('paid_at')
+            ->exists();
     }
 
     public function isPanitia(): bool

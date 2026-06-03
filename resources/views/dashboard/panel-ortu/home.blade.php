@@ -15,9 +15,9 @@
 <body class="bg-[#cfe0f8] text-slate-900">
     @php
         $registration = Auth::user()->studentRegistration;
-        $formPayment = Auth::user()->ppdbFormPayment;
         $isFormPaid = Auth::user()->hasPaidPpdbForm();
         $isSelectionPublished = (bool) ($registration && $registration->selection_published_at);
+        $formRoute = $isFormPaid ? route('data-diri') : route('ortu.formulir');
     @endphp
     <div class="flex min-h-screen flex-col md:flex-row">
         @php($activeMenu = 'beranda')
@@ -41,7 +41,7 @@
                             </div>
                             <span class="rounded-2xl {{ $isFormPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }} px-4 py-2 text-sm font-bold">Tahap 1</span>
                         </div>
-                        <a href="{{ route('ortu.formulir') }}" class="mt-8 inline-flex text-sm font-semibold text-blue-900">{{ $isFormPaid ? 'Lihat bukti pembelian ->' : 'Lanjut beli formulir ->' }}</a>
+                        <a href="{{ $formRoute }}" class="mt-8 inline-flex text-sm font-semibold text-blue-900">{{ $isFormPaid ? 'Lanjut isi data diri ->' : 'Lanjut beli formulir ->' }}</a>
                     </article>
 
                     <article class="rounded-3xl bg-white p-6 shadow-[0_10px_25px_rgba(15,23,42,0.12)] ring-1 ring-blue-100">
@@ -52,7 +52,7 @@
                             </div>
                             <span class="rounded-2xl {{ $isFormPaid ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600' }} px-4 py-2 text-sm font-bold">Tahap 2</span>
                         </div>
-                        <a href="{{ $isFormPaid ? route('data-diri') : route('ortu.formulir') }}" class="mt-8 inline-flex text-sm font-semibold {{ $isFormPaid ? 'text-blue-900' : 'text-slate-400' }}">
+                        <a href="{{ $formRoute }}" class="mt-8 inline-flex text-sm font-semibold {{ $isFormPaid ? 'text-blue-900' : 'text-slate-400' }}">
                             {{ $isFormPaid ? 'Buka menu data diri ->' : 'Lunasi formulir dulu ->' }}
                         </a>
                     </article>
@@ -78,8 +78,8 @@
                                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Ringkasan</p>
                                 <h3 class="mt-2 text-xl font-bold text-blue-950 md:text-2xl">Perjalanan Pendaftaran Anda</h3>
                             </div>
-                            <a href="{{ route('ortu.formulir') }}" class="inline-flex rounded-full bg-blue-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800">
-                                Mulai dari Formulir
+                            <a href="{{ $formRoute }}" class="inline-flex rounded-full bg-blue-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800">
+                                {{ $isFormPaid ? 'Lanjut Data Diri' : 'Mulai dari Formulir' }}
                             </a>
                         </div>
 

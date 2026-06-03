@@ -15,6 +15,7 @@
     </style>
 </head>
 <body class="bg-[#cfe0f8] text-slate-900">
+    @php($hasSubmittedRegistration = (bool) $registration?->submitted_at)
     <div class="flex min-h-screen flex-col md:flex-row">
         @php($activeMenu = 'data-diri')
         @include('dashboard.panel-ortu.partials.sidebar')
@@ -419,30 +420,34 @@
                                 </div>
                             </div>
 
-                            <div class="mt-8 rounded-[1.75rem] border-l-4 border-sky-400 bg-slate-50 px-5 py-5 shadow-sm">
-                                <label for="agreement" class="flex cursor-pointer items-start gap-4">
-                                    <input
-                                        id="agreement"
-                                        name="agreement"
-                                        type="checkbox"
-                                        value="1"
-                                        @checked(old('agreement'))
-                                        class="mt-1 h-5 w-5 rounded border-slate-300 text-blue-700 focus:ring-blue-500"
-                                    >
-                                    <span class="text-base leading-8 text-slate-700">
-                                        <strong>Ya, saya setuju</strong> bahwa seluruh data yang saya isikan dan/atau unggah adalah benar, sah, legal dan sesuai dengan keadaan dan kenyataan yang sesungguhnya.
-                                    </span>
-                                </label>
-                            </div>
+                            @unless ($hasSubmittedRegistration)
+                                <div class="mt-8 rounded-[1.75rem] border-l-4 border-sky-400 bg-slate-50 px-5 py-5 shadow-sm">
+                                    <label for="agreement" class="flex cursor-pointer items-start gap-4">
+                                        <input
+                                            id="agreement"
+                                            name="agreement"
+                                            type="checkbox"
+                                            value="1"
+                                            @checked(old('agreement'))
+                                            class="mt-1 h-5 w-5 rounded border-slate-300 text-blue-700 focus:ring-blue-500"
+                                        >
+                                        <span class="text-base leading-8 text-slate-700">
+                                            <strong>Ya, saya setuju</strong> bahwa seluruh data yang saya isikan dan/atau unggah adalah benar, sah, legal dan sesuai dengan keadaan dan kenyataan yang sesungguhnya.
+                                        </span>
+                                    </label>
+                                </div>
+                            @endunless
 
                             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <button type="button" class="rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-50" data-prev-step="2">Kembali</button>
                                 <div class="flex flex-col gap-3 sm:flex-row">
-                                    <button type="submit" name="action" value="submit" id="submitRegistrationButton" class="rounded-full bg-gradient-to-r from-indigo-500 to-purple-700 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(79,70,229,0.25)] transition hover:opacity-95">
-                                        Ya, Saya Mendaftar
-                                    </button>
-                                    <button type="submit" name="action" value="save" id="saveDraftButton" class="rounded-full bg-gradient-to-r from-amber-100 to-orange-300 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-amber-900 shadow-[0_18px_35px_rgba(251,146,60,0.2)] transition hover:opacity-95">
-                                        Simpan Perubahan
+                                    @unless ($hasSubmittedRegistration)
+                                        <button type="submit" name="action" value="submit" id="submitRegistrationButton" class="rounded-full bg-gradient-to-r from-indigo-500 to-purple-700 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(79,70,229,0.25)] transition hover:opacity-95">
+                                            Ya, Saya Mendaftar
+                                        </button>
+                                    @endunless
+                                    <button type="submit" name="action" value="save" id="saveDraftButton" class="rounded-full bg-gradient-to-r {{ $hasSubmittedRegistration ? 'from-blue-700 to-sky-500 text-white shadow-[0_18px_35px_rgba(37,99,235,0.22)]' : 'from-amber-100 to-orange-300 text-amber-900 shadow-[0_18px_35px_rgba(251,146,60,0.2)]' }} px-8 py-4 text-base font-extrabold uppercase tracking-wide transition hover:opacity-95">
+                                        {{ $hasSubmittedRegistration ? 'Edit Data' : 'Simpan Perubahan' }}
                                     </button>
                                 </div>
                             </div>
@@ -684,17 +689,22 @@
         });
 
         registrationForm?.addEventListener('submit', () => {
-            if (!submitRegistrationButton || !saveDraftButton) {
+            if (!submitRegistrationButton && !saveDraftButton) {
                 return;
             }
 
-            submitRegistrationButton.disabled = true;
-            saveDraftButton.disabled = true;
+            if (submitRegistrationButton) {
+                submitRegistrationButton.disabled = true;
+            }
+
+            if (saveDraftButton) {
+                saveDraftButton.disabled = true;
+            }
 
             if (document.activeElement === saveDraftButton) {
                 saveDraftButton.textContent = 'Menyimpan...';
                 saveDraftButton.classList.add('opacity-70', 'cursor-not-allowed');
-            } else {
+            } else if (submitRegistrationButton) {
                 submitRegistrationButton.textContent = 'Menyimpan...';
                 submitRegistrationButton.classList.add('opacity-70', 'cursor-not-allowed');
             }
