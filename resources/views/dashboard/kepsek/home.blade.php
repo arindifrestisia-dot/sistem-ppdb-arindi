@@ -52,6 +52,19 @@
         <section class="rounded-[2rem] bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-4">
                 <div>
+                    <h2 class="text-xl font-bold text-slate-900">Status Daftar Ulang</h2>
+                    <p class="mt-2 text-sm text-slate-500">Perbandingan siswa lulus yang sudah dan belum menyelesaikan daftar ulang.</p>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    {{ array_sum($chartData['reRegistration']['series']) }} siswa
+                </span>
+            </div>
+            <div id="reRegistrationChart" class="mt-6 h-[320px]"></div>
+        </section>
+
+        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
                     <h2 class="text-xl font-bold text-slate-900">Persentase Kuota Kelas</h2>
                     <p class="mt-2 text-sm text-slate-500">{{ $chartData['classQuota']['note'] }}</p>
                 </div>
@@ -301,6 +314,7 @@
             if (typeof ApexCharts === 'undefined') {
                 renderEmptyState('genderChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('verificationChart', 'Library chart tidak berhasil dimuat.');
+                renderEmptyState('reRegistrationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('classQuotaChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('regionTreemapChart', 'Library chart tidak berhasil dimuat.');
                 return;
@@ -318,6 +332,13 @@
                 dashboardChartData.verification.labels,
                 dashboardChartData.verification.series,
                 ['#10b981', '#f59e0b', '#ef4444']
+            );
+
+            renderDonutChart(
+                'reRegistrationChart',
+                dashboardChartData.reRegistration.labels,
+                dashboardChartData.reRegistration.series,
+                ['#059669', '#f97316']
             );
 
             renderBarChart();

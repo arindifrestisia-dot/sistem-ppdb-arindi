@@ -23,6 +23,8 @@ class HeadmasterDashboardController extends Controller
                 'verification_status',
                 'selection_result',
                 'interview_room',
+                'reregistration_status',
+                'reregistration_paid_at',
                 ...$classColumns,
             ])
             ->get();
@@ -40,6 +42,7 @@ class HeadmasterDashboardController extends Controller
                 'verification' => $this->buildVerificationChart($dashboardRegistrations),
                 'classQuota' => $this->buildClassQuotaChart($dashboardRegistrations, $classColumns),
                 'regions' => $this->buildRegionTreemapChart($dashboardRegistrations),
+                'reRegistration' => $this->buildReRegistrationChart($dashboardRegistrations),
             ],
             'recentRegistrations' => StudentRegistration::with('user')
                 ->latest()
@@ -74,6 +77,23 @@ class HeadmasterDashboardController extends Controller
                 $registrations->where('verification_status', 'terverifikasi')->count(),
                 $registrations->whereIn('verification_status', ['belum_diperiksa', 'revisi'])->count(),
                 $registrations->where('verification_status', 'ditolak')->count(),
+            ],
+        ];
+    }
+
+    private function buildReRegistrationChart(Collection $registrations): array
+    {
+        $acceptedRegistrations = $registrations->where('selection_result', 'lulus');
+        $paid = $acceptedRegistrations
+            ->filter(fn (StudentRegistration $registration) => $registration->reregistration_paid_at
+                && in_array($registration->reregistration_status, ['settlement', 'capture'], true))
+            ->count();
+
+        return [
+            'labels' => ['Sudah Daftar Ulang', 'Belum Daftar Ulang'],
+            'series' => [
+                $paid,
+                max($acceptedRegistrations->count() - $paid, 0),
             ],
         ];
     }
