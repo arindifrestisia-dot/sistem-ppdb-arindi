@@ -153,7 +153,7 @@ class PanitiaRegistrationController extends Controller
         $previousSelectionPublishedAt = $registration->selection_published_at;
 
         $validated = $request->validate([
-            'verification_status' => ['required', 'in:belum_diperiksa,revisi,terverifikasi,ditolak'],
+            'verification_status' => ['required', 'in:belum_diperiksa,terverifikasi,ditolak'],
             'verification_notes' => ['nullable', 'string'],
             'selection_result' => ['nullable', 'in:lulus,tidak_lulus'],
             'publish_selection' => ['nullable', 'boolean'],

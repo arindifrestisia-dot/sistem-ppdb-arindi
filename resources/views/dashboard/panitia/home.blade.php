@@ -22,50 +22,86 @@
         </article>
     </div>
 
-    <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <h2 class="text-xl font-bold text-slate-900">Jumlah Siswa Terdaftar per Tahun</h2>
-                <p class="mt-2 text-sm text-slate-500">Isi tahun 2019-2025 langsung dari dashboard. Tahun 2026-2027 dihitung otomatis dari pendaftaran sistem.</p>
-            </div>
-            <span class="w-fit rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                2019 - 2027
-            </span>
-        </div>
-        <div id="annualRegistrationChart" class="mt-6 h-[360px]"></div>
-
-        <form method="POST" action="{{ route('panitia.dashboard.annual-student-counts.update') }}" class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-            @csrf
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
+        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h3 class="font-bold text-slate-900">Input Manual Tahun 2019-2025</h3>
-                    <p class="mt-1 text-sm text-slate-500">Angka yang disimpan akan langsung dipakai pada grafik batang di atas.</p>
+                    <h2 class="text-xl font-bold text-slate-900">Jumlah Siswa Terdaftar per Tahun</h2>
+                    <p class="mt-2 text-sm text-slate-500">Isi tahun 2019-2025 langsung dari dashboard. Tahun 2026-2027 dihitung otomatis dari pendaftaran sistem.</p>
                 </div>
-                <button type="submit" class="w-fit rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                    Simpan Jumlah
-                </button>
+                <div class="flex items-center gap-2">
+                    <span class="w-fit rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                        2019 - 2027
+                    </span>
+                    <button
+                        type="button"
+                        id="toggleAnnualManualInput"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-100"
+                        aria-controls="annualManualInputForm"
+                        aria-expanded="false"
+                        title="Ubah data manual 2019-2025"
+                    >
+                        <span class="sr-only">Ubah data manual tahun 2019 sampai 2025</span>
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
+            <div id="annualRegistrationChart" class="mt-6 h-[360px]"></div>
 
-            <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-                @foreach ($chartData['annualRegistrations']['manualInputs'] as $year => $total)
-                    <label class="block">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{{ $year }}</span>
-                        <input
-                            type="number"
-                            name="counts[{{ $year }}]"
-                            value="{{ old("counts.$year", $total) }}"
-                            min="0"
-                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                        >
-                    </label>
-                @endforeach
+            <form
+                id="annualManualInputForm"
+                method="POST"
+                action="{{ route('panitia.dashboard.annual-student-counts.update') }}"
+                class="mt-6 {{ $errors->has('counts') || $errors->has('counts.*') ? '' : 'hidden' }} rounded-3xl border border-slate-200 bg-slate-50 p-5"
+            >
+                @csrf
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Ubah Jumlah Siswa 2019-2025</h3>
+                        <p class="mt-1 text-sm text-slate-500">Angka yang disimpan akan langsung dipakai pada grafik batang di atas.</p>
+                    </div>
+                    <button type="submit" class="w-fit rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        Simpan Jumlah
+                    </button>
+                </div>
+
+                <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
+                    @foreach ($chartData['annualRegistrations']['manualInputs'] as $year => $total)
+                        <label class="block">
+                            <span class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{{ $year }}</span>
+                            <input
+                                type="number"
+                                name="counts[{{ $year }}]"
+                                value="{{ old("counts.$year", $total) }}"
+                                min="0"
+                                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                            >
+                        </label>
+                    @endforeach
+                </div>
+
+                @error('counts')
+                    <p class="mt-4 text-sm font-semibold text-rose-600">{{ $message }}</p>
+                @enderror
+            </form>
+        </section>
+
+        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Asal Daerah Siswa</h2>
+                    <p class="mt-2 text-sm text-slate-500">Treemap menampilkan konsentrasi asal daerah berdasarkan data siswa yang masuk.</p>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    {{ count($chartData['regions']) }} daerah
+                </span>
             </div>
-
-            @error('counts')
-                <p class="mt-4 text-sm font-semibold text-rose-600">{{ $message }}</p>
-            @enderror
-        </form>
-    </section>
+            <div id="regionTreemapChart" class="mt-6 h-[360px]"></div>
+        </section>
+    </div>
 
     <div class="mt-8 grid gap-6 xl:grid-cols-2">
         <section class="rounded-[2rem] bg-white p-6 shadow-sm">
@@ -118,19 +154,6 @@
                 </span>
             </div>
             <div id="classQuotaChart" class="mt-6 h-[320px]"></div>
-        </section>
-
-        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">Asal Daerah Siswa</h2>
-                    <p class="mt-2 text-sm text-slate-500">Treemap menampilkan konsentrasi asal daerah berdasarkan data siswa yang masuk.</p>
-                </div>
-                <span class="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                    {{ count($chartData['regions']) }} daerah
-                </span>
-            </div>
-            <div id="regionTreemapChart" class="mt-6 h-[340px]"></div>
         </section>
     </div>
 
@@ -430,6 +453,29 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const manualInputToggle = document.getElementById('toggleAnnualManualInput');
+            const manualInputForm = document.getElementById('annualManualInputForm');
+
+            if (manualInputToggle && manualInputForm) {
+                const setManualInputVisibility = (shouldShow) => {
+                    manualInputForm.classList.toggle('hidden', !shouldShow);
+                    manualInputToggle.setAttribute('aria-expanded', shouldShow ? 'true' : 'false');
+                    manualInputToggle.classList.toggle('border-sky-200', shouldShow);
+                    manualInputToggle.classList.toggle('bg-sky-50', shouldShow);
+                    manualInputToggle.classList.toggle('text-sky-700', shouldShow);
+
+                    if (shouldShow) {
+                        manualInputForm.querySelector('input')?.focus();
+                    }
+                };
+
+                setManualInputVisibility(!manualInputForm.classList.contains('hidden'));
+
+                manualInputToggle.addEventListener('click', () => {
+                    setManualInputVisibility(manualInputForm.classList.contains('hidden'));
+                });
+            }
+
             if (typeof ApexCharts === 'undefined') {
                 renderEmptyState('annualRegistrationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('genderChart', 'Library chart tidak berhasil dimuat.');

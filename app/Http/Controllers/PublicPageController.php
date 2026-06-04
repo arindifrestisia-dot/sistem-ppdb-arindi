@@ -41,6 +41,40 @@ class PublicPageController extends Controller
         ]);
     }
 
+    public function news(): View
+    {
+        return view('blog.berita', [
+            'newsItems' => $this->getContents(SchoolContent::TYPE_INFORMATION),
+        ]);
+    }
+
+    public function showNews(SchoolContent $content): View
+    {
+        abort_unless(
+            $content->type === SchoolContent::TYPE_INFORMATION && $content->is_published,
+            404
+        );
+
+        $content->load('images');
+
+        $relatedNews = Schema::hasTable('school_contents')
+            ? SchoolContent::query()
+                ->where('type', SchoolContent::TYPE_INFORMATION)
+                ->published()
+                ->whereKeyNot($content->getKey())
+                ->orderByDesc('published_at')
+                ->orderBy('sort_order')
+                ->orderByDesc('id')
+                ->limit(3)
+                ->get()
+            : collect();
+
+        return view('blog.show', [
+            'newsItem' => $content,
+            'relatedNews' => $relatedNews,
+        ]);
+    }
+
     public function teachers(): View
     {
         return view('profile.tenaga-pendidik', [

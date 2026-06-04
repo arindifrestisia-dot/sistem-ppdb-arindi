@@ -55,9 +55,8 @@ Route::get('/profile/program-kegiatan-ra', function () {
     return view('profile.program-kegiatan-ra');
 })->name('profile.program-kegiatan-ra');
 
-Route::get('/blog/berita', function () {
-    return view('blog.berita');
-});
+Route::get('/blog/berita', [PublicPageController::class, 'news'])->name('blog.berita');
+Route::get('/blog/berita/{content}', [PublicPageController::class, 'showNews'])->name('blog.berita.show');
 
 Route::get('/blog/kegiatan', [PublicPageController::class, 'activities'])->name('blog.kegiatan');
 Route::get('/blog/prestasi', [PublicPageController::class, 'achievements'])->name('blog.prestasi');

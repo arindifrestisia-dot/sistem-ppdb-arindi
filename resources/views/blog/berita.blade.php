@@ -3,39 +3,41 @@
 @section('title', 'Informasi Berita - RA Fadhilah')
 
 @section('content')
-@php
-    $newsItems = [
-        ['title' => 'Puncak Tema dan Pentas Anak RA Fadhilah Tahun Ajaran 2025/2026', 'image' => 'image/berita.png', 'date' => '12 Februari 2026'],
-        ['title' => 'Peringatan Maulid Nabi Muhammad SAW di Lingkungan RA Fadhilah', 'image' => 'image/berita1.png', 'date' => '14 November 2025'],
-        ['title' => 'Pelatihan Guru dan Penguatan Pembelajaran PAUD Islami', 'image' => 'image/berita2.png', 'date' => '14 Desember 2025'],
-        ['title' => 'Kunjungan Edukatif Anak RA Fadhilah untuk Belajar di Luar Kelas', 'image' => 'image/berita1.png', 'date' => '14 Desember 2025'],
-        ['title' => 'Kegiatan Semester Ganjil Bersama Orang Tua dan Yayasan', 'image' => 'image/berita2.png', 'date' => '14 Desember 2025'],
-        ['title' => 'Milad dan Gebyar Kebersamaan Keluarga Besar RA Fadhilah', 'image' => 'image/berita.png', 'date' => '14 Desember 2025'],
-        ['title' => 'Semarak Hari Besar Nasional di RA Fadhilah Penuh Keceriaan', 'image' => 'image/berita2.png', 'date' => '14 Desember 2025'],
-        ['title' => 'Seminar Parenting untuk Mendukung Tumbuh Kembang Anak', 'image' => 'image/berita1.png', 'date' => '11 Desember 2025'],
-        ['title' => 'Perpisahan dan Pelepasan Peserta Didik RA Fadhilah Angkatan 2025', 'image' => 'image/berita.png', 'date' => '11 Desember 2025'],
-    ];
-@endphp
 <div class="min-h-screen bg-slate-50">
-    <div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="border-b border-slate-200 pb-4">
-            <h1 class="text-3xl font-extrabold text-slate-800">Berita</h1>
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-[var(--brand-blue)]">Informasi Sekolah</p>
+            <h1 class="mt-2 text-3xl font-extrabold text-slate-800">Berita RA Fadhilah</h1>
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600">Kabar terbaru sekolah yang dipublikasikan untuk orang tua dan masyarakat umum.</p>
         </div>
 
         <div class="mt-8 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ($newsItems as $item)
+            @forelse ($newsItems as $item)
                 <article class="group">
-                    <div class="overflow-hidden bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-md">
-                        <img src="{{ asset($item['image']) }}" alt="{{ $item['title'] }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-[1.03]">
-                    </div>
-                    <div class="pt-3">
+                    <a href="{{ route('blog.berita.show', $item) }}" class="block overflow-hidden bg-white shadow-sm ring-1 ring-slate-200 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-md">
+                        <img src="{{ $item->image_path ? asset('storage/' . $item->image_path) : asset('image/berita.png') }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-[1.03]">
+                    </a>
+                    <div class="pt-4">
                         <h2 class="text-base font-semibold leading-6 text-slate-800 group-hover:text-blue-700">
-                            {{ $item['title'] }}
+                            <a href="{{ route('blog.berita.show', $item) }}">{{ $item->title }}</a>
                         </h2>
-                        <p class="mt-2 text-xs text-slate-500">{{ $item['date'] }}</p>
+                        <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                            <span>{{ optional($item->published_at)->translatedFormat('d F Y') ?? 'Informasi Sekolah' }}</span>
+                            <span>Admin RA</span>
+                        </div>
+                        <p class="mt-3 text-sm leading-7 text-slate-600">
+                            {{ $item->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($item->content), 130) }}
+                        </p>
+                        <a href="{{ route('blog.berita.show', $item) }}" class="mt-4 inline-flex items-center justify-center bg-[var(--brand-yellow)] px-4 py-2 text-xs font-black text-white">
+                            Read More
+                        </a>
                     </div>
                 </article>
-            @endforeach
+            @empty
+                <div class="rounded-[1.75rem] border border-dashed border-slate-300 px-6 py-10 text-center text-slate-500 sm:col-span-2 lg:col-span-3">
+                    Belum ada berita yang dipublikasikan.
+                </div>
+            @endforelse
         </div>
 
         @include('profile.partials.contact-footer')

@@ -47,14 +47,15 @@
             'date' => optional($item->published_at)->translatedFormat('d F Y') ?? 'Informasi Sekolah',
             'excerpt' => $item->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($item->content), 135),
             'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/berita.png'),
+            'url' => route('blog.berita.show', $item),
         ])
         : collect([
-            ['title' => 'Puncak tema dan pentas kreativitas peserta didik RA Fadhilah', 'date' => '12 Februari 2026', 'excerpt' => 'Kegiatan pentas menjadi ruang bagi anak untuk tampil percaya diri, ceria, dan berani mengekspresikan karya di depan orang tua serta guru.', 'image' => asset('image/berita.png')],
-            ['title' => 'Pembiasaan ibadah harian dan adab Islami di lingkungan sekolah', 'date' => '14 Januari 2026', 'excerpt' => 'Rutinitas doa, adab keseharian, dan pembelajaran agama dibangun secara hangat agar anak tumbuh dekat dengan nilai-nilai Islami.', 'image' => asset('image/berita1.png')],
-            ['title' => 'Kegiatan luar kelas untuk menumbuhkan kemandirian anak', 'date' => '20 Desember 2025', 'excerpt' => 'Belajar tidak hanya di kelas. Anak diajak bereksplorasi melalui kegiatan tematik dan pengalaman langsung yang menyenangkan.', 'image' => asset('image/berita2.png')],
-            ['title' => 'Kolaborasi sekolah dan keluarga dalam proses tumbuh kembang', 'date' => '8 Desember 2025', 'excerpt' => 'Komunikasi aktif antara guru dan orang tua membantu sekolah menyiapkan layanan yang lebih personal dan dekat dengan kebutuhan peserta didik.', 'image' => asset('image/berita.png')],
-            ['title' => 'Peringatan hari besar Islam bersama keluarga besar sekolah', 'date' => '21 November 2025', 'excerpt' => 'Peringatan hari besar Islam menjadi momen pembelajaran yang menyenangkan dan sarat makna bagi seluruh peserta didik.', 'image' => asset('image/berita1.png')],
-            ['title' => 'Program pembelajaran kreatif dan menyenangkan sepanjang semester', 'date' => '4 November 2025', 'excerpt' => 'Sekolah menghadirkan pendekatan belajar melalui bermain agar anak aktif, fokus, dan berkembang sesuai tahap usianya.', 'image' => asset('image/berita2.png')],
+            ['title' => 'Puncak tema dan pentas kreativitas peserta didik RA Fadhilah', 'date' => '12 Februari 2026', 'excerpt' => 'Kegiatan pentas menjadi ruang bagi anak untuk tampil percaya diri, ceria, dan berani mengekspresikan karya di depan orang tua serta guru.', 'image' => asset('image/berita.png'), 'url' => route('blog.berita')],
+            ['title' => 'Pembiasaan ibadah harian dan adab Islami di lingkungan sekolah', 'date' => '14 Januari 2026', 'excerpt' => 'Rutinitas doa, adab keseharian, dan pembelajaran agama dibangun secara hangat agar anak tumbuh dekat dengan nilai-nilai Islami.', 'image' => asset('image/berita1.png'), 'url' => route('blog.berita')],
+            ['title' => 'Kegiatan luar kelas untuk menumbuhkan kemandirian anak', 'date' => '20 Desember 2025', 'excerpt' => 'Belajar tidak hanya di kelas. Anak diajak bereksplorasi melalui kegiatan tematik dan pengalaman langsung yang menyenangkan.', 'image' => asset('image/berita2.png'), 'url' => route('blog.berita')],
+            ['title' => 'Kolaborasi sekolah dan keluarga dalam proses tumbuh kembang', 'date' => '8 Desember 2025', 'excerpt' => 'Komunikasi aktif antara guru dan orang tua membantu sekolah menyiapkan layanan yang lebih personal dan dekat dengan kebutuhan peserta didik.', 'image' => asset('image/berita.png'), 'url' => route('blog.berita')],
+            ['title' => 'Peringatan hari besar Islam bersama keluarga besar sekolah', 'date' => '21 November 2025', 'excerpt' => 'Peringatan hari besar Islam menjadi momen pembelajaran yang menyenangkan dan sarat makna bagi seluruh peserta didik.', 'image' => asset('image/berita1.png'), 'url' => route('blog.berita')],
+            ['title' => 'Program pembelajaran kreatif dan menyenangkan sepanjang semester', 'date' => '4 November 2025', 'excerpt' => 'Sekolah menghadirkan pendekatan belajar melalui bermain agar anak aktif, fokus, dan berkembang sesuai tahap usianya.', 'image' => asset('image/berita2.png'), 'url' => route('blog.berita')],
         ]);
 
     $galleryItems = $galleryItems->isNotEmpty()
@@ -86,12 +87,18 @@
             ['name' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png')],
         ]);
 
-    $activityMenu = collect([
-        ['title' => 'Practical Life', 'image' => asset('image/berita1.png')],
-        ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png')],
-        ['title' => 'Literasi', 'image' => asset('image/berita.png')],
-        ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg')],
-    ]);
+    $activityMenu = $activityItems->isNotEmpty()
+        ? $activityItems->map(fn ($item) => [
+            'title' => $item->title,
+            'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/berita1.png'),
+            'excerpt' => $item->excerpt,
+        ])
+        : collect([
+            ['title' => 'Practical Life', 'image' => asset('image/berita1.png'), 'excerpt' => null],
+            ['title' => 'Agama dan Ibadah', 'image' => asset('image/berita2.png'), 'excerpt' => null],
+            ['title' => 'Literasi', 'image' => asset('image/berita.png'), 'excerpt' => null],
+            ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg'), 'excerpt' => null],
+        ]);
 
     $testimonials = collect([
         [
@@ -318,7 +325,7 @@
                             <span>Views</span>
                         </div>
                         <p class="mt-4 text-sm leading-8 text-slate-600">{{ $item['excerpt'] }}</p>
-                        <a href="{{ url('/blog/berita') }}" class="mt-6 inline-flex items-center justify-center bg-[var(--brand-yellow)] px-5 py-3 text-sm font-black text-white">
+                        <a href="{{ $item['url'] }}" class="mt-6 inline-flex items-center justify-center bg-[var(--brand-yellow)] px-5 py-3 text-sm font-black text-white">
                             Read More
                         </a>
                     </div>
@@ -372,6 +379,9 @@
                         </div>
                         <div class="-mt-4 mx-6 bg-white px-4 py-4 shadow-md">
                             <h3 class="text-2xl font-black text-slate-800">{{ $item['title'] }}</h3>
+                            @if ($item['excerpt'])
+                                <p class="mt-2 text-sm leading-6 text-slate-500">{{ \Illuminate\Support\Str::limit($item['excerpt'], 90) }}</p>
+                            @endif
                         </div>
                     </article>
                 @endforeach

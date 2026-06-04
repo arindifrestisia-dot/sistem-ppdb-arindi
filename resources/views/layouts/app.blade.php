@@ -108,7 +108,7 @@
                             <a href="{{ route('profile.program-kegiatan-ra') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Program Kegiatan RA</a>
                         </div>
                     </div>
-                    <a href="{{ url('/blog/berita') }}" class="{{ request()->is('blog/berita') ? $mainNavActiveClass : $mainNavItemClass }}">Berita</a>
+                    <a href="{{ route('blog.berita') }}" class="{{ request()->is('blog/berita*') ? $mainNavActiveClass : $mainNavItemClass }}">Berita</a>
                     <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi') ? $mainNavActiveClass : $mainNavItemClass }}">Prestasi</a>
                     <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">Fasilitas</a>
                     <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">Penerimaan Murid Baru</a>
@@ -143,7 +143,7 @@
                                 <a href="{{ route('profile.program-kegiatan-ra') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Program Kegiatan RA</a>
                             </div>
                         </div>
-                        <a href="{{ url('/blog/berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Berita</a>
+                        <a href="{{ route('blog.berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Berita</a>
                         <a href="{{ route('blog.prestasi') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Prestasi</a>
                         <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Fasilitas</a>
                         <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Penerimaan Murid Baru</a>

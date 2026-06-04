@@ -160,8 +160,12 @@
                     <div>
                         <label class="mb-2 block text-sm font-semibold text-slate-700">Status Verifikasi</label>
                         <select name="verification_status" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
-                            @foreach (['belum_diperiksa', 'revisi', 'terverifikasi', 'ditolak'] as $statusOption)
-                                <option value="{{ $statusOption }}" @selected(old('verification_status', $registration->verification_status) === $statusOption)>{{ str_replace('_', ' ', $statusOption) }}</option>
+                            @foreach ([
+                                'belum_diperiksa' => 'Belum diperiksa',
+                                'terverifikasi' => 'Diterima',
+                                'ditolak' => 'Ditolak',
+                            ] as $statusOption => $statusLabel)
+                                <option value="{{ $statusOption }}" @selected(old('verification_status', $registration->verification_status) === $statusOption)>{{ $statusLabel }}</option>
                             @endforeach
                         </select>
                     </div>
