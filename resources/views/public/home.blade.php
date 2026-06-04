@@ -367,24 +367,75 @@
     </section>
 
     <section class="bg-white">
-        <div class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6">
-            <h2 class="section-title">Kegiatanku</h2>
-            <div class="section-accent"></div>
+        <div
+            x-data="activitySlider({{ $activityMenu->count() }})"
+            x-init="init()"
+            @resize.window="updatePerView()"
+            @mouseenter="stop()"
+            @mouseleave="start()"
+            class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6"
+        >
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div class="flex-1">
+                    <h2 class="section-title">Kegiatanku</h2>
+                    <div class="section-accent"></div>
+                </div>
 
-            <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($activityMenu as $item)
-                    <article class="text-center">
-                        <div class="overflow-hidden">
-                            <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" class="h-72 w-full object-cover">
-                        </div>
-                        <div class="-mt-4 mx-6 bg-white px-4 py-4 shadow-md">
-                            <h3 class="text-2xl font-black text-slate-800">{{ $item['title'] }}</h3>
-                            @if ($item['excerpt'])
-                                <p class="mt-2 text-sm leading-6 text-slate-500">{{ \Illuminate\Support\Str::limit($item['excerpt'], 90) }}</p>
-                            @endif
-                        </div>
-                    </article>
-                @endforeach
+                <div class="flex justify-center gap-3 sm:justify-end" x-show="canSlide()" style="display: none;">
+                    <button
+                        type="button"
+                        @click="prev()"
+                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[var(--brand-blue)] shadow-sm transition hover:border-[var(--brand-yellow)] hover:bg-[var(--brand-yellow)] hover:text-white"
+                        aria-label="Kegiatan sebelumnya"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        @click="next()"
+                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[var(--brand-blue)] shadow-sm transition hover:border-[var(--brand-yellow)] hover:bg-[var(--brand-yellow)] hover:text-white"
+                        aria-label="Kegiatan berikutnya"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-12 overflow-hidden">
+                <div
+                    class="flex transition-transform duration-500 ease-out"
+                    :style="`transform: translateX(-${activeIndex * (100 / perView)}%);`"
+                >
+                    @foreach ($activityMenu as $item)
+                        <article class="shrink-0 basis-full px-0 text-center sm:basis-1/2 sm:px-3 lg:basis-1/4">
+                            <div class="overflow-hidden">
+                                <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" class="h-72 w-full object-cover">
+                            </div>
+                            <div class="-mt-4 mx-6 bg-white px-4 py-4 shadow-md">
+                                <h3 class="text-2xl font-black text-slate-800">{{ $item['title'] }}</h3>
+                                @if ($item['excerpt'])
+                                    <p class="mt-2 text-sm leading-6 text-slate-500">{{ \Illuminate\Support\Str::limit($item['excerpt'], 90) }}</p>
+                                @endif
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center gap-2" x-show="canSlide()" style="display: none;">
+                <template x-for="index in totalPages()" :key="index">
+                    <button
+                        type="button"
+                        @click="goToPage(index - 1)"
+                        class="h-2.5 rounded-full transition-all"
+                        :class="currentPage() === index - 1 ? 'w-8 bg-[var(--brand-yellow)]' : 'w-2.5 bg-slate-300 hover:bg-slate-400'"
+                        :aria-label="`Lihat slide kegiatan ${index}`"
+                    ></button>
+                </template>
             </div>
         </div>
     </section>
@@ -518,6 +569,72 @@
             goTo(index) {
                 this.activeSlide = index;
                 this.start();
+            },
+        };
+    }
+
+    function activitySlider(totalItems) {
+        return {
+            totalItems,
+            activeIndex: 0,
+            perView: 1,
+            intervalId: null,
+            init() {
+                this.updatePerView();
+                this.start();
+            },
+            updatePerView() {
+                if (window.innerWidth >= 1024) {
+                    this.perView = 4;
+                } else if (window.innerWidth >= 640) {
+                    this.perView = 2;
+                } else {
+                    this.perView = 1;
+                }
+
+                this.activeIndex = Math.min(this.activeIndex, this.maxIndex());
+            },
+            maxIndex() {
+                return Math.max(this.totalItems - this.perView, 0);
+            },
+            canSlide() {
+                return this.maxIndex() > 0;
+            },
+            totalPages() {
+                return Math.ceil(this.totalItems / this.perView);
+            },
+            currentPage() {
+                if (this.activeIndex >= this.maxIndex()) {
+                    return this.totalPages() - 1;
+                }
+
+                return Math.floor(this.activeIndex / this.perView);
+            },
+            start() {
+                this.stop();
+
+                if (! this.canSlide()) {
+                    return;
+                }
+
+                this.intervalId = setInterval(() => {
+                    this.next();
+                }, 6000);
+            },
+            stop() {
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+            },
+            next() {
+                this.activeIndex = this.activeIndex >= this.maxIndex() ? 0 : this.activeIndex + 1;
+            },
+            prev() {
+                this.activeIndex = this.activeIndex <= 0 ? this.maxIndex() : this.activeIndex - 1;
+            },
+            goToPage(page) {
+                this.activeIndex = Math.min(page * this.perView, this.maxIndex());
             },
         };
     }

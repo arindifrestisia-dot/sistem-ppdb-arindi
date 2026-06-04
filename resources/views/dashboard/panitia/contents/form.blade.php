@@ -81,10 +81,10 @@
                 }
             @endphp
 
-            @if ($existingImages->isNotEmpty())
-                <div>
-                    <p class="mb-3 text-sm font-semibold text-slate-700">Foto Saat Ini</p>
-                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div id="current-images-section" class="{{ $existingImages->isNotEmpty() ? '' : 'hidden' }}">
+                <p class="mb-3 text-sm font-semibold text-slate-700">Foto Saat Ini</p>
+                <div id="current-images-grid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-existing-count="{{ $existingImages->count() }}">
+                    @if ($existingImages->isNotEmpty())
                         @foreach ($existingImages as $image)
                             <label class="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
                                 <img src="{{ asset('storage/' . $image->image_path) }}" alt="Foto konten" class="h-44 w-full object-cover">
@@ -101,9 +101,9 @@
                                 </div>
                             </label>
                         @endforeach
-                    </div>
+                    @endif
                 </div>
-            @endif
+            </div>
 
             <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
                 <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $contentItem->is_published))>
@@ -116,4 +116,78 @@
             </div>
         </form>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageInput = document.getElementById('images');
+            const previewSection = document.getElementById('current-images-section');
+            const previewGrid = document.getElementById('current-images-grid');
+
+            if (!imageInput || !previewSection || !previewGrid || typeof DataTransfer === 'undefined') {
+                return;
+            }
+
+            const selectedFiles = [];
+            const objectUrls = [];
+            const existingCount = Number(previewGrid.dataset.existingCount || 0);
+
+            const syncInputFiles = () => {
+                const transfer = new DataTransfer();
+                selectedFiles.forEach((file) => transfer.items.add(file));
+                imageInput.files = transfer.files;
+            };
+
+            const clearNewPreviews = () => {
+                previewGrid.querySelectorAll('[data-new-image-preview]').forEach((preview) => preview.remove());
+                objectUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
+            };
+
+            const renderPreviews = () => {
+                clearNewPreviews();
+
+                selectedFiles.forEach((file, index) => {
+                    const url = URL.createObjectURL(file);
+                    objectUrls.push(url);
+
+                    const preview = document.createElement('div');
+                    preview.className = 'overflow-hidden rounded-[1.5rem] border border-dashed border-sky-300 bg-sky-50';
+                    preview.dataset.newImagePreview = 'true';
+                    preview.innerHTML = `
+                        <img src="${url}" alt="Preview foto baru" class="h-44 w-full object-cover">
+                        <div class="space-y-2 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Foto ${existingCount + index + 1} - Baru</p>
+                            <button type="button" class="text-sm font-semibold text-rose-600 hover:text-rose-700" data-remove-new-image="${index}">Hapus pilihan ini</button>
+                        </div>
+                    `;
+
+                    previewGrid.appendChild(preview);
+                });
+
+                previewSection.classList.toggle('hidden', existingCount === 0 && selectedFiles.length === 0);
+            };
+
+            imageInput.addEventListener('change', () => {
+                Array.from(imageInput.files || []).forEach((file) => {
+                    if (file.type.startsWith('image/')) {
+                        selectedFiles.push(file);
+                    }
+                });
+
+                syncInputFiles();
+                renderPreviews();
+            });
+
+            previewGrid.addEventListener('click', (event) => {
+                const removeButton = event.target.closest('[data-remove-new-image]');
+
+                if (!removeButton) {
+                    return;
+                }
+
+                selectedFiles.splice(Number(removeButton.dataset.removeNewImage), 1);
+                syncInputFiles();
+                renderPreviews();
+            });
+        });
+    </script>
 </x-panitia-layout>
