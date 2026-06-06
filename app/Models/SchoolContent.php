@@ -14,6 +14,7 @@ class SchoolContent extends Model
     public const TYPE_FACILITY = 'fasilitas';
     public const TYPE_ACTIVITY = 'kegiatan';
     public const TYPE_TEACHER = 'tenaga_pendidik';
+    public const TYPE_TESTIMONIAL = 'testimoni';
 
     protected $fillable = [
         'type',
@@ -55,6 +56,7 @@ class SchoolContent extends Model
             self::TYPE_FACILITY => 'Fasilitas',
             self::TYPE_ACTIVITY => 'Kegiatan',
             self::TYPE_TEACHER => 'Tenaga Pendidik',
+            self::TYPE_TESTIMONIAL => 'Testimoni',
         ];
     }
 }

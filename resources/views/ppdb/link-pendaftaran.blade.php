@@ -24,7 +24,7 @@
             <a href="{{ route('ppdb.info') }}" class="flex items-center gap-3">
                 <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="h-14 w-14 object-contain sm:h-16 sm:w-16">
                 <div class="max-w-xs">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-700 sm:text-xs">Sistem Penerimaan Murid Baru</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-700 sm:text-xs">Penerimaan Peserta Didik Baru</p>
                     <h1 class="text-sm font-extrabold uppercase leading-tight text-sky-900 sm:text-lg">Raudhatul Athfal Fadhilah</h1>
                 </div>
             </a>
@@ -54,11 +54,10 @@
             </div>
 
             <div class="flex flex-col justify-center">
-                <span class="mb-3 inline-flex w-fit rounded-full bg-yellow-300 px-4 py-2 text-xs font-bold uppercase tracking-[0.3em] text-slate-900">Tahun Ajaran 2027/2028</span>
+                <span class="mb-3 inline-flex w-fit rounded-full bg-yellow-300 px-4 py-2 text-xs font-bold uppercase tracking-[0.3em] text-slate-900">Tahun Ajaran 2026/2027</span>
                 <h2 class="max-w-xl text-4xl font-extrabold leading-tight text-sky-900 sm:text-5xl">Selamat Datang di Raudhatul Athfal Fadhilah.</h2>
                 <p class="mt-5 max-w-xl text-base leading-8 text-slate-700 sm:text-lg">
-                    Halaman ini membantu calon orang tua dan calon siswa melihat panduan pendaftaran, alur proses, serta kontak sekolah sebelum masuk ke portal PPDB.
-                </p>
+                    
 
                 <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                     <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-7 py-4 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(22,101,52,0.35)] transition hover:-translate-y-0.5 hover:bg-green-700">
@@ -129,7 +128,7 @@
                 <p class="text-sm font-bold uppercase tracking-[0.4em] text-slate-800">Alur Pendaftaran</p>
                 <h3 class="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">Tahapan PPDB</h3>
                 <p class="mx-auto mt-4 max-w-3xl text-sm leading-7 text-slate-700 sm:text-base">
-                    Saat menu `Alur` dipilih, halaman akan mengarah ke bagian ini agar orang tua bisa mengikuti proses pendaftaran secara berurutan.
+                    
                 </p>
             </div>
 
@@ -174,7 +173,7 @@
                         <p class="text-sm font-bold uppercase tracking-[0.35em] text-sky-600">Hubungi Kami</p>
                         <h3 class="mt-3 text-3xl font-extrabold text-slate-900">Kontak Sekolah</h3>
                         <p class="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                            Saat menu `Hubungi Kami` diklik, halaman akan bergulir ke bagian ini untuk menampilkan alamat, email, telepon, dan jam operasional sekolah.
+                             
                         </p>
 
                         <div class="mt-8 space-y-6 text-sm leading-7 text-slate-700 sm:text-base">

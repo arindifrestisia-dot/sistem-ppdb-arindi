@@ -7,11 +7,12 @@
             'name' => $item->title,
             'role' => $item->excerpt,
             'photo' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/fotoguru.png'),
+            'url' => route('profile.tenaga-pendidik.show', $item),
         ])
         : collect([
-            ['name' => 'Ibunda Sri Dewi, S.E.', 'role' => 'Kepala RA', 'photo' => asset('image/kepala-sekolah-sri-dewi.png')],
-            ['name' => 'Guru Kelas A', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas B', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png')],
+            ['name' => 'Ibunda Sri Dewi, S.E.', 'role' => 'Kepala RA', 'photo' => asset('image/kepala-sekolah-sri-dewi.png'), 'url' => null],
+            ['name' => 'Guru Kelas A', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png'), 'url' => null],
+            ['name' => 'Guru Kelas B', 'role' => 'Guru Kelas', 'photo' => asset('image/fotoguru.png'), 'url' => null],
         ]);
 @endphp
 
@@ -37,11 +38,21 @@
                 <div class="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     @foreach ($teachers as $teacher)
                         <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                            <img src="{{ $teacher['photo'] }}" alt="{{ $teacher['name'] }}" class="h-72 w-full object-cover">
-                            <div class="p-5 text-center">
-                                <h3 class="text-lg font-bold text-slate-800">{{ $teacher['name'] }}</h3>
-                                <p class="mt-2 text-sm font-medium text-blue-700">{{ $teacher['role'] }}</p>
-                            </div>
+                            @if ($teacher['url'])
+                                <a href="{{ $teacher['url'] }}" class="group block" aria-label="Lihat profil {{ $teacher['name'] }}">
+                                    <img src="{{ $teacher['photo'] }}" alt="{{ $teacher['name'] }}" class="h-72 w-full object-cover transition duration-300 group-hover:scale-105">
+                                    <div class="p-5 text-center">
+                                        <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-700">{{ $teacher['name'] }}</h3>
+                                        <p class="mt-2 text-sm font-medium text-blue-700">{{ $teacher['role'] }}</p>
+                                    </div>
+                                </a>
+                            @else
+                                <img src="{{ $teacher['photo'] }}" alt="{{ $teacher['name'] }}" class="h-72 w-full object-cover">
+                                <div class="p-5 text-center">
+                                    <h3 class="text-lg font-bold text-slate-800">{{ $teacher['name'] }}</h3>
+                                    <p class="mt-2 text-sm font-medium text-blue-700">{{ $teacher['role'] }}</p>
+                                </div>
+                            @endif
                         </article>
                     @endforeach
                 </div>

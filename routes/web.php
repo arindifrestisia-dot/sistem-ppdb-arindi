@@ -9,6 +9,7 @@ use App\Http\Controllers\PanitiaFormSaleController;
 use App\Http\Controllers\PanitiaInterviewScheduleController;
 use App\Http\Controllers\PanitiaRegistrationController;
 use App\Http\Controllers\PanitiaSchoolContentController;
+use App\Http\Controllers\PanitiaUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PpdbFormPaymentController;
 use App\Http\Controllers\PublicPageController;
@@ -44,6 +45,8 @@ Route::get('/profile/visi-misi', function () {
 });
 
 Route::get('/profile/tenaga-pendidik', [PublicPageController::class, 'teachers']);
+Route::get('/profile/tenaga-pendidik/{teacher}', [PublicPageController::class, 'showTeacher'])
+    ->name('profile.tenaga-pendidik.show');
 
 Route::get('/profile/kontak-kami', function () {
     return view('profile.kontak-kami');
@@ -97,6 +100,12 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->name('panitia.')->group(function () {
     Route::get('/dashboard', [PanitiaDashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/jumlah-siswa-tahunan', [PanitiaDashboardController::class, 'updateAnnualStudentCounts'])->name('dashboard.annual-student-counts.update');
+    Route::get('/users', [PanitiaUserController::class, 'index'])->name('users.index');
+    Route::get('/users/tambah', [PanitiaUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [PanitiaUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [PanitiaUserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [PanitiaUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [PanitiaUserController::class, 'destroy'])->name('users.destroy');
     Route::get('/pendaftaran', [PanitiaRegistrationController::class, 'index'])->name('registrations.index');
     Route::get('/pendaftaran/export', [PanitiaRegistrationController::class, 'export'])->name('registrations.export');
     Route::get('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'show'])->name('registrations.show');

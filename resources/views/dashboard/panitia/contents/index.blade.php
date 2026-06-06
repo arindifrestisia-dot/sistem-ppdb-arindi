@@ -53,6 +53,9 @@
                             <td class="px-4 py-3">
                                 <p class="font-semibold text-slate-800">{{ $content->title }}</p>
                                 <p class="text-xs text-slate-500">{{ $isTeacherType ? $content->excerpt : \Illuminate\Support\Str::limit($content->excerpt, 80) }}</p>
+                                @if ($isTeacherType)
+                                    <p class="mt-1 text-xs text-slate-400">NIP: {{ $content->content ?: '-' }}</p>
+                                @endif
                             </td>
                             @unless ($isTeacherType)
                                 <td class="px-4 py-3 text-slate-600">{{ optional($content->published_at)->format('d-m-Y') ?? '-' }}</td>

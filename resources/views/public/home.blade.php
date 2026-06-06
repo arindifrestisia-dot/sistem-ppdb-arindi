@@ -78,13 +78,14 @@
         ? $teacherItems->map(fn ($item) => [
             'name' => $item->title,
             'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/fotoguru.png'),
+            'url' => route('profile.tenaga-pendidik.show', $item),
         ])
         : collect([
-            ['name' => 'Guru Kelas A1', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas A2', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas B1', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Kelas B2', 'image' => asset('image/fotoguru.png')],
-            ['name' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png')],
+            ['name' => 'Guru Kelas A1', 'image' => asset('image/fotoguru.png'), 'url' => null],
+            ['name' => 'Guru Kelas A2', 'image' => asset('image/fotoguru.png'), 'url' => null],
+            ['name' => 'Guru Kelas B1', 'image' => asset('image/fotoguru.png'), 'url' => null],
+            ['name' => 'Guru Kelas B2', 'image' => asset('image/fotoguru.png'), 'url' => null],
+            ['name' => 'Guru Pendamping', 'image' => asset('image/fotoguru.png'), 'url' => null],
         ]);
 
     $activityMenu = $activityItems->isNotEmpty()
@@ -100,16 +101,24 @@
             ['title' => 'Motorik', 'image' => asset('image/poster-tk.jpg'), 'excerpt' => null],
         ]);
 
-    $testimonials = collect([
-        [
-            'name' => 'Bunda Alleryk',
-            'quote' => 'RA Fadhilah membantu anak kami tumbuh lebih percaya diri, nyaman belajar, dan terbiasa dengan pembiasaan adab serta ibadah sejak dini.',
-        ],
-        [
-            'name' => 'Wali Murid RA Fadhilah',
-            'quote' => 'Suasana sekolahnya hangat dan komunikatif. Guru-gurunya dekat dengan anak, dan kami sebagai orang tua merasa dilibatkan dalam proses pembelajaran.',
-        ],
-    ]);
+    $testimonials = $testimonialItems->isNotEmpty()
+        ? $testimonialItems->map(fn ($item) => [
+            'name' => $item->title,
+            'quote' => $item->content,
+            'image' => $item->image_path ? asset('storage/' . $item->image_path) : asset('image/contoh.fotobunda.png'),
+        ])
+        : collect([
+            [
+                'name' => 'Bunda Alleryk',
+                'quote' => 'RA Fadhilah membantu anak kami tumbuh lebih percaya diri, nyaman belajar, dan terbiasa dengan pembiasaan adab serta ibadah sejak dini.',
+                'image' => asset('image/contoh.fotobunda.png'),
+            ],
+            [
+                'name' => 'Wali Murid RA Fadhilah',
+                'quote' => 'Suasana sekolahnya hangat dan komunikatif. Guru-gurunya dekat dengan anak, dan kami sebagai orang tua merasa dilibatkan dalam proses pembelajaran.',
+                'image' => asset('image/contoh.fotobunda.png'),
+            ],
+        ]);
 
     $footerNews = $newsItems->take(5);
     $calendarMonth = now()->startOfMonth();
@@ -357,10 +366,19 @@
         <div class="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             @foreach ($teacherItems as $teacher)
                 <article class="text-center">
-                    <div class="mx-auto flex h-52 items-end justify-center overflow-hidden">
-                        <img src="{{ $teacher['image'] }}" alt="{{ $teacher['name'] }}" class="h-full object-contain">
-                    </div>
-                    <h3 class="mt-4 text-2xl font-black text-slate-800">{{ $teacher['name'] }}</h3>
+                    @if ($teacher['url'])
+                        <a href="{{ $teacher['url'] }}" class="group block" aria-label="Lihat profil {{ $teacher['name'] }}">
+                            <div class="mx-auto flex h-52 items-end justify-center overflow-hidden">
+                                <img src="{{ $teacher['image'] }}" alt="{{ $teacher['name'] }}" class="h-full object-contain transition duration-300 group-hover:scale-105">
+                            </div>
+                            <h3 class="mt-4 text-2xl font-black text-slate-800 transition group-hover:text-[var(--brand-blue)]">{{ $teacher['name'] }}</h3>
+                        </a>
+                    @else
+                        <div class="mx-auto flex h-52 items-end justify-center overflow-hidden">
+                            <img src="{{ $teacher['image'] }}" alt="{{ $teacher['name'] }}" class="h-full object-contain">
+                        </div>
+                        <h3 class="mt-4 text-2xl font-black text-slate-800">{{ $teacher['name'] }}</h3>
+                    @endif
                 </article>
             @endforeach
         </div>
@@ -373,57 +391,61 @@
             @resize.window="updatePerView()"
             @mouseenter="stop()"
             @mouseleave="start()"
-            class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6"
+            @keydown.left.prevent="prev()"
+            @keydown.right.prevent="next()"
+            class="mx-auto max-w-[1260px] px-4 py-16 focus:outline-none sm:px-6"
+            tabindex="0"
         >
-            <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                <div class="flex-1">
-                    <h2 class="section-title">Kegiatanku</h2>
-                    <div class="section-accent"></div>
-                </div>
+            <h2 class="section-title">Kegiatanku</h2>
+            <div class="section-accent"></div>
 
-                <div class="flex justify-center gap-3 sm:justify-end" x-show="canSlide()" style="display: none;">
-                    <button
-                        type="button"
-                        @click="prev()"
-                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[var(--brand-blue)] shadow-sm transition hover:border-[var(--brand-yellow)] hover:bg-[var(--brand-yellow)] hover:text-white"
-                        aria-label="Kegiatan sebelumnya"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                        </svg>
-                    </button>
-                    <button
-                        type="button"
-                        @click="next()"
-                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[var(--brand-blue)] shadow-sm transition hover:border-[var(--brand-yellow)] hover:bg-[var(--brand-yellow)] hover:text-white"
-                        aria-label="Kegiatan berikutnya"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-12 overflow-hidden">
-                <div
-                    class="flex transition-transform duration-500 ease-out"
-                    :style="`transform: translateX(-${activeIndex * (100 / perView)}%);`"
+            <div class="relative mt-12">
+                <button
+                    type="button"
+                    @click="prev(); start()"
+                    x-show="canSlide()"
+                    class="absolute left-0 top-36 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/75 text-[var(--brand-blue)] shadow-[0_6px_20px_rgba(15,23,42,0.16)] backdrop-blur-sm transition hover:bg-white hover:shadow-[0_8px_24px_rgba(15,23,42,0.22)] focus:outline-none focus:ring-4 focus:ring-white/60"
+                    aria-label="Kegiatan sebelumnya"
+                    style="display: none;"
                 >
-                    @foreach ($activityMenu as $item)
-                        <article class="shrink-0 basis-full px-0 text-center sm:basis-1/2 sm:px-3 lg:basis-1/4">
-                            <div class="overflow-hidden">
-                                <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" class="h-72 w-full object-cover">
-                            </div>
-                            <div class="-mt-4 mx-6 bg-white px-4 py-4 shadow-md">
-                                <h3 class="text-2xl font-black text-slate-800">{{ $item['title'] }}</h3>
-                                @if ($item['excerpt'])
-                                    <p class="mt-2 text-sm leading-6 text-slate-500">{{ \Illuminate\Support\Str::limit($item['excerpt'], 90) }}</p>
-                                @endif
-                            </div>
-                        </article>
-                    @endforeach
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+
+                <div class="mx-6 overflow-hidden sm:mx-8 lg:mx-10">
+                    <div
+                        class="flex transition-transform duration-500 ease-out"
+                        :style="`transform: translateX(-${activeIndex * (100 / perView)}%);`"
+                    >
+                        @foreach ($activityMenu as $item)
+                            <article class="shrink-0 basis-full px-0 text-center sm:basis-1/2 sm:px-3 lg:basis-1/4">
+                                <div class="overflow-hidden">
+                                    <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" class="h-72 w-full object-cover">
+                                </div>
+                                <div class="-mt-4 mx-6 bg-white px-4 py-4 shadow-md">
+                                    <h3 class="text-2xl font-black text-slate-800">{{ $item['title'] }}</h3>
+                                    @if ($item['excerpt'])
+                                        <p class="mt-2 text-sm leading-6 text-slate-500">{{ \Illuminate\Support\Str::limit($item['excerpt'], 90) }}</p>
+                                    @endif
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
                 </div>
+
+                <button
+                    type="button"
+                    @click="next(); start()"
+                    x-show="canSlide()"
+                    class="absolute right-0 top-36 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/75 text-[var(--brand-blue)] shadow-[0_6px_20px_rgba(15,23,42,0.16)] backdrop-blur-sm transition hover:bg-white hover:shadow-[0_8px_24px_rgba(15,23,42,0.22)] focus:outline-none focus:ring-4 focus:ring-white/60"
+                    aria-label="Kegiatan berikutnya"
+                    style="display: none;"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
             </div>
 
             <div class="mt-8 flex justify-center gap-2" x-show="canSlide()" style="display: none;">
@@ -441,20 +463,73 @@
     </section>
 
     <section class="mt-10 bg-[var(--brand-blue)] py-16 text-white">
-        <div class="mx-auto max-w-[1260px] px-4 sm:px-6">
+        <div
+            x-data="testimonialSlider({{ $testimonials->count() }})"
+            x-init="init()"
+            @resize.window="updatePerView()"
+            @keydown.left.prevent="prev()"
+            @keydown.right.prevent="next()"
+            class="mx-auto max-w-[1260px] px-4 focus:outline-none sm:px-6"
+            tabindex="0"
+        >
             <h2 class="text-center text-4xl font-black uppercase">Testimoni</h2>
             <p class="mt-4 text-center text-sm font-semibold text-white/80">Apa kata mereka tentang RA Fadhilah?</p>
 
-            <div class="mt-12 grid gap-6 lg:grid-cols-2">
+            <div class="relative mt-12">
+                <button
+                    type="button"
+                    @click="prev()"
+                    x-show="canSlide()"
+                    class="absolute left-0 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-sm transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/20"
+                    aria-label="Testimoni sebelumnya"
+                    style="display: none;"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+
+                <div class="mx-6 overflow-hidden sm:mx-9 lg:mx-12">
+                    <div
+                        class="flex items-stretch transition-transform duration-500 ease-out"
+                        :style="`transform: translateX(-${activeIndex * (100 / perView)}%);`"
+                    >
                 @foreach ($testimonials as $testimonial)
-                    <article class="border border-white/20 px-6 py-8">
+                    <article class="flex min-h-64 shrink-0 basis-full flex-col justify-between border border-white/20 px-6 py-8 lg:basis-1/2">
                         <p class="text-lg font-semibold leading-9 text-white/95">“{{ $testimonial['quote'] }}”</p>
                         <div class="mt-8 flex items-center gap-4">
-                            <img src="{{ asset('image/contoh.fotobunda.png') }}" alt="{{ $testimonial['name'] }}" class="h-16 w-16 rounded-full border-2 border-[var(--brand-yellow)] object-cover">
+                            <img src="{{ $testimonial['image'] }}" alt="{{ $testimonial['name'] }}" class="h-16 w-16 rounded-full border-2 border-[var(--brand-yellow)] object-cover">
                             <p class="text-lg font-black uppercase">{{ $testimonial['name'] }}</p>
                         </div>
                     </article>
                 @endforeach
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    @click="next()"
+                    x-show="canSlide()"
+                    class="absolute right-0 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-sm transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/20"
+                    aria-label="Testimoni berikutnya"
+                    style="display: none;"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-8 flex justify-center gap-2" x-show="canSlide()" style="display: none;">
+                <template x-for="index in totalPages()" :key="index">
+                    <button
+                        type="button"
+                        @click="goToPage(index - 1)"
+                        class="h-2.5 rounded-full transition-all"
+                        :class="currentPage() === index - 1 ? 'w-8 bg-[var(--brand-yellow)]' : 'w-2.5 bg-white/35 hover:bg-white/60'"
+                        :aria-label="`Lihat halaman testimoni ${index}`"
+                    ></button>
+                </template>
             </div>
         </div>
     </section>
@@ -578,10 +653,8 @@
             totalItems,
             activeIndex: 0,
             perView: 1,
-            intervalId: null,
             init() {
                 this.updatePerView();
-                this.start();
             },
             updatePerView() {
                 if (window.innerWidth >= 1024) {
@@ -626,6 +699,46 @@
                     clearInterval(this.intervalId);
                     this.intervalId = null;
                 }
+            },
+            next() {
+                this.activeIndex = this.activeIndex >= this.maxIndex() ? 0 : this.activeIndex + 1;
+            },
+            prev() {
+                this.activeIndex = this.activeIndex <= 0 ? this.maxIndex() : this.activeIndex - 1;
+            },
+            goToPage(page) {
+                this.activeIndex = Math.min(page * this.perView, this.maxIndex());
+            },
+        };
+    }
+
+    function testimonialSlider(totalItems) {
+        return {
+            totalItems,
+            activeIndex: 0,
+            perView: 1,
+            init() {
+                this.updatePerView();
+            },
+            updatePerView() {
+                this.perView = window.innerWidth >= 1024 ? 2 : 1;
+                this.activeIndex = Math.min(this.activeIndex, this.maxIndex());
+            },
+            maxIndex() {
+                return Math.max(this.totalItems - this.perView, 0);
+            },
+            canSlide() {
+                return this.maxIndex() > 0;
+            },
+            totalPages() {
+                return Math.ceil(this.totalItems / this.perView);
+            },
+            currentPage() {
+                if (this.activeIndex >= this.maxIndex()) {
+                    return this.totalPages() - 1;
+                }
+
+                return Math.floor(this.activeIndex / this.perView);
             },
             next() {
                 this.activeIndex = this.activeIndex >= this.maxIndex() ? 0 : this.activeIndex + 1;

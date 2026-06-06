@@ -47,6 +47,15 @@ class PanitiaSchoolContentController extends Controller
             ]);
         }
 
+        if ($this->isTestimonialType($type)) {
+            return view('dashboard.panitia.contents.testimonial-index', [
+                'type' => $type,
+                'contents' => $this->contentsQuery($type)
+                    ->paginate(10)
+                    ->withQueryString(),
+            ]);
+        }
+
         return view('dashboard.panitia.contents.index', [
             'type' => $type,
             'typeOptions' => SchoolContent::typeOptions(),
@@ -82,6 +91,12 @@ class PanitiaSchoolContentController extends Controller
 
         if ($this->isTeacherType($type)) {
             return view('dashboard.panitia.contents.teacher-form', [
+                'contentItem' => new SchoolContent(['type' => $type, 'is_published' => true]),
+            ]);
+        }
+
+        if ($this->isTestimonialType($type)) {
+            return view('dashboard.panitia.contents.testimonial-form', [
                 'contentItem' => new SchoolContent(['type' => $type, 'is_published' => true]),
             ]);
         }
@@ -182,6 +197,23 @@ class PanitiaSchoolContentController extends Controller
                 ->with('status', 'Tenaga pendidik berhasil ditambahkan.');
         }
 
+        if ($this->isTestimonialType($type)) {
+            $validated = $this->validateTestimonialRequest($request);
+
+            $content = DB::transaction(function () use ($request, $validated) {
+                $content = new SchoolContent($validated);
+                $content->save();
+
+                $this->storeImages($request, $content);
+
+                return $content;
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Testimoni berhasil ditambahkan.');
+        }
+
         $validated = $this->validateRequest($request);
         $content = DB::transaction(function () use ($request, $validated) {
             $content = new SchoolContent($validated);
@@ -222,6 +254,12 @@ class PanitiaSchoolContentController extends Controller
 
         if ($this->isTeacherType($content->type)) {
             return view('dashboard.panitia.contents.teacher-form', [
+                'contentItem' => $content,
+            ]);
+        }
+
+        if ($this->isTestimonialType($content->type)) {
+            return view('dashboard.panitia.contents.testimonial-form', [
                 'contentItem' => $content,
             ]);
         }
@@ -299,6 +337,26 @@ class PanitiaSchoolContentController extends Controller
             return redirect()
                 ->route('panitia.contents.index', ['type' => $content->type])
                 ->with('status', 'Tenaga pendidik berhasil diperbarui.');
+        }
+
+        if ($this->isTestimonialType($content->type)) {
+            $validated = $this->validateTestimonialRequest($request, true);
+
+            DB::transaction(function () use ($request, $validated, $content) {
+                $content->fill($validated);
+                $content->save();
+
+                if ($request->hasFile('images')) {
+                    $this->removeAllImages($content);
+                }
+
+                $this->storeImages($request, $content);
+                $this->syncCoverImage($content->fresh('images'));
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Testimoni berhasil diperbarui.');
         }
 
         $validated = $this->validateRequest($request);
@@ -416,15 +474,33 @@ class PanitiaSchoolContentController extends Controller
             'type' => ['required', 'in:' . SchoolContent::TYPE_TEACHER],
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string', 'max:100'],
             'images' => [$isUpdate ? 'nullable' : 'required', 'array', 'max:1'],
             'images.*' => ['image', 'max:4096'],
             'remove_images' => ['nullable', 'array'],
             'remove_images.*' => ['integer'],
         ]) + [
-            'content' => null,
             'published_at' => now()->toDateString(),
             'is_published' => true,
             'sort_order' => 0,
+        ];
+    }
+
+    protected function validateTestimonialRequest(Request $request, bool $isUpdate = false): array
+    {
+        return $request->validate([
+            'type' => ['required', 'in:' . SchoolContent::TYPE_TESTIMONIAL],
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string', 'max:2000'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_published' => ['nullable', 'boolean'],
+            'images' => [$isUpdate ? 'nullable' : 'required', 'array', 'max:1'],
+            'images.*' => ['image', 'max:4096'],
+        ]) + [
+            'excerpt' => null,
+            'published_at' => now()->toDateString(),
+            'is_published' => $request->boolean('is_published'),
+            'sort_order' => (int) $request->input('sort_order', 0),
         ];
     }
 
@@ -535,5 +611,10 @@ class PanitiaSchoolContentController extends Controller
     protected function isTeacherType(string $type): bool
     {
         return $type === SchoolContent::TYPE_TEACHER;
+    }
+
+    protected function isTestimonialType(string $type): bool
+    {
+        return $type === SchoolContent::TYPE_TESTIMONIAL;
     }
 }

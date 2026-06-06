@@ -15,8 +15,9 @@ class PublicPageController extends Controller
             'achievementItems' => $this->getContents(SchoolContent::TYPE_ACHIEVEMENT, 3),
             'galleryItems' => $this->getContents(SchoolContent::TYPE_GALLERY, 8),
             'facilityItems' => $this->getContents(SchoolContent::TYPE_FACILITY, 4),
-            'activityItems' => $this->getContents(SchoolContent::TYPE_ACTIVITY, 4),
+            'activityItems' => $this->getContents(SchoolContent::TYPE_ACTIVITY),
             'teacherItems' => $this->getContents(SchoolContent::TYPE_TEACHER, 8),
+            'testimonialItems' => $this->getTestimonials(),
         ]);
     }
 
@@ -82,6 +83,18 @@ class PublicPageController extends Controller
         ]);
     }
 
+    public function showTeacher(SchoolContent $teacher): View
+    {
+        abort_unless(
+            $teacher->type === SchoolContent::TYPE_TEACHER && $teacher->is_published,
+            404
+        );
+
+        return view('profile.tenaga-pendidik-detail', [
+            'teacher' => $teacher,
+        ]);
+    }
+
     protected function getContents(string $type, ?int $limit = null)
     {
         if (! Schema::hasTable('school_contents')) {
@@ -100,5 +113,20 @@ class PublicPageController extends Controller
         }
 
         return $query->get();
+    }
+
+    protected function getTestimonials()
+    {
+        if (! Schema::hasTable('school_contents')) {
+            return collect();
+        }
+
+        return SchoolContent::query()
+            ->where('type', SchoolContent::TYPE_TESTIMONIAL)
+            ->published()
+            ->orderBy('sort_order')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get();
     }
 }

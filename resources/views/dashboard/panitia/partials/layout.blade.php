@@ -37,6 +37,14 @@
                         <rect x="14" y="18" width="7" height="3" rx="1.5"></rect>
                     </svg>
                 SVG,
+                'users' => <<<'SVG'
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3"></circle>
+                        <path d="M3.5 19a5.5 5.5 0 0 1 11 0"></path>
+                        <path d="M16 11h5"></path>
+                        <path d="M18.5 8.5v5"></path>
+                    </svg>
+                SVG,
                 'berita' => <<<'SVG'
                     <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <rect x="4" y="5" width="16" height="14" rx="2"></rect>
@@ -79,6 +87,13 @@
                     <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="8" r="3.5"></circle>
                         <path d="M5.5 19a6.5 6.5 0 0 1 13 0"></path>
+                    </svg>
+                SVG,
+                'testimoni' => <<<'SVG'
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 17.5 3.5 21l4-1.5A9 9 0 1 0 5 17.5Z"></path>
+                        <path d="M8 10h8"></path>
+                        <path d="M8 14h5"></path>
                     </svg>
                 SVG,
                 'saat_ini' => <<<'SVG'
@@ -142,6 +157,11 @@
                 <a href="{{ route('panitia.dashboard') }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ request()->routeIs('panitia.dashboard') ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}">
                     {!! $sidebarIcon('dashboard') !!}
                     <span>Beranda</span>
+                </a>
+
+                <a href="{{ route('panitia.users.index') }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ request()->routeIs('panitia.users.*') ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}">
+                    {!! $sidebarIcon('users') !!}
+                    <span>Manajemen User</span>
                 </a>
 
                 <div class="pt-4">

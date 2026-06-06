@@ -36,6 +36,12 @@
             </div>
 
             <div>
+                <label for="content" class="mb-2 block text-sm font-semibold text-slate-700">NIP Guru</label>
+                <input id="content" type="text" name="content" value="{{ old('content', $contentItem->content) }}" placeholder="Contoh: 19850101 201001 2 001" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm text-slate-800 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                <p class="mt-2 text-xs text-slate-500">Boleh dikosongkan jika guru belum memiliki NIP.</p>
+            </div>
+
+            <div>
                 <label for="images" class="mb-2 block text-sm font-semibold text-slate-700">Foto Guru</label>
                 <input id="images" type="file" name="images[]" accept="image/*" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800">
                 <p class="mt-2 text-xs text-slate-500">{{ $contentItem->exists ? 'Kosongkan jika foto guru tidak ingin diganti.' : 'Upload satu foto guru.' }}</p>
