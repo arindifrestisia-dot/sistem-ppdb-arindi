@@ -15,88 +15,76 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6">
-    <div class="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl items-start justify-center">
-        <div class="w-full overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.1)]">
-            <div class="border-b border-slate-200 px-5 py-6 text-center sm:px-7">
-                <h1 class="text-3xl font-extrabold uppercase text-blue-700 sm:text-4xl">SPMB</h1>
-                <p class="mt-2 text-base font-medium text-slate-400 sm:text-lg">(Sistem Penerimaan Murid Baru)</p>
-                <p class="mt-3 text-xl font-extrabold text-slate-500 sm:text-2xl">RAUDHATUL ATHFAL FADHILAH</p>
+<body class="min-h-screen bg-slate-100 px-4 py-6 text-slate-900 sm:px-6">
+    <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-sm items-center justify-center">
+        <div class="w-full rounded-lg border border-slate-200 bg-white px-6 py-8 shadow-[0_10px_24px_rgba(15,23,42,0.12)] sm:px-8">
+            <div class="text-center">
+                <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="mx-auto h-14 w-14 object-contain">
+                <h1 class="mt-4 text-2xl font-bold text-slate-950">Login</h1>
+                <p class="mt-3 text-sm text-slate-600">Sistem PPDB RA Fadhilah</p>
             </div>
 
-            <div class="px-5 py-6 sm:px-7 sm:py-7">
-                <p class="text-center text-base font-semibold text-slate-400 sm:text-lg">Silahkan masuk untuk melanjutkan</p>
-
+            <div class="mt-7">
                 @if (session('status'))
-                    <div class="mt-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    <div class="mb-5 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-xs leading-5 text-green-700">
                         {{ session('status') }}
                     </div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-700">
                         Username atau password belum sesuai. Silakan coba lagi.
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" class="mt-7 space-y-5">
+                <form method="POST" action="{{ route('login') }}" class="space-y-5">
                     @csrf
 
                     <div>
-                        <label for="username" class="sr-only">Username</label>
-                        <div class="flex items-center rounded-xl border border-slate-400 bg-white px-4 shadow-sm">
-                            <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Username" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
-                        </div>
+                        <label for="username" class="mb-2 block text-xs font-medium text-slate-800">Username</label>
+                        <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Masukkan username" class="h-10 w-full rounded border border-indigo-200 px-4 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                        <p class="mt-1.5 text-[11px] text-slate-400">Gunakan username yang telah didaftarkan</p>
                         @error('username')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="password" class="sr-only">Password</label>
-                        <div class="flex items-center rounded-xl border border-slate-400 bg-white px-4 shadow-sm">
-                            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="Password" class="h-11 w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base">
-                            <button type="button" data-toggle-password="password" class="text-slate-600" aria-label="Tampilkan password">
-                                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <label for="password" class="mb-2 block text-xs font-medium text-slate-800">Password</label>
+                        <div class="flex items-center rounded border border-indigo-100 px-4 transition focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100">
+                            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="Masukkan password" class="h-10 w-full border-none bg-transparent p-0 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:ring-0">
+                            <button type="button" data-toggle-password="password" class="ml-3 text-slate-500 transition hover:text-indigo-600" aria-label="Tampilkan password">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 5.25c5.25 0 9.19 4.55 10.34 6.08a1.2 1.2 0 0 1 0 1.34C21.19 14.2 17.25 18.75 12 18.75S2.81 14.2 1.66 12.67a1.2 1.2 0 0 1 0-1.34C2.81 9.8 6.75 5.25 12 5.25Zm0 2.25a4.5 4.5 0 1 0 4.5 4.5A4.5 4.5 0 0 0 12 7.5Zm0 2.25A2.25 2.25 0 1 1 9.75 12 2.25 2.25 0 0 1 12 9.75Z"/>
                                 </svg>
                             </button>
                         </div>
+                        <p class="mt-1.5 text-[11px] text-slate-400">Password yang digunakan saat mendaftar</p>
                         @error('password')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <label for="remember_me" class="inline-flex items-center gap-3 text-base font-semibold text-slate-600 sm:text-lg">
-                            <input id="remember_me" type="checkbox" name="remember" class="h-5 w-5 rounded border-slate-400 text-blue-700 focus:ring-blue-600">
-                            Ingat Saya
+                    <div class="flex items-center justify-between gap-4">
+                        <label for="remember_me" class="inline-flex items-center gap-2 text-xs text-slate-600">
+                            <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500">
+                            Ingat saya
                         </label>
 
-                        <button type="submit" class="inline-flex min-w-[128px] items-center justify-center rounded-xl bg-blue-700 px-5 py-2.5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(29,78,216,0.2)] transition hover:bg-blue-800 sm:text-lg">
-                            Masuk
-                        </button>
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="text-xs text-slate-700 underline underline-offset-2 transition hover:text-indigo-600">Lupa password?</a>
+                        @endif
                     </div>
+
+                    <button type="submit" class="inline-flex h-11 w-full items-center justify-center rounded bg-[#0d8bc8] px-6 text-xs font-semibold text-white shadow-[0_10px_18px_rgba(13,139,200,0.26)] transition hover:bg-[#087db6]">
+                        Masuk
+                    </button>
                 </form>
 
-                <div class="mt-7 text-center">
-                    <p class="text-sm text-slate-500 sm:text-base">Belum punya akun pendaftaran ?</p>
-                    <a href="{{ route('register') }}" class="mt-4 inline-flex items-center justify-center gap-3 rounded-full border-2 border-slate-300 px-5 py-2.5 text-sm font-semibold uppercase tracking-wide text-slate-500 transition hover:bg-slate-50 sm:text-base">
-                        <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M15 8.25a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-4.5 6c3.14 0 6.75 1.54 6.75 4.5v.75H3.75v-.75c0-2.96 3.61-4.5 6.75-4.5Zm9-7.5a.75.75 0 0 1 .75.75V9h1.5a.75.75 0 0 1 0 1.5h-1.5V12a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5V7.5a.75.75 0 0 1 .75-.75Z"/>
-                        </svg>
-                        Buat Akun Sekarang
-                    </a>
-                </div>
-            </div>
-
-            <div class="px-5 pb-6 text-center sm:px-7">
-                <a href="{{ route('ppdb.info') }}" class="inline-flex items-center gap-3 text-sm font-semibold text-blue-500 transition hover:text-blue-700 sm:text-base">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
-                    </svg>
-                    Kembali ke Beranda
-                </a>
+                <p class="mt-5 text-center text-xs text-slate-600">
+                    Belum punya akun?
+                    <a href="{{ route('register') }}" class="font-medium text-slate-900 underline-offset-2 hover:underline">Registrasi</a>
+                </p>
             </div>
         </div>
     </div>

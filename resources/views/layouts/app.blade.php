@@ -80,7 +80,7 @@
         <nav class="bg-[var(--brand-blue)] text-white">
             <div class="mx-auto hidden max-w-[1260px] items-center justify-between gap-6 px-4 sm:px-6 lg:flex">
                 <div class="flex items-center">
-                    <a href="{{ route('profile.dashboard') }}" class="{{ request()->routeIs('profile.dashboard') || request()->routeIs('home') ? $mainNavActiveClass : $mainNavItemClass }}">Home</a>
+                    <a href="{{ route('profile.dashboard') }}" class="{{ request()->routeIs('profile.dashboard') || request()->routeIs('home') ? $mainNavActiveClass : $mainNavItemClass }}">HOME</a>
                     <div class="relative" x-data="{ open: false }">
                         <button
                             type="button"
@@ -88,7 +88,7 @@
                             @keydown.escape.window="open = false"
                             class="flex items-center gap-2 px-4 py-4 text-sm font-semibold transition hover:bg-white/10"
                         >
-                            Tentang Kami
+                            TENTANG KAMI
                             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.293l3.71-4.06a.75.75 0 1 1 1.1 1.02l-4.25 4.65a.75.75 0 0 1-1.1 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                             </svg>
@@ -108,11 +108,11 @@
                             <a href="{{ route('profile.program-kegiatan-ra') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Program Kegiatan RA</a>
                         </div>
                     </div>
-                    <a href="{{ route('blog.berita') }}" class="{{ request()->is('blog/berita*') ? $mainNavActiveClass : $mainNavItemClass }}">Berita</a>
-                    <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi') ? $mainNavActiveClass : $mainNavItemClass }}">Prestasi</a>
-                    <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">Fasilitas</a>
-                    <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">Penerimaan Murid Baru</a>
-                    <a href="{{ url('/profile/kontak-kami') }}" class="{{ request()->is('profile/kontak-kami') ? $mainNavActiveClass : $mainNavItemClass }}">Kontak Kami</a>
+                    <a href="{{ route('blog.berita') }}" class="{{ request()->is('blog/berita*') ? $mainNavActiveClass : $mainNavItemClass }}">BERITA</a>
+                    <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi') ? $mainNavActiveClass : $mainNavItemClass }}">PRESTASI</a>
+                    <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">FASILITAS</a>
+                    <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">PENERIMAAN MURID BARU</a>
+                    <a href="{{ url('/profile/kontak-kami') }}" class="{{ request()->is('profile/kontak-kami') ? $mainNavActiveClass : $mainNavItemClass }}">KONTAK KAMI</a>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -132,9 +132,9 @@
 
                 <div x-show="mobileOpen" x-transition class="border-t border-white/10 px-4 py-4 sm:px-6 lg:hidden" style="display: none;">
                     <div class="grid gap-2">
-                        <a href="{{ route('profile.dashboard') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Home</a>
+                        <a href="{{ route('profile.dashboard') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">HOME</a>
                         <div class="rounded-md bg-white/5 px-4 py-3">
-                            <p class="text-sm font-semibold">Tentang Kami</p>
+                            <p class="text-sm font-semibold">TENTANG KAMI</p>
                             <div class="mt-3 grid gap-1 pl-2 text-sm text-white/80">
                                 <a href="{{ url('/profile/kata-sambutan') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Kata Sambutan</a>
                                 <a href="{{ url('/profile/visi-misi') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Visi-Misi dan Tujuan RA Fadhilah</a>
@@ -143,11 +143,11 @@
                                 <a href="{{ route('profile.program-kegiatan-ra') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Program Kegiatan RA</a>
                             </div>
                         </div>
-                        <a href="{{ route('blog.berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Berita</a>
-                        <a href="{{ route('blog.prestasi') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Prestasi</a>
-                        <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Fasilitas</a>
-                        <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Penerimaan Murid Baru</a>
-                    <a href="{{ url('/profile/kontak-kami') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">Kontak Kami</a>
+                        <a href="{{ route('blog.berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">BERITA</a>
+                        <a href="{{ route('blog.prestasi') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PRESTASI</a>
+                        <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">FASILITAS</a>
+                        <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PENERIMAAN MURID BARU</a>
+                    <a href="{{ url('/profile/kontak-kami') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">KONTAK KAMI</a>
                 </div>
             </div>
         </nav>

@@ -136,7 +136,6 @@
 <div class="bg-white">
     <section
         x-data="heroPosterSlider({{ Js::from($heroSlides) }})"
-        x-init="start()"
         class="relative overflow-hidden bg-[#f5f9ff] text-white"
     >
         <template x-for="(slide, index) in slides" :key="index">
@@ -164,8 +163,8 @@
                 <div class="absolute right-[-12%] top-[-12%] h-[150%] w-[56%] rounded-l-[44%] border-l-[18px] border-white/60 bg-white/10"></div>
                 <div class="absolute bottom-[-15%] right-[-2%] h-48 w-[60%] rounded-t-[100%] border-t-[20px] border-white/75 bg-white/15"></div>
 
-                <div class="relative mx-auto grid min-h-[620px] max-w-[1260px] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-                    <div class="relative z-10 py-4">
+                <div class="relative mx-auto grid h-[760px] max-w-[1260px] gap-6 overflow-hidden px-4 py-8 sm:h-[720px] sm:px-6 lg:h-[620px] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+                    <div class="relative z-10 py-2">
                         <div class="flex flex-wrap items-center gap-4">
                             <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg">
                                 <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="h-11 w-11 object-contain">
@@ -176,41 +175,41 @@
                         </div>
 
                         <p
-                            class="mt-8 text-sm font-black uppercase tracking-[0.28em]"
+                            class="mt-5 text-xs font-black uppercase tracking-[0.24em] sm:text-sm"
                             :class="slide.theme === 'pink' ? 'text-[#a91f73]' : 'text-[var(--brand-yellow)]'"
                             x-text="slide.eyebrow"
                         ></p>
                         <h1
                             class="mt-4 font-black uppercase leading-none drop-shadow-[0_4px_0_rgba(0,0,0,0.12)]"
-                            :class="slide.theme === 'pink' ? 'text-[3.7rem] text-white sm:text-[5.4rem] lg:text-[6.4rem]' : 'text-[3.5rem] text-[var(--brand-yellow)] sm:text-[5rem] lg:text-[6rem]'"
+                            :class="slide.theme === 'pink' ? 'text-[2.75rem] text-white sm:text-[4.25rem] lg:text-[5.3rem]' : 'text-[2.75rem] text-[var(--brand-yellow)] sm:text-[4.25rem] lg:text-[5.3rem]'"
                             x-text="slide.title"
                         ></h1>
                         <p
-                            class="mt-4 max-w-3xl text-2xl font-black uppercase tracking-[0.06em] sm:text-4xl lg:text-5xl"
+                            class="mt-3 max-w-3xl text-xl font-black uppercase tracking-[0.06em] sm:text-3xl lg:text-4xl"
                             :class="slide.theme === 'pink' ? 'text-[#2e9ae8]' : 'text-white'"
                             x-text="slide.subtitle"
                         ></p>
 
                         <div
-                            class="mt-8 inline-flex min-w-[290px] max-w-full rounded-full px-8 py-4 text-center text-xl font-black uppercase tracking-[0.18em] shadow-[0_16px_30px_rgba(0,0,0,0.14)] sm:text-2xl"
+                            class="mt-5 inline-flex min-w-[250px] max-w-full rounded-full px-6 py-3 text-center text-base font-black uppercase tracking-[0.14em] shadow-[0_16px_30px_rgba(0,0,0,0.14)] sm:min-w-[290px] sm:text-xl"
                             :class="slide.theme === 'pink' ? 'bg-[#4fa5e8] text-white' : 'bg-white text-[var(--brand-blue)]'"
                         >
                             <span x-text="slide.period"></span>
                         </div>
 
-                        <p class="mt-8 max-w-3xl text-lg font-bold leading-9 text-white sm:text-2xl" x-text="slide.tagline"></p>
+                        <p class="mt-5 max-w-3xl text-sm font-bold leading-7 text-white sm:text-lg lg:text-xl" x-text="slide.tagline"></p>
 
-                        <div class="mt-8 flex flex-wrap gap-4">
+                        <div class="mt-5 flex flex-wrap gap-3">
                             <a
                                 x-show="slide.button"
                                 :href="index === 1 ? '{{ url('/profile/sejarah') }}' : (index === 2 ? '{{ route('blog.kegiatan') }}' : '{{ route('ppdb.info') }}')"
-                                class="inline-flex items-center justify-center bg-[var(--brand-yellow)] px-8 py-4 text-sm font-black uppercase tracking-[0.16em] text-[var(--brand-blue)] shadow-lg transition hover:bg-[#ffd857]"
+                                class="inline-flex items-center justify-center bg-[var(--brand-yellow)] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-[var(--brand-blue)] shadow-lg transition hover:bg-[#ffd857] sm:px-8 sm:py-4 sm:text-sm"
                                 x-text="slide.button"
                             ></a>
                             <a
                                 x-show="slide.secondary"
                                 :href="index === 1 ? '{{ url('/profile/tenaga-pendidik') }}' : (index === 2 ? '{{ route('ppdb.info') }}' : '{{ url('/profile/sejarah') }}')"
-                                class="inline-flex items-center justify-center border border-white/50 px-8 py-4 text-sm font-black uppercase tracking-[0.16em] text-white transition hover:bg-white/10"
+                                class="inline-flex items-center justify-center border border-white/50 px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-white/10 sm:px-8 sm:py-4 sm:text-sm"
                                 x-text="slide.secondary"
                             ></a>
                         </div>
@@ -221,7 +220,7 @@
                             <div class="absolute -left-6 top-10 hidden h-24 w-24 rounded-full border-[10px] border-white/35 lg:block"></div>
                             <div class="absolute -right-4 bottom-20 hidden h-16 w-16 rounded-full bg-white/20 lg:block"></div>
                             <div class="absolute inset-y-4 right-0 w-[86%] rounded-[2rem] bg-white/10 blur-[2px]"></div>
-                            <img :src="slide.image" :alt="slide.title" class="relative h-[340px] w-full rounded-[2rem] border-[6px] border-white/25 object-cover shadow-[0_30px_70px_rgba(0,0,0,0.2)] sm:h-[430px] lg:h-[470px]">
+                            <img :src="slide.image" :alt="slide.title" class="relative h-[250px] w-full rounded-[2rem] border-[6px] border-white/25 bg-white/10 object-contain shadow-[0_30px_70px_rgba(0,0,0,0.2)] sm:h-[320px] lg:h-[400px]">
 
                             <div class="absolute bottom-5 left-5 right-5 rounded-[1.6rem] bg-white/16 px-5 py-4 backdrop-blur-md">
                                 <div class="flex items-center justify-between gap-4">
@@ -623,9 +622,6 @@
             intervalId: null,
             start() {
                 this.stop();
-                this.intervalId = setInterval(() => {
-                    this.next();
-                }, 10000);
             },
             stop() {
                 if (this.intervalId) {
@@ -635,15 +631,12 @@
             },
             next() {
                 this.activeSlide = (this.activeSlide + 1) % this.slides.length;
-                this.start();
             },
             prev() {
                 this.activeSlide = (this.activeSlide - 1 + this.slides.length) % this.slides.length;
-                this.start();
             },
             goTo(index) {
                 this.activeSlide = index;
-                this.start();
             },
         };
     }
