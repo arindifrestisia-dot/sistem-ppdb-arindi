@@ -74,6 +74,8 @@
             ['title' => 'Galeri RA Fadhilah', 'image' => asset('image/poster-tk.jpg')],
         ]);
 
+    $profileImage = data_get($galleryItems->first(), 'image', asset('image/berita.png'));
+
     $teacherItems = $teacherItems->isNotEmpty()
         ? $teacherItems->map(fn ($item) => [
             'name' => $item->title,
@@ -180,8 +182,8 @@
                             x-text="slide.eyebrow"
                         ></p>
                         <h1
-                            class="mt-4 font-black uppercase leading-none drop-shadow-[0_4px_0_rgba(0,0,0,0.12)]"
-                            :class="slide.theme === 'pink' ? 'text-[2.75rem] text-white sm:text-[4.25rem] lg:text-[5.3rem]' : 'text-[2.75rem] text-[var(--brand-yellow)] sm:text-[4.25rem] lg:text-[5.3rem]'"
+                            class="mt-4 text-[2.75rem] font-black uppercase leading-none drop-shadow-[0_4px_0_rgba(0,0,0,0.12)] sm:text-[4.25rem] lg:text-[4.5rem]"
+                            :class="slide.theme === 'pink' ? 'text-white' : 'text-[var(--brand-yellow)]'"
                             x-text="slide.title"
                         ></h1>
                         <p
@@ -220,7 +222,7 @@
                             <div class="absolute -left-6 top-10 hidden h-24 w-24 rounded-full border-[10px] border-white/35 lg:block"></div>
                             <div class="absolute -right-4 bottom-20 hidden h-16 w-16 rounded-full bg-white/20 lg:block"></div>
                             <div class="absolute inset-y-4 right-0 w-[86%] rounded-[2rem] bg-white/10 blur-[2px]"></div>
-                            <img :src="slide.image" :alt="slide.title" class="relative h-[250px] w-full rounded-[2rem] border-[6px] border-white/25 bg-white/10 object-contain shadow-[0_30px_70px_rgba(0,0,0,0.2)] sm:h-[320px] lg:h-[400px]">
+                            <img :src="slide.image" :alt="slide.title" class="relative h-[250px] w-full rounded-[2rem] border-[6px] border-white/25 bg-white/10 object-cover object-center shadow-[0_30px_70px_rgba(0,0,0,0.2)] sm:h-[320px] lg:h-[400px]">
 
                             <div class="absolute bottom-5 left-5 right-5 rounded-[1.6rem] bg-white/16 px-5 py-4 backdrop-blur-md">
                                 <div class="flex items-center justify-between gap-4">
@@ -307,13 +309,122 @@
         </div>
     </section>
 
-    <section class="relative overflow-hidden bg-[linear-gradient(180deg,rgba(12,73,134,0.97),rgba(12,73,134,0.9))] py-16 text-center text-white">
-        <div class="absolute inset-0 opacity-15" style="background-image: url('{{ asset('image/poster-tk.jpg') }}'); background-size: cover; background-position: center;"></div>
-        <div class="relative mx-auto max-w-[1260px] px-4 sm:px-6">
-            <h2 class="text-3xl font-black uppercase sm:text-5xl">Beradab dan Berkemajuan</h2>
-            <a href="{{ route('ppdb.info') }}" class="mt-8 inline-flex items-center justify-center bg-[var(--brand-yellow)] px-10 py-4 text-lg font-black text-white shadow-lg">
-                Penerimaan Murid Baru
-            </a>
+    <section class="bg-[#f5f9ff] px-4 py-10 sm:px-6 sm:py-14">
+        <div class="relative mx-auto max-w-[1260px] overflow-hidden rounded-3xl bg-white shadow-[0_12px_35px_rgba(15,79,140,0.12)]">
+            <div class="absolute left-0 top-0 h-full w-2 bg-[var(--brand-yellow)]"></div>
+
+            <div class="grid gap-6 px-6 py-8 sm:px-10 lg:grid-cols-[180px_1fr] lg:items-center lg:gap-10 lg:px-12">
+                <div class="mx-auto flex h-40 w-40 items-end justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-100 to-emerald-100 ring-8 ring-blue-50 lg:h-44 lg:w-44">
+                    <img
+                        src="{{ asset('image/kepala-sekolah-sri-dewi.png') }}"
+                        alt="Ibunda Sri Dewi, S.E., Kepala RA Fadhilah"
+                        class="h-full w-full object-cover object-top"
+                    >
+                </div>
+
+                <div class="flex min-h-[176px] flex-col">
+                    <div>
+                        <h2 class="text-2xl font-black text-[var(--brand-blue)] sm:text-3xl">Sambutan Kepala Sekolah</h2>
+                        <p class="mt-2 text-base font-black text-slate-800 sm:text-lg">Ibunda Sri Dewi, S.E.</p>
+                        <p class="text-sm font-semibold text-slate-500">Kepala RA Fadhilah Pekanbaru</p>
+
+                        <p class="mt-5 max-w-4xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">
+                            Assalamu'alaikum Warahmatullahi Wabarakatuh. Puji syukur ke hadirat Allah Subhanahu wa Ta'ala atas limpahan rahmat dan karunia-Nya sehingga website resmi RA Fadhilah Pekanbaru dapat hadir sebagai sarana informasi, komunikasi, dan layanan bagi seluruh keluarga besar sekolah.
+                        </p>
+                    </div>
+
+                    <div class="mt-5 flex justify-end">
+                        <a href="{{ url('/profile/kata-sambutan') }}" class="inline-flex items-center gap-2 bg-[var(--brand-blue)] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#0b4277]">
+                            Selengkapnya
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="relative overflow-hidden bg-[#f5f9ff]">
+        <div class="absolute -left-24 top-12 h-64 w-64 rounded-full bg-[var(--brand-yellow)]/10"></div>
+        <div class="absolute -right-28 bottom-0 h-80 w-80 rounded-full bg-[var(--brand-blue)]/10"></div>
+
+        <div class="relative mx-auto grid max-w-[1260px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-16 lg:py-20">
+            <div class="relative mx-auto w-full max-w-[520px]">
+                <div class="absolute -left-4 -top-4 h-full w-full bg-[var(--brand-yellow)]"></div>
+                <div class="absolute -bottom-4 -right-4 h-full w-full border-4 border-[var(--brand-blue)]/20"></div>
+                <img
+                    src="{{ $profileImage }}"
+                    alt="Kegiatan belajar di RA Fadhilah"
+                    class="relative h-[420px] w-full object-cover shadow-[0_24px_60px_rgba(15,79,140,0.2)] sm:h-[520px]"
+                >
+            </div>
+
+            <div>
+                <h2 class="text-3xl font-black leading-tight text-[var(--brand-blue)] sm:text-4xl lg:text-5xl">
+                    Selamat Datang di RA Fadhilah
+                </h2>
+                <div class="mt-5 h-1.5 w-20 rounded-full bg-[var(--brand-yellow)]"></div>
+
+                <div class="mt-8 space-y-5 text-base leading-8 text-slate-600 sm:text-lg sm:leading-9">
+                    <p>
+                        Raudhatul Athfal Fadhilah merupakan lembaga pendidikan anak usia dini yang setara dengan taman kanak-kanak. Sekolah ini berfokus pada pembentukan karakter, penanaman nilai-nilai keagamaan, serta pengembangan keterampilan dasar anak sejak usia dini. RA Fadhilah berlokasi di Jl. Muhajirin, Sidomulyo Barat, Kecamatan Tampan, Kota Pekanbaru, Provinsi Riau.
+                    </p>
+                    <p>
+                        Bermula dari berdirinya Yayasan Darel Fadhilah yang menaungi lembaga pendidikan Islam terpadu, RA Fadhilah hadir sebagai bentuk komitmen yayasan dalam menyediakan pendidikan anak usia dini yang berkualitas, hangat, dan berlandaskan nilai-nilai keislaman. Seiring meningkatnya kebutuhan masyarakat terhadap pendidikan Islami, RA Fadhilah didirikan pada 11 Januari 2009 sebagai ruang tumbuh yang aman dan menyenangkan bagi anak-anak.
+                    </p>
+                </div>
+
+                <a href="{{ url('/profile/sejarah') }}" class="mt-8 inline-flex items-center justify-center rounded-full bg-[var(--brand-blue)] px-7 py-3.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg transition hover:bg-[#0b4277]">
+                    Selengkapnya
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="mx-auto max-w-[1260px] px-4 py-16 sm:px-6 lg:py-20">
+            <div class="text-center">
+                <h2 class="section-title">Visi dan Misi</h2>
+                <div class="section-accent"></div>
+                <p class="mt-4 text-sm text-slate-500 sm:text-base">Arah pendidikan Raudhatul Athfal Fadhilah</p>
+            </div>
+
+            <div class="mt-12 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+                <article class="relative overflow-hidden rounded-3xl bg-[var(--brand-blue)] p-7 text-white shadow-[0_20px_45px_rgba(15,79,140,0.18)] sm:p-10">
+                    <div class="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-20 -left-12 h-52 w-52 rounded-full bg-[var(--brand-yellow)]/15"></div>
+
+                    <div class="relative">
+                        <span class="inline-flex rounded-full bg-[var(--brand-yellow)] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-blue)]">
+                            Visi
+                        </span>
+                        <p class="mt-8 text-xl font-bold italic leading-9 sm:text-2xl sm:leading-10">
+                            “Terwujudnya anak usia dini yang beriman dan bertakwa kepada Allah SWT, berakhlak mulia, sehat, cerdas, ceria, dan siap melanjutkan pendidikan ke jenjang berikutnya.”
+                        </p>
+                    </div>
+                </article>
+
+                <article class="rounded-3xl bg-[#f5f9ff] p-7 shadow-[0_16px_40px_rgba(15,79,140,0.08)] sm:p-10">
+                    <h3 class="text-2xl font-black text-[var(--brand-blue)] sm:text-3xl">Misi</h3>
+                    <div class="mt-6 space-y-4">
+                        @foreach ([
+                            'Menanamkan nilai-nilai keimanan dan ketakwaan sejak dini melalui pembiasaan ibadah dan akhlak mulia.',
+                            'Mengembangkan potensi anak secara optimal, meliputi moral agama, fisik motorik, kognitif, bahasa, sosial emosional, dan seni.',
+                            'Menciptakan lingkungan belajar yang nyaman, menyenangkan, dan Islami.',
+                            'Membiasakan anak untuk mandiri, disiplin, dan bertanggung jawab.',
+                            'Menjalin kerja sama yang baik antara sekolah, orang tua, dan masyarakat.',
+                        ] as $mission)
+                            <div class="flex gap-4">
+                                <span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand-yellow)] text-sm font-black text-[var(--brand-blue)]">
+                                    {{ $loop->iteration }}
+                                </span>
+                                <p class="text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{{ $mission }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+
+                </article>
+            </div>
         </div>
     </section>
 
