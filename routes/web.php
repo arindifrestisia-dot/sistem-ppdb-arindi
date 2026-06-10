@@ -63,6 +63,7 @@ Route::get('/blog/berita/{content}', [PublicPageController::class, 'showNews'])-
 
 Route::get('/blog/kegiatan', [PublicPageController::class, 'activities'])->name('blog.kegiatan');
 Route::get('/blog/prestasi', [PublicPageController::class, 'achievements'])->name('blog.prestasi');
+Route::get('/blog/prestasi/{content}', [PublicPageController::class, 'showAchievement'])->name('blog.prestasi.show');
 Route::post('/midtrans/formulir/notification', [PpdbFormPaymentController::class, 'notification'])
     ->name('midtrans.formulir.notification');
 Route::post('/midtrans/daftar-ulang/notification', [StudentRegistrationController::class, 'handleMidtransReRegistrationNotification'])

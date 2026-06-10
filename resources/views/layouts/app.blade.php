@@ -109,7 +109,7 @@
                         </div>
                     </div>
                     <a href="{{ route('blog.berita') }}" class="{{ request()->is('blog/berita*') ? $mainNavActiveClass : $mainNavItemClass }}">BERITA</a>
-                    <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi') ? $mainNavActiveClass : $mainNavItemClass }}">PRESTASI</a>
+                    <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi*') ? $mainNavActiveClass : $mainNavItemClass }}">PRESTASI</a>
                     <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">FASILITAS</a>
                     <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">PENERIMAAN MURID BARU</a>
                     <a href="{{ url('/profile/kontak-kami') }}" class="{{ request()->is('profile/kontak-kami') ? $mainNavActiveClass : $mainNavItemClass }}">KONTAK KAMI</a>

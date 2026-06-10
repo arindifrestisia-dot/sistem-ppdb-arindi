@@ -22,6 +22,34 @@
         </article>
     </div>
 
+    <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
+        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Jumlah Siswa Terdaftar per Tahun</h2>
+                    <p class="mt-2 text-sm text-slate-500">Tahun 2019-2025 berasal dari data sekolah. Tahun 2026-2027 dihitung otomatis dari pendaftaran sistem.</p>
+                </div>
+                <span class="w-fit rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                    2019 - 2027
+                </span>
+            </div>
+            <div id="annualRegistrationChart" class="mt-6 h-[360px]"></div>
+        </section>
+
+        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Asal Daerah Siswa</h2>
+                    <p class="mt-2 text-sm text-slate-500">Treemap menampilkan konsentrasi asal daerah berdasarkan data siswa yang masuk.</p>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    {{ count($chartData['regions']) }} daerah
+                </span>
+            </div>
+            <div id="regionTreemapChart" class="mt-6 h-[360px]"></div>
+        </section>
+    </div>
+
     <div class="mt-8 grid gap-6 xl:grid-cols-2">
         <section class="rounded-[2rem] bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-4">
@@ -75,18 +103,6 @@
             <div id="classQuotaChart" class="mt-6 h-[320px]"></div>
         </section>
 
-        <section class="rounded-[2rem] bg-white p-6 shadow-sm">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">Asal Daerah Siswa</h2>
-                    <p class="mt-2 text-sm text-slate-500">Treemap menampilkan konsentrasi asal daerah berdasarkan data siswa yang masuk.</p>
-                </div>
-                <span class="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                    {{ count($chartData['regions']) }} daerah
-                </span>
-            </div>
-            <div id="regionTreemapChart" class="mt-6 h-[340px]"></div>
-        </section>
     </div>
 
     <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_380px]">
@@ -213,6 +229,74 @@
             }).render();
         }
 
+        function renderAnnualRegistrationChart() {
+            const { labels, series } = dashboardChartData.annualRegistrations;
+
+            if (!hasNonZeroSeries(series)) {
+                renderEmptyState('annualRegistrationChart', 'Grafik akan muncul setelah data jumlah siswa tersedia.');
+                return;
+            }
+
+            new ApexCharts(document.querySelector('#annualRegistrationChart'), {
+                chart: {
+                    type: 'bar',
+                    height: 360,
+                    toolbar: { show: false },
+                },
+                series: [{
+                    name: 'Siswa Terdaftar',
+                    data: series,
+                }],
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        style: {
+                            fontFamily: 'Poppins, sans-serif',
+                        },
+                    },
+                },
+                yaxis: {
+                    labels: {
+                        formatter: (value) => `${value.toFixed(0)} siswa`,
+                    },
+                },
+                colors: ['#0ea5e9'],
+                dataLabels: {
+                    enabled: true,
+                    formatter: (value) => `${value}`,
+                    offsetY: -22,
+                    style: {
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        colors: ['#0f172a'],
+                    },
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        columnWidth: '46%',
+                        dataLabels: {
+                            position: 'top',
+                        },
+                    },
+                },
+                tooltip: {
+                    y: {
+                        formatter: (value, { dataPointIndex }) => {
+                            const year = Number(labels[dataPointIndex]);
+                            const source = year >= 2026 ? 'data sistem' : 'data sekolah';
+
+                            return `${value} siswa (${source})`;
+                        },
+                    },
+                },
+                grid: {
+                    borderColor: '#e2e8f0',
+                },
+            }).render();
+        }
+
         function renderBarChart() {
             const { labels, series, counts } = dashboardChartData.classQuota;
 
@@ -312,6 +396,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof ApexCharts === 'undefined') {
+                renderEmptyState('annualRegistrationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('genderChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('verificationChart', 'Library chart tidak berhasil dimuat.');
                 renderEmptyState('reRegistrationChart', 'Library chart tidak berhasil dimuat.');
@@ -341,6 +426,7 @@
                 ['#059669', '#f97316']
             );
 
+            renderAnnualRegistrationChart();
             renderBarChart();
             renderTreemapChart();
         });

@@ -374,9 +374,6 @@
                     </p>
                 </div>
 
-                <a href="{{ url('/profile/sejarah') }}" class="mt-8 inline-flex items-center justify-center rounded-full bg-[var(--brand-blue)] px-7 py-3.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg transition hover:bg-[#0b4277]">
-                    Selengkapnya
-                </a>
             </div>
         </div>
     </section>

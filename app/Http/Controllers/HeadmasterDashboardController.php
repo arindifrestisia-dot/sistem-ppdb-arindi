@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\AnnualStudentCount;
 use App\Models\SchoolContent;
 use App\Models\StudentRegistration;
 use Illuminate\Support\Collection;
@@ -42,6 +43,7 @@ class HeadmasterDashboardController extends Controller
                 'verification' => $this->buildVerificationChart($dashboardRegistrations),
                 'classQuota' => $this->buildClassQuotaChart($dashboardRegistrations, $classColumns),
                 'regions' => $this->buildRegionTreemapChart($dashboardRegistrations),
+                'annualRegistrations' => $this->buildAnnualRegistrationChart(),
                 'reRegistration' => $this->buildReRegistrationChart($dashboardRegistrations),
             ],
             'recentRegistrations' => StudentRegistration::with('user')
@@ -142,6 +144,39 @@ class HeadmasterDashboardController extends Controller
             ->sortByDesc('y')
             ->values()
             ->all();
+    }
+
+    private function buildAnnualRegistrationChart(): array
+    {
+        $manualCounts = Schema::hasTable('annual_student_counts')
+            ? AnnualStudentCount::query()
+                ->whereBetween('year', [2019, 2025])
+                ->pluck('total', 'year')
+                ->mapWithKeys(fn ($total, $year) => [(int) $year => (int) $total])
+                ->all()
+            : [];
+        $systemCounts = StudentRegistration::query()
+            ->whereBetween('created_at', [
+                Carbon::create(2026, 1, 1)->startOfDay(),
+                Carbon::create(2027, 12, 31)->endOfDay(),
+            ])
+            ->get(['created_at'])
+            ->groupBy(fn (StudentRegistration $registration) => (int) $registration->created_at->format('Y'))
+            ->map(fn (Collection $items) => $items->count())
+            ->all();
+
+        $years = range(2019, 2027);
+
+        return [
+            'labels' => array_map(fn (int $year) => (string) $year, $years),
+            'series' => array_map(function (int $year) use ($manualCounts, $systemCounts) {
+                if ($year >= 2026) {
+                    return $systemCounts[$year] ?? 0;
+                }
+
+                return (int) ($manualCounts[$year] ?? 0);
+            }, $years),
+        ];
     }
 
     private function getStudentClassColumns(): array

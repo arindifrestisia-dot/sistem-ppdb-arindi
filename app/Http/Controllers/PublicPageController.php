@@ -35,6 +35,34 @@ class PublicPageController extends Controller
         ]);
     }
 
+    public function showAchievement(SchoolContent $content): View
+    {
+        abort_unless(
+            $content->type === SchoolContent::TYPE_ACHIEVEMENT && $content->is_published,
+            404
+        );
+
+        $content->load('images');
+
+        $relatedAchievements = Schema::hasTable('school_contents')
+            ? SchoolContent::query()
+                ->where('type', SchoolContent::TYPE_ACHIEVEMENT)
+                ->published()
+                ->whereKeyNot($content->getKey())
+                ->orderByDesc('published_at')
+                ->orderBy('sort_order')
+                ->orderByDesc('id')
+                ->limit(3)
+                ->get()
+            : collect();
+
+        return view('blog.prestasi-show', [
+            'achievementItem' => $content,
+            'relatedAchievements' => $relatedAchievements,
+            'recentPosts' => $this->getRecentPosts($content),
+        ]);
+    }
+
     public function activities(): View
     {
         return view('public.activities', [
@@ -73,6 +101,7 @@ class PublicPageController extends Controller
         return view('blog.show', [
             'newsItem' => $content,
             'relatedNews' => $relatedNews,
+            'recentPosts' => $this->getRecentPosts($content),
         ]);
     }
 
@@ -127,6 +156,26 @@ class PublicPageController extends Controller
             ->orderBy('sort_order')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
+            ->get();
+    }
+
+    protected function getRecentPosts(SchoolContent $currentContent, int $limit = 5)
+    {
+        if (! Schema::hasTable('school_contents')) {
+            return collect();
+        }
+
+        return SchoolContent::query()
+            ->whereIn('type', [
+                SchoolContent::TYPE_INFORMATION,
+                SchoolContent::TYPE_ACHIEVEMENT,
+            ])
+            ->published()
+            ->whereKeyNot($currentContent->getKey())
+            ->orderByDesc('published_at')
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->limit($limit)
             ->get();
     }
 }
