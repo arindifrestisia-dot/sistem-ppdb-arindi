@@ -1,6 +1,6 @@
 <x-panitia-layout title="Edit User">
     <div class="mx-auto max-w-4xl">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Edit User</h1>
                 <p class="mt-1 text-sm text-slate-500">Perbarui informasi akun dan hak akses user.</p>

@@ -65,8 +65,8 @@
                 </a>
             </div>
 
-            <div class="overflow-hidden rounded-b-[2rem] border-t border-slate-200">
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto rounded-b-[2rem] border-t border-slate-200">
+                <table class="min-w-[900px] divide-y divide-slate-200 text-sm">
                     <thead class="bg-[#f9f5ea] text-slate-700">
                         <tr>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">NIS</th>

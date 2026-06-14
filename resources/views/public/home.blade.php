@@ -348,14 +348,14 @@
         <div class="absolute -left-24 top-12 h-64 w-64 rounded-full bg-[var(--brand-yellow)]/10"></div>
         <div class="absolute -right-28 bottom-0 h-80 w-80 rounded-full bg-[var(--brand-blue)]/10"></div>
 
-        <div class="relative mx-auto grid max-w-[1260px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-16 lg:py-20">
-            <div class="relative mx-auto w-full max-w-[520px]">
+        <div class="relative mx-auto grid max-w-[1400px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.15fr] lg:items-center lg:gap-16 lg:py-20">
+            <div class="relative mx-auto w-full max-w-[620px]">
                 <div class="absolute -left-4 -top-4 h-full w-full bg-[var(--brand-yellow)]"></div>
                 <div class="absolute -bottom-4 -right-4 h-full w-full border-4 border-[var(--brand-blue)]/20"></div>
                 <img
                     src="{{ $profileImage }}"
                     alt="Kegiatan belajar di RA Fadhilah"
-                    class="relative h-[420px] w-full object-cover shadow-[0_24px_60px_rgba(15,79,140,0.2)] sm:h-[520px]"
+                    class="relative h-[460px] w-full object-cover shadow-[0_24px_60px_rgba(15,79,140,0.2)] sm:h-[560px] lg:h-[620px]"
                 >
             </div>
 
@@ -365,7 +365,7 @@
                 </h2>
                 <div class="mt-5 h-1.5 w-20 rounded-full bg-[var(--brand-yellow)]"></div>
 
-                <div class="mt-8 space-y-5 text-base leading-8 text-slate-600 sm:text-lg sm:leading-9">
+                <div class="mt-8 space-y-5 text-justify text-base leading-8 text-slate-600 sm:text-lg sm:leading-9">
                     <p>
                         Raudhatul Athfal Fadhilah merupakan lembaga pendidikan anak usia dini yang setara dengan taman kanak-kanak. Sekolah ini berfokus pada pembentukan karakter, penanaman nilai-nilai keagamaan, serta pengembangan keterampilan dasar anak sejak usia dini. RA Fadhilah berlokasi di Jl. Muhajirin, Sidomulyo Barat, Kecamatan Tampan, Kota Pekanbaru, Provinsi Riau.
                     </p>

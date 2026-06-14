@@ -13,7 +13,7 @@
         body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900">
+<body class="overflow-x-hidden bg-slate-100 text-slate-900">
     @php
         $contentRouteModel = request()->route('content');
         $activeContentType = request()->query('type')
@@ -139,12 +139,33 @@
         $isFinanceFormPaymentsActive = request()->routeIs('panitia.finances.form-payments.*');
         $isFinanceReRegistrationsActive = request()->routeIs('panitia.finances.re-registrations.*');
     @endphp
-    <div class="flex min-h-screen flex-col md:flex-row">
-        <aside class="w-full bg-slate-950 text-white md:min-h-screen md:w-72">
-            <div class="border-b border-slate-800 px-6 py-6">
-                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">Dashboard Panitia</p>
-                <h1 class="mt-2 text-2xl font-extrabold">PPDB RA Fadhilah</h1>
-                <p class="mt-2 text-sm text-slate-300">Kelola pendaftaran, verifikasi berkas, dan informasi sekolah.</p>
+    <div class="flex min-h-screen">
+        <button
+            id="panitia-sidebar-backdrop"
+            type="button"
+            class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden"
+            aria-label="Tutup menu navigasi"
+            onclick="togglePanitiaSidebar(false)"
+        ></button>
+
+        <aside
+            id="panitia-sidebar"
+            class="fixed inset-y-0 left-0 z-50 w-[min(18rem,86vw)] -translate-x-full overflow-y-auto bg-slate-950 text-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:z-20 lg:min-h-screen lg:w-72 lg:shrink-0 lg:translate-x-0 lg:shadow-none"
+        >
+            <div class="flex items-start justify-between gap-4 border-b border-slate-800 px-6 py-6">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">Dashboard Panitia</p>
+                    <h1 class="mt-2 text-2xl font-extrabold">PPDB RA Fadhilah</h1>
+                    <p class="mt-2 text-sm text-slate-300">Kelola pendaftaran, verifikasi berkas, dan informasi sekolah.</p>
+                </div>
+                <button
+                    type="button"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl lg:hidden"
+                    aria-label="Tutup menu"
+                    onclick="togglePanitiaSidebar(false)"
+                >
+                    &times;
+                </button>
             </div>
 
             <div class="border-b border-slate-800 px-6 py-5">
@@ -262,19 +283,30 @@
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="flex items-center justify-between gap-4 bg-white px-5 py-4 shadow-sm md:px-8">
-                <div>
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">{{ $title ?? 'Dashboard Panitia' }}</p>
-                    <p class="mt-1 text-sm text-slate-500">Portal operasional panitia PPDB.</p>
+            <header class="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6 lg:px-8 lg:py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <button
+                        type="button"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-2xl text-white shadow-sm lg:hidden"
+                        aria-label="Buka menu navigasi"
+                        aria-controls="panitia-sidebar"
+                        onclick="togglePanitiaSidebar(true)"
+                    >
+                        &#8801;
+                    </button>
+                    <div class="min-w-0">
+                        <p class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-sky-700 sm:text-sm sm:tracking-[0.2em]">{{ $title ?? 'Dashboard Panitia' }}</p>
+                        <p class="mt-1 hidden truncate text-sm text-slate-500 sm:block">Portal operasional panitia PPDB.</p>
+                    </div>
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="rounded-full bg-rose-50 px-5 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100">Keluar</button>
+                    <button type="submit" class="rounded-full bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 sm:px-5">Keluar</button>
                 </form>
             </header>
 
-            <main class="flex-1 px-5 py-6 md:px-8">
+            <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
                 @if (session('status'))
                     <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                         {{ session('status') }}
@@ -285,5 +317,25 @@
             </main>
         </div>
     </div>
+    <script>
+        function togglePanitiaSidebar(open) {
+            const sidebar = document.getElementById('panitia-sidebar');
+            const backdrop = document.getElementById('panitia-sidebar-backdrop');
+
+            if (!sidebar || !backdrop) {
+                return;
+            }
+
+            sidebar.classList.toggle('-translate-x-full', !open);
+            backdrop.classList.toggle('hidden', !open);
+            document.body.classList.toggle('overflow-hidden', open && window.innerWidth < 1024);
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                togglePanitiaSidebar(false);
+            }
+        });
+    </script>
 </body>
 </html>

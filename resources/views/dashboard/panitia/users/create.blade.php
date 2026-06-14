@@ -2,7 +2,7 @@
     <form method="POST" action="{{ route('panitia.users.store') }}" class="mx-auto max-w-6xl">
         @csrf
 
-        <div class="mb-6 flex items-center justify-between gap-4">
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Tambah User</h1>
                 <p class="mt-1 text-sm text-slate-500">Buat akun baru untuk mengakses sistem PPDB.</p>

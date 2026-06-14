@@ -19,8 +19,8 @@
             </div>
         </div>
 
-        <div class="mt-6 overflow-hidden rounded-3xl border border-slate-200">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <div class="mt-6 overflow-x-auto rounded-3xl border border-slate-200">
+            <table class="min-w-[720px] divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold text-slate-600">Foto</th>

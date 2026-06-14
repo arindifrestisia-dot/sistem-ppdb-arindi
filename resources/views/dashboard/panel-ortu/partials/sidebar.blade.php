@@ -1,9 +1,30 @@
-<aside class="w-full bg-blue-900 text-white md:min-h-screen md:w-72">
+<button
+    id="parent-sidebar-backdrop"
+    type="button"
+    class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm md:hidden"
+    aria-label="Tutup menu navigasi"
+    onclick="toggleParentSidebar(false)"
+></button>
+
+<aside
+    id="parent-sidebar"
+    class="fixed inset-y-0 left-0 z-50 w-[min(18rem,86vw)] -translate-x-full overflow-y-auto bg-blue-950 text-white shadow-2xl transition-transform duration-300 md:sticky md:top-0 md:z-20 md:min-h-screen md:w-72 md:shrink-0 md:translate-x-0 md:shadow-none"
+>
     @php($studentRegistration = Auth::user()->studentRegistration)
     @php($formMenuRoute = Auth::user()->hasPaidPpdbForm() ? route('data-diri') : route('ortu.formulir'))
-    <div class="border-b border-blue-800 px-5 py-5">
-        <h1 class="text-xl font-extrabold text-yellow-300">PPDB RA FADHILAH</h1>
-        <p class="text-sm text-sky-100">(Penerimaan Peserta Didik Baru)</p>
+    <div class="flex items-start justify-between gap-4 border-b border-blue-900 px-5 py-5">
+        <div>
+            <h1 class="text-xl font-extrabold text-yellow-300">PPDB RA FADHILAH</h1>
+            <p class="text-sm text-sky-100">(Penerimaan Peserta Didik Baru)</p>
+        </div>
+        <button
+            type="button"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl text-white md:hidden"
+            aria-label="Tutup menu"
+            onclick="toggleParentSidebar(false)"
+        >
+            &times;
+        </button>
     </div>
 
     <div class="border-b border-blue-800 px-5 py-6 text-center">
