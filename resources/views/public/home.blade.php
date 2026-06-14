@@ -14,8 +14,9 @@
             'tagline' => 'Beradab, ceria, mandiri, dan berakhlak Islami.',
             'button' => 'Register Now',
             'secondary' => 'Lihat Profil',
-            'image' => asset('image/poster-tk.jpg'),
+            'image' => asset('image/banner-ppdb-2026-2027.png'),
             'theme' => 'blue',
+            'fullBanner' => true,
         ],
         [
             'eyebrow' => 'Selamat Datang',
@@ -25,8 +26,9 @@
             'tagline' => 'Membangun generasi cerdas, mandiri, dan berkarakter melalui pembelajaran yang hangat dan menyenangkan.',
             'button' => 'Jelajahi Sekolah',
             'secondary' => 'Tenaga Pendidik',
-            'image' => asset('image/berita1.png'),
+            'image' => asset('image/banner-profil-sekolah.png'),
             'theme' => 'pink',
+            'fullBanner' => true,
         ],
         [
             'eyebrow' => 'Program Unggulan',
@@ -36,8 +38,9 @@
             'tagline' => 'Kegiatan tematik, literasi, motorik, dan pembinaan akhlak dirancang untuk mendukung tumbuh kembang anak secara utuh.',
             'button' => 'Lihat Kegiatan',
             'secondary' => 'Portal PPDB',
-            'image' => asset('image/berita2.png'),
+            'image' => asset('image/banner-selamat-datang-ppdb.png'),
             'theme' => 'emerald',
+            'fullBanner' => true,
         ],
     ];
 
@@ -152,6 +155,43 @@
                 class="relative"
                 style="display: none;"
             >
+                <div x-show="slide.fullBanner" class="relative bg-[var(--brand-blue)]">
+                    <a
+                        :href="index === 0 ? '{{ route('ppdb.info') }}' : (index === 1 ? '{{ url('/profile/sejarah') }}' : '{{ route('profile.program-kegiatan-ra') }}')"
+                        class="block"
+                        :aria-label="index === 0 ? 'Lihat informasi PPDB RA Fadhilah tahun ajaran 2026/2027' : (index === 1 ? 'Lihat profil RA Fadhilah' : 'Lihat program kegiatan RA Fadhilah')"
+                    >
+                        <img
+                            :src="slide.image"
+                            :alt="slide.title"
+                            class="h-auto w-full object-contain"
+                        >
+                    </a>
+
+                    <button
+                        type="button"
+                        @click.prevent="prev()"
+                        class="absolute left-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--brand-blue)] shadow-lg transition hover:bg-white sm:left-5"
+                        aria-label="Slide sebelumnya"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </button>
+
+                    <button
+                        type="button"
+                        @click.prevent="next()"
+                        class="absolute right-3 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--brand-blue)] shadow-lg transition hover:bg-white sm:right-5"
+                        aria-label="Slide berikutnya"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div x-show="!slide.fullBanner" class="relative">
                 <div
                     class="absolute inset-0"
                     :class="{
@@ -260,6 +300,7 @@
                         </svg>
                     </button>
                 </div>
+                </div>
             </div>
         </template>
 
@@ -317,7 +358,7 @@
                 <div class="mx-auto flex h-40 w-40 items-end justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-100 to-emerald-100 ring-8 ring-blue-50 lg:h-44 lg:w-44">
                     <img
                         src="{{ asset('image/kepala-sekolah-sri-dewi.png') }}"
-                        alt="Ibunda Sri Dewi, S.E., Kepala RA Fadhilah"
+                        alt="Anda Sri Dewi, S.E., Kepala RA Fadhilah"
                         class="h-full w-full object-cover object-top"
                     >
                 </div>
@@ -325,7 +366,7 @@
                 <div class="flex min-h-[176px] flex-col">
                     <div>
                         <h2 class="text-2xl font-black text-[var(--brand-blue)] sm:text-3xl">Sambutan Kepala Sekolah</h2>
-                        <p class="mt-2 text-base font-black text-slate-800 sm:text-lg">Ibunda Sri Dewi, S.E.</p>
+                        <p class="mt-2 text-base font-black text-slate-800 sm:text-lg">Anda Sri Dewi, S.E.</p>
                         <p class="text-sm font-semibold text-slate-500">Kepala RA Fadhilah Pekanbaru</p>
 
                         <p class="mt-5 max-w-4xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">
@@ -660,66 +701,6 @@
         </div>
     </section>
 
-    <footer class="bg-[#f7f4ec]">
-        <div class="mx-auto grid max-w-[1260px] gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_1fr_320px]">
-            <div>
-                <div class="border-l-4 border-[var(--brand-yellow)] pl-4">
-                    <h3 class="text-2xl font-black uppercase text-[var(--brand-blue)]">RA Fadhilah</h3>
-                </div>
-                <p class="mt-6 text-base leading-9 text-slate-700">
-                    Disinilah generasi Islami meraih masa depan yang cerah. RA Fadhilah membangun keunggulan, karakter, dan keceriaan belajar untuk mewujudkan anak-anak muslim yang siap bertumbuh.
-                </p>
-                <p class="mt-6 text-base leading-9 text-slate-700">
-                    <strong>Alamat:</strong> CCV9+42C, Jl. Muhajirin, Sidomulyo Barat, Kec. Tampan, Kota Pekanbaru, Riau 28294
-                </p>
-            </div>
-
-            <div>
-                <div class="border-l-4 border-[var(--brand-yellow)] pl-4">
-                    <h3 class="text-2xl font-black uppercase text-[var(--brand-blue)]">Berita Sekolah</h3>
-                </div>
-                <ol class="mt-6 space-y-4 text-base leading-8 text-slate-700">
-                    @foreach ($footerNews as $index => $item)
-                        <li>{{ $index + 1 }}. {{ $item['title'] }}, {{ $item['date'] }}</li>
-                    @endforeach
-                </ol>
-            </div>
-
-            <div>
-                <div class="border border-[#c89e4d] bg-[#d8b16a]/30 p-4">
-                    <h3 class="text-center text-2xl font-black uppercase text-[#7a5b1d]">Calendar 2026</h3>
-                    <div class="mt-4 bg-[#8b5d18] p-4 text-slate-800">
-                        <div class="rounded-2xl border border-white/30 bg-white p-4 shadow-sm">
-                            <div class="flex items-center justify-between gap-3">
-                                <p class="text-sm font-black uppercase tracking-[0.12em] text-[#7a5b1d]">Kalender Aktif</p>
-                                <span class="rounded-full bg-[#f7f4ec] px-3 py-1 text-xs font-bold uppercase text-[#7a5b1d]">{{ $calendarTitle }}</span>
-                            </div>
-
-                            <div class="mt-4 grid grid-cols-7 gap-2 text-center text-xs">
-                                @foreach (['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $day)
-                                    <div class="rounded-lg bg-[#f7f4ec] py-2 font-bold text-[#7a5b1d]">{{ $day }}</div>
-                                @endforeach
-
-                                @foreach ($calendarCells as $date)
-                                    <div class="rounded-lg py-2 {{ $date && $today->isSameDay($calendarMonth->copy()->day($date)) ? 'bg-[#8b5d18] font-black text-white shadow-sm' : 'bg-white text-slate-700 ring-1 ring-slate-200' }}">
-                                        {{ $date ?? '' }}
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <p class="mt-4 text-center text-xs font-semibold text-slate-500">
-                                Tanggal hari ini ditandai lebih gelap.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-[var(--brand-blue)] px-4 py-5 text-center text-sm font-semibold text-white">
-              RAUDHATUL ATHFAL FADHILAH | Ditenagai oleh Bagian Humas dan IT RA Fadhilah © 2026
-        </div>
-    </footer>
 </div>
 
 <script>

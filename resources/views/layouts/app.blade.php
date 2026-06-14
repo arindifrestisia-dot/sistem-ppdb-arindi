@@ -54,10 +54,10 @@
 
                 <div class="flex items-center justify-between gap-3 lg:hidden">
                     <a
-                        href="{{ auth()->check() ? route('dashboard') : route('ppdb.info') }}"
+                        href="{{ auth()->check() ? route('dashboard') : route('register') }}"
                         class="inline-flex items-center justify-center rounded-full bg-[var(--brand-yellow)] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-blue)]"
                     >
-                        Portal PPDB
+                        DAFTAR
                     </a>
 
                     <button
@@ -105,22 +105,22 @@
                             <a href="{{ url('/profile/visi-misi') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Visi-Misi dan Tujuan RA Fadhilah</a>
                             <a href="{{ url('/profile/tenaga-pendidik') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Tenaga Pendidik</a>
                             <a href="{{ url('/profile/sejarah') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Sejarah</a>
-                            <a href="{{ route('profile.program-kegiatan-ra') }}" class="block px-8 py-5 text-[15px] font-medium text-white/80 transition hover:bg-white/5 hover:text-white">Program Kegiatan RA</a>
                         </div>
                     </div>
                     <a href="{{ route('blog.berita') }}" class="{{ request()->is('blog/berita*') ? $mainNavActiveClass : $mainNavItemClass }}">BERITA</a>
                     <a href="{{ route('blog.prestasi') }}" class="{{ request()->routeIs('blog.prestasi*') ? $mainNavActiveClass : $mainNavItemClass }}">PRESTASI</a>
                     <a href="{{ route('profile.fasilitas') }}" class="{{ request()->routeIs('profile.fasilitas') ? $mainNavActiveClass : $mainNavItemClass }}">FASILITAS</a>
-                    <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">PENERIMAAN MURID BARU</a>
+                    <a href="{{ route('profile.program-kegiatan-ra') }}" class="{{ request()->routeIs('profile.program-kegiatan-ra') ? $mainNavActiveClass : $mainNavItemClass }}">PROGRAM KEGIATAN</a>
+                    <a href="{{ route('ppdb.info') }}" class="{{ request()->routeIs('ppdb.info') ? $mainNavActiveClass : $mainNavItemClass }}">PPDB</a>
                     <a href="{{ url('/profile/kontak-kami') }}" class="{{ request()->is('profile/kontak-kami') ? $mainNavActiveClass : $mainNavItemClass }}">KONTAK KAMI</a>
                 </div>
 
                 <div class="flex items-center gap-4">
                     <a
-                        href="{{ auth()->check() ? route('dashboard') : route('ppdb.info') }}"
+                        href="{{ auth()->check() ? route('dashboard') : route('register') }}"
                         class="inline-flex items-center justify-center rounded-full bg-[var(--brand-yellow)] px-5 py-2 text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-blue)] shadow-md"
                     >
-                        Portal PPDB
+                        DAFTAR SEKARANG
                     </a>
                     <button type="button" class="p-2 text-white/90" aria-label="Cari">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,13 +140,13 @@
                                 <a href="{{ url('/profile/visi-misi') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Visi-Misi dan Tujuan RA Fadhilah</a>
                                 <a href="{{ url('/profile/tenaga-pendidik') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Tenaga Pendidik</a>
                                 <a href="{{ url('/profile/sejarah') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Sejarah</a>
-                                <a href="{{ route('profile.program-kegiatan-ra') }}" class="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white">Program Kegiatan RA</a>
                             </div>
                         </div>
                         <a href="{{ route('blog.berita') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">BERITA</a>
                         <a href="{{ route('blog.prestasi') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PRESTASI</a>
                         <a href="{{ route('profile.fasilitas') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">FASILITAS</a>
-                        <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PENERIMAAN MURID BARU</a>
+                        <a href="{{ route('profile.program-kegiatan-ra') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PROGRAM KEGIATAN</a>
+                        <a href="{{ route('ppdb.info') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">PPDB</a>
                     <a href="{{ url('/profile/kontak-kami') }}" class="rounded-md px-4 py-3 text-sm font-semibold hover:bg-white/10">KONTAK KAMI</a>
                 </div>
             </div>
@@ -158,6 +158,8 @@
     <main>
         @yield('content')
     </main>
+
+    @include('profile.partials.contact-footer')
 
     <div x-data="schoolChatWidget()" class="fixed bottom-5 right-5 z-[70]">
         <button

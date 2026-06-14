@@ -9,6 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --brand-navy: #0f2d46;
+            --brand-emerald: #176b5b;
+            --brand-gold: #e4b74f;
+            --brand-blue: #0f4f8c;
+            --brand-yellow: #efc332;
+        }
+
         html {
             scroll-behavior: smooth;
         }
@@ -213,8 +221,6 @@
         </section>
     </main>
 
-    <footer class="bg-sky-700 px-4 py-5 text-center text-sm font-medium text-sky-50 sm:px-6 lg:px-8">
-        Copyright Â© 2026 Raudhatul Athfal Fadhilah Pekanbaru. All rights reserved.
-    </footer>
+    @include('profile.partials.contact-footer')
 </body>
 </html>

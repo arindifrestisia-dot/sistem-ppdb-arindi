@@ -94,7 +94,6 @@
         @include('blog.partials.recent-posts')
         </div>
 
-        @include('profile.partials.contact-footer')
     </div>
 </div>
 @endsection

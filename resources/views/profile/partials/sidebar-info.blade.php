@@ -23,7 +23,7 @@
                 <span>A</span>
 
                 <span class="font-semibold text-slate-500">Kepala RA</span>
-                <span>Ibunda Sri Dewi, S.E.</span>
+                <span>Anda Sri Dewi, S.E.</span>
 
                 <span class="font-semibold text-slate-500">Telepon</span>
                 <span>0821 6207 736</span>

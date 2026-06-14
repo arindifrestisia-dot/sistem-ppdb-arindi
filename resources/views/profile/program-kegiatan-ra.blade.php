@@ -76,7 +76,6 @@
             </div>
         </section>
 
-        @include('profile.partials.contact-footer')
     </div>
 </div>
 @endsection

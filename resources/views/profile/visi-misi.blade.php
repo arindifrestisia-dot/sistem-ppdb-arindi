@@ -12,7 +12,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <div class="grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
+        <div>
             <section class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200 p-6 sm:p-8">
                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Arah Pendidikan</p>
                 <h1 class="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-800 leading-tight">Visi, Misi, dan Strategi Pembelajaran RA Fadhilah</h1>
@@ -50,9 +50,6 @@
                 </div>
             </section>
 
-            <aside>
-                @include('profile.partials.sidebar-info')
-            </aside>
         </div>
 
         <div class="mt-8">
@@ -77,7 +74,6 @@
             </section>
         </div>
 
-        @include('profile.partials.contact-footer')
     </div>
 </div>
 @endsection

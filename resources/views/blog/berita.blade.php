@@ -40,7 +40,6 @@
             @endforelse
         </div>
 
-        @include('profile.partials.contact-footer')
     </div>
 </div>
 @endsection

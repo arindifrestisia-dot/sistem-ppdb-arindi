@@ -12,7 +12,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <div class="grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.9fr)]">
+        <div>
             <section class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200 p-6 sm:p-8">
                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Kontak Kami</p>
                 <h1 class="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-800 leading-tight">Terhubung dengan RA Fadhilah</h1>
@@ -37,7 +37,7 @@
                     </div>
                     <div class="rounded-2xl border border-slate-200 p-5 md:col-span-2">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Jam Kerja</p>
-                        <p class="mt-3 text-slate-700">Senin sampai Jumat, pukul 07.00 - 16.00 WIB</p>
+                        <p class="mt-3 text-slate-700">Senin sampai Sabtu, pukul 08.00 - 13.00 WIB</p>
                     </div>
                 </div>
 
@@ -53,9 +53,6 @@
                 </div>
             </section>
 
-            <aside>
-                @include('profile.partials.sidebar-info')
-            </aside>
         </div>
 
         <div class="mt-8">
@@ -80,7 +77,6 @@
             </section>
         </div>
 
-        @include('profile.partials.contact-footer')
     </div>
 </div>
 @endsection
