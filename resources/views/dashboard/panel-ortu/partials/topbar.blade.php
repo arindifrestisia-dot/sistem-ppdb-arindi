@@ -11,7 +11,7 @@
         </button>
         <div class="min-w-0">
             <p class="truncate text-sm font-extrabold text-blue-950 sm:text-base">Portal Orang Tua</p>
-            <p class="hidden truncate text-xs text-slate-500 sm:block">SPMB RA Fadhilah Pekanbaru</p>
+            <p class="hidden truncate text-xs text-slate-500 sm:block">PPDB RA Fadhilah Pekanbaru</p>
         </div>
     </div>
     <form method="POST" action="{{ route('logout') }}">
