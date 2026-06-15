@@ -92,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wawancara', [StudentRegistrationController::class, 'interview'])->name('wawancara');
     Route::post('/wawancara', [StudentRegistrationController::class, 'storeInterview'])->name('wawancara.update');
     Route::get('/status-lulus', [StudentRegistrationController::class, 'graduationStatus'])->name('status-lulus');
+    Route::get('/daftar-ulang', [StudentRegistrationController::class, 'reRegistration'])->name('daftar-ulang');
     Route::post('/daftar-ulang/midtrans/token', [StudentRegistrationController::class, 'createReRegistrationPayment'])->name('daftar-ulang.midtrans.token');
     Route::post('/daftar-ulang/midtrans/sync', [StudentRegistrationController::class, 'syncReRegistrationPayment'])->name('daftar-ulang.midtrans.sync');
     Route::get('/data-diri/download/formulir', [StudentRegistrationController::class, 'downloadFormPdf'])->name('data-diri.download.formulir');

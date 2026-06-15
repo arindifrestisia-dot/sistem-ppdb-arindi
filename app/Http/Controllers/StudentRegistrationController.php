@@ -58,6 +58,18 @@ class StudentRegistrationController extends Controller
         $action = $request->input('action', 'submit');
         $registration = $request->user()->studentRegistration()->firstOrNew();
 
+        if ($registration->exists && $registration->locked_at) {
+            return redirect()
+                ->route('data-diri')
+                ->with('status', 'Data pendaftaran telah dikunci permanen. Hubungi admin sekolah jika memerlukan perubahan.');
+        }
+
+        if ($action === 'lock' && ! $registration->submitted_at) {
+            return redirect()
+                ->route('data-diri')
+                ->withErrors(['action' => 'Isi dan kirim formulir terlebih dahulu sebelum mengunci pendaftaran.']);
+        }
+
         $fileRules = [
             'child_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
             'parents_id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
@@ -79,6 +91,7 @@ class StudentRegistrationController extends Controller
         }
 
         $validated = $request->validate([
+            'action' => ['required', 'in:save,submit,lock'],
             'full_name' => ['required', 'string', 'max:255'],
             'nickname' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'in:Laki-laki,Perempuan'],
@@ -199,6 +212,15 @@ class StudentRegistrationController extends Controller
         }
 
         if ($action !== 'submit') {
+            if ($action === 'lock') {
+                $registration->locked_at = now();
+                $registration->save();
+
+                return redirect()
+                    ->route('data-diri')
+                    ->with('status', 'Data pendaftaran telah dikunci permanen.');
+            }
+
             return redirect()
                 ->route('data-diri')
                 ->with('status', 'Perubahan formulir berhasil disimpan.');
@@ -209,7 +231,6 @@ class StudentRegistrationController extends Controller
         }
 
         $registration->submitted_at = now();
-        $registration->locked_at ??= now();
         $registration->save();
 
         $this->notifications->send('form_payment_instruction', $request->user(), $registration);
@@ -266,20 +287,23 @@ class StudentRegistrationController extends Controller
 
         $request->validate([
             'review_agreement' => ['accepted'],
+            'redirect_to' => ['nullable', 'in:data-diri,persyaratan'],
         ]);
 
         $registration = $request->user()->studentRegistration;
 
-        if (! $registration) {
+        if (! $registration || ! $registration->submitted_at) {
             return redirect()->route('data-diri');
         }
 
-        $registration->locked_at = now();
-        $registration->save();
+        if (! $registration->locked_at) {
+            $registration->locked_at = now();
+            $registration->save();
+        }
 
         return redirect()
-            ->route('persyaratan')
-            ->with('status', 'Pendaftaran berhasil dikunci. Silakan menunggu tahap selanjutnya.');
+            ->route($request->input('redirect_to', 'persyaratan'))
+            ->with('status', 'Data pendaftaran telah dikunci permanen.');
     }
 
     public function interview(Request $request): View|RedirectResponse
@@ -319,6 +343,26 @@ class StudentRegistrationController extends Controller
             'selectionResultLabel' => $this->getSelectionResultLabel($registration?->selection_result),
             'selectionResultTone' => $this->getSelectionResultTone($registration?->selection_result),
             'canPayReRegistration' => $this->canPayReRegistration($registration),
+        ]);
+    }
+
+    public function reRegistration(Request $request): View|RedirectResponse
+    {
+        $redirect = $this->redirectPanitia($request);
+        if ($redirect) {
+            return $redirect;
+        }
+
+        $registration = $request->user()->studentRegistration;
+
+        if (! $this->canPayReRegistration($registration)) {
+            return redirect()
+                ->route('status-lulus')
+                ->with('status', 'Pendaftaran ulang hanya tersedia untuk calon siswa yang dinyatakan lulus.');
+        }
+
+        return view('dashboard.panel-ortu.daftar-ulang', [
+            'registration' => $registration,
             'reRegistrationAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1500000)),
             'reRegistrationDeadline' => $registration?->selection_published_at
                 ? $registration->selection_published_at->copy()->addDays((int) config('ppdb_notifications.deadlines.re_registration_days', 7))

@@ -15,7 +15,11 @@
     </style>
 </head>
 <body class="bg-[#cfe0f8] text-slate-900">
-    @php($hasSubmittedRegistration = (bool) $registration?->submitted_at)
+    @php
+        $hasSubmittedRegistration = (bool) $registration?->submitted_at;
+        $isRegistrationLocked = (bool) $registration?->locked_at;
+        $startInEditMode = $hasSubmittedRegistration && ! $isRegistrationLocked && $errors->any();
+    @endphp
     <div class="flex min-h-screen flex-col md:flex-row">
         @php($activeMenu = 'data-diri')
         @include('dashboard.panel-ortu.partials.sidebar')
@@ -438,21 +442,61 @@
                                 </div>
                             @endunless
 
-                            <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                                 <button type="button" class="rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-50" data-prev-step="2">Kembali</button>
-                                <div class="flex flex-col gap-3 sm:flex-row">
-                                    @unless ($hasSubmittedRegistration)
+                                @if (! $hasSubmittedRegistration)
+                                    <div class="flex flex-col gap-3 sm:flex-row">
                                         <button type="submit" name="action" value="submit" id="submitRegistrationButton" class="rounded-full bg-gradient-to-r from-indigo-500 to-purple-700 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(79,70,229,0.25)] transition hover:opacity-95">
                                             Ya, Saya Mendaftar
                                         </button>
-                                    @endunless
-                                    <button type="submit" name="action" value="save" id="saveDraftButton" class="rounded-full bg-gradient-to-r {{ $hasSubmittedRegistration ? 'from-blue-700 to-sky-500 text-white shadow-[0_18px_35px_rgba(37,99,235,0.22)]' : 'from-amber-100 to-orange-300 text-amber-900 shadow-[0_18px_35px_rgba(251,146,60,0.2)]' }} px-8 py-4 text-base font-extrabold uppercase tracking-wide transition hover:opacity-95">
-                                        {{ $hasSubmittedRegistration ? 'Edit Data' : 'Simpan Perubahan' }}
-                                    </button>
-                                </div>
+                                        <button type="submit" name="action" value="save" id="saveDraftButton" class="rounded-full bg-gradient-to-r from-amber-100 to-orange-300 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-amber-900 shadow-[0_18px_35px_rgba(251,146,60,0.2)] transition hover:opacity-95">
+                                            Simpan Perubahan
+                                        </button>
+                                    </div>
+                                @elseif ($isRegistrationLocked)
+                                    <div>
+                                        <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-5 py-3 font-semibold text-slate-500">
+                                            <span aria-hidden="true">&#128274;</span>
+                                            Data telah dikunci
+                                        </button>
+                                        <p class="mt-3 border-l-2 border-slate-300 pl-3 text-sm text-slate-500">Tombol tidak aktif &middot; Tidak ada aksi yang bisa dilakukan &middot; Jika perlu perubahan, hubungi admin sekolah</p>
+                                    </div>
+                                @else
+                                    <div>
+                                        <div id="viewModeActions" class="{{ $startInEditMode ? 'hidden' : 'flex' }} flex-col gap-3 sm:flex-row">
+                                            <button type="button" id="editDataButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
+                                                <span aria-hidden="true">&#9998;</span>
+                                                Edit data
+                                            </button>
+                                            <button type="submit" form="lockRegistrationForm" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
+                                                <span aria-hidden="true">&#128274;</span>
+                                                Kunci pendaftaran
+                                            </button>
+                                        </div>
+                                        <div id="editModeActions" class="{{ $startInEditMode ? 'flex' : 'hidden' }} flex-col gap-3 sm:flex-row">
+                                            <button type="submit" name="action" value="lock" id="saveAndLockButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
+                                                <span aria-hidden="true">&#128274;</span>
+                                                Kunci pendaftaran
+                                            </button>
+                                            <button type="button" id="cancelEditButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50">
+                                                <span aria-hidden="true">&times;</span>
+                                                Batal edit
+                                            </button>
+                                        </div>
+                                        <p id="viewModeHelp" class="{{ $startInEditMode ? 'hidden' : '' }} mt-3 border-l-2 border-slate-300 pl-3 text-sm text-slate-500">Tekan <strong>Edit data</strong> untuk mengubah isian &middot; Tekan <strong>Kunci pendaftaran</strong> untuk mengunci permanen</p>
+                                        <p id="editModeHelp" class="{{ $startInEditMode ? '' : 'hidden' }} mt-3 border-l-2 border-slate-300 pl-3 text-sm text-slate-500">Selesai edit, langsung tekan <strong>Kunci pendaftaran</strong> &middot; Atau tekan <strong>Batal edit</strong> untuk kembali ke mode lihat tanpa menyimpan perubahan</p>
+                                    </div>
+                                @endif
                             </div>
                         </section>
                     </form>
+                    @if ($hasSubmittedRegistration && ! $isRegistrationLocked)
+                        <form id="lockRegistrationForm" action="{{ route('persyaratan.lock') }}" method="POST" class="hidden">
+                            @csrf
+                            <input type="hidden" name="review_agreement" value="1">
+                            <input type="hidden" name="redirect_to" value="data-diri">
+                        </form>
+                    @endif
                 </div>
             </main>
 
@@ -469,6 +513,16 @@
         const registrationForm = document.getElementById('registrationForm');
         const submitRegistrationButton = document.getElementById('submitRegistrationButton');
         const saveDraftButton = document.getElementById('saveDraftButton');
+        const saveAndLockButton = document.getElementById('saveAndLockButton');
+        const editDataButton = document.getElementById('editDataButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
+        const viewModeActions = document.getElementById('viewModeActions');
+        const editModeActions = document.getElementById('editModeActions');
+        const viewModeHelp = document.getElementById('viewModeHelp');
+        const editModeHelp = document.getElementById('editModeHelp');
+        const hasSubmittedRegistration = @json($hasSubmittedRegistration);
+        const isRegistrationLocked = @json($isRegistrationLocked);
+        let isEditMode = @json($startInEditMode);
         const specialNeedsSelect = document.getElementById('special_needs');
         const specialNeedsDescription = document.getElementById('special_needs_description');
         const specialNeedsDescriptionWrapper = document.getElementById('specialNeedsDescriptionWrapper');
@@ -539,6 +593,34 @@
 
         function syncAllSameAddresses() {
             sameAddressControls.forEach(syncSameAddress);
+        }
+
+        function setFormEditable(editable) {
+            if (!hasSubmittedRegistration) {
+                return;
+            }
+
+            registrationForm?.querySelectorAll('input, select, textarea').forEach((field) => {
+                if (field.type === 'hidden') {
+                    return;
+                }
+
+                field.disabled = !editable;
+                field.classList.toggle('cursor-not-allowed', !editable);
+                field.classList.toggle('bg-slate-100', !editable);
+            });
+
+            isEditMode = editable;
+            viewModeActions?.classList.toggle('hidden', editable);
+            viewModeActions?.classList.toggle('flex', !editable);
+            editModeActions?.classList.toggle('hidden', !editable);
+            editModeActions?.classList.toggle('flex', editable);
+            viewModeHelp?.classList.toggle('hidden', editable);
+            editModeHelp?.classList.toggle('hidden', !editable);
+
+            if (editable) {
+                syncAllSameAddresses();
+            }
         }
 
         function showStepValidationMessage(section) {
@@ -688,8 +770,18 @@
             control.checkbox?.addEventListener('change', () => syncSameAddress(control));
         });
 
-        registrationForm?.addEventListener('submit', () => {
-            if (!submitRegistrationButton && !saveDraftButton) {
+        editDataButton?.addEventListener('click', () => {
+            setFormEditable(true);
+        });
+
+        cancelEditButton?.addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        registrationForm?.addEventListener('submit', (event) => {
+            const submitter = event.submitter;
+
+            if (!submitter) {
                 return;
             }
 
@@ -701,13 +793,12 @@
                 saveDraftButton.disabled = true;
             }
 
-            if (document.activeElement === saveDraftButton) {
-                saveDraftButton.textContent = 'Menyimpan...';
-                saveDraftButton.classList.add('opacity-70', 'cursor-not-allowed');
-            } else if (submitRegistrationButton) {
-                submitRegistrationButton.textContent = 'Menyimpan...';
-                submitRegistrationButton.classList.add('opacity-70', 'cursor-not-allowed');
+            if (saveAndLockButton) {
+                saveAndLockButton.disabled = true;
             }
+
+            submitter.textContent = submitter === saveAndLockButton ? 'Mengunci...' : 'Menyimpan...';
+            submitter.classList.add('opacity-70', 'cursor-not-allowed');
         });
 
         @if ($errors->any())
@@ -717,6 +808,7 @@
         syncSpecialNeedsDescription();
         syncAllSameAddresses();
         syncRequiredStars();
+        setFormEditable(!hasSubmittedRegistration || (isEditMode && !isRegistrationLocked));
         renderStep(Number(activeStepInput.value || 1));
     </script>
 </body>

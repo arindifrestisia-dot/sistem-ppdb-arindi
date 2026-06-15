@@ -55,7 +55,7 @@
                 'number' => 4,
                 'status' => $isSelectionPublished ? 'Terbit' : 'Menunggu',
                 'title' => 'Status Kelulusan',
-                'link' => route('status-lulus'),
+                'link' => $isPassed || $isReRegistrationPaid ? route('daftar-ulang') : route('status-lulus'),
                 'action' => $isSelectionPublished ? 'Lihat hasil ->' : 'Pantau hasil ->',
                 'active' => $isInterviewSelected || $isSelectionPublished,
                 'tone' => $isSelectionPublished ? 'emerald' : ($isInterviewSelected ? 'amber' : 'slate'),
@@ -64,8 +64,8 @@
                 'number' => 5,
                 'status' => $isReRegistrationPaid ? 'Lunas' : ($isPassed ? 'Belum' : ($isSelectionPublished ? 'Tidak Tersedia' : 'Menunggu')),
                 'title' => 'Lakukan Pendaftaran Ulang',
-                'link' => route('status-lulus') . '#pendaftaran-ulang',
-                'action' => $isReRegistrationPaid ? 'Lihat pembayaran ->' : ($isPassed ? 'Daftar ulang ->' : ($isSelectionPublished ? 'Lihat hasil seleksi ->' : 'Menunggu kelulusan ->')),
+                'link' => route('status-lulus'),
+                'action' => $isReRegistrationPaid ? 'Lihat status kelulusan ->' : ($isPassed ? 'Lihat hasil dan instruksi ->' : ($isSelectionPublished ? 'Lihat hasil seleksi ->' : 'Menunggu kelulusan ->')),
                 'active' => $isPassed || $isReRegistrationPaid,
                 'tone' => $isReRegistrationPaid ? 'emerald' : ($isPassed ? 'amber' : 'slate'),
             ],
@@ -116,19 +116,19 @@
                     </div>
                 </div>
 
-                <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_340px]">
-                    <section class="rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
+                <div class="mt-8">
+                    <section class="rounded-[2rem] bg-blue-950 p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-900 md:p-8">
                         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Ringkasan</p>
-                                <h3 class="mt-2 text-xl font-bold text-blue-950 md:text-2xl">Perjalanan Pendaftaran Anda</h3>
+                                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">Ringkasan</p>
+                                <h3 class="mt-2 text-xl font-bold text-white md:text-2xl">Panduan Pendaftaran Anda</h3>
                             </div>
-                            <a href="{{ $formRoute }}" class="inline-flex rounded-full bg-blue-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800">
+                            <a href="{{ $formRoute }}" class="inline-flex rounded-full bg-yellow-300 px-6 py-3 text-sm font-semibold text-blue-950 transition hover:bg-yellow-200">
                                 {{ $isFormPaid ? 'Lanjut Data Diri' : 'Mulai dari Formulir' }}
                             </a>
                         </div>
 
-                        <div class="mt-8 grid gap-4 md:grid-cols-3">
+                        <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                             <div class="rounded-3xl bg-blue-50 p-5">
                                 <p class="text-sm font-semibold uppercase tracking-[0.15em] text-blue-700">1. Formulir</p>
                                 <p class="mt-3 text-sm leading-7 text-slate-600">Lakukan pembelian formulir pendaftaran untuk mendapatkan akses proses SPMB.</p>
@@ -137,21 +137,19 @@
                                 <p class="text-sm font-semibold uppercase tracking-[0.15em] text-emerald-700">2. Data Diri</p>
                                 <p class="mt-3 text-sm leading-7 text-slate-600">Isi data peserta didik, orang tua, dan data pendukung lainnya dengan lengkap.</p>
                             </div>
+                            <div class="rounded-3xl bg-violet-50 p-5">
+                                <p class="text-sm font-semibold uppercase tracking-[0.15em] text-violet-700">3. Wawancara</p>
+                                <p class="mt-3 text-sm leading-7 text-slate-600">Setelah selesai mengisi data diri, orang tua wajib memilih jadwal wawancara yang tersedia.</p>
+                            </div>
                             <div class="rounded-3xl bg-amber-50 p-5">
-                                <p class="text-sm font-semibold uppercase tracking-[0.15em] text-amber-700">3. Verifikasi</p>
+                                <p class="text-sm font-semibold uppercase tracking-[0.15em] text-amber-700">4. Verifikasi</p>
                                 <p class="mt-3 text-sm leading-7 text-slate-600">Pantau verifikasi pembayaran dan kelengkapan berkas sampai proses selesai.</p>
                             </div>
+                            <div class="rounded-3xl bg-rose-50 p-5 md:col-span-2 xl:col-span-1">
+                                <p class="text-sm font-semibold uppercase tracking-[0.15em] text-rose-700">5. Pendaftaran Ulang</p>
+                                <p class="mt-3 text-sm leading-7 text-slate-600">Setelah pengumuman menyatakan anak lulus, orang tua wajib membayar biaya daftar ulang sebesar Rp1.700.000 yang dapat dicicil sebanyak 3 kali.</p>
+                            </div>
                         </div>
-                    </section>
-
-                    <section class="rounded-[2rem] bg-blue-900 p-6 text-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
-                        <h3 class="text-xl font-bold md:text-2xl">Langkah Selanjutnya</h3>
-                        <ul class="mt-6 space-y-5 text-sm md:text-base">
-                            <li class="flex gap-3"><span class="mt-2 h-3 w-3 rounded-full bg-yellow-300"></span>1. Beli formulir pendaftaran</li>
-                            <li class="flex gap-3"><span class="mt-2 h-3 w-3 rounded-full bg-yellow-300"></span>2. Pilih metode pembayaran</li>
-                            <li class="flex gap-3"><span class="mt-2 h-3 w-3 rounded-full bg-yellow-300"></span>3. Ikuti instruksi dan verifikasi pembayaran</li>
-                            <li class="flex gap-3"><span class="mt-2 h-3 w-3 rounded-full bg-yellow-300"></span>4. Buka formulir pendaftaran dan isi data diri</li>
-                        </ul>
                     </section>
                 </div>
             </main>
