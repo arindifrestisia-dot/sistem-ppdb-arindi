@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="grid gap-5 xl:grid-cols-3">
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-[1.75rem] border-t-4 border-cyan-400 bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <p class="text-sm font-medium text-slate-400">Total Formulir Terjual</p>
                 <p class="mt-2 text-5xl font-extrabold text-slate-950">{{ $stats['total_forms'] }}</p>
@@ -23,6 +23,17 @@
                 <p class="text-sm font-medium text-slate-400">Total Pemasukan</p>
                 <p class="mt-2 text-5xl font-extrabold text-slate-950">{{ 'Rp ' . number_format($stats['total_income'] / 1000000, 1, ',', '.') . ' jt' }}</p>
                 <p class="mt-3 text-sm text-slate-400">@Rp 150.000 / formulir</p>
+            </article>
+
+            <article class="rounded-[1.75rem] border-t-4 border-blue-400 bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="text-sm font-medium text-slate-400">Formulir Terisi Lengkap</p>
+                <p class="mt-2 text-5xl font-extrabold text-slate-950">{{ $stats['completed_forms'] }}</p>
+                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                    <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-700">
+                        {{ number_format($stats['completion_rate'], 1, ',', '.') }}%
+                    </span>
+                    <span>dari total formulir terjual</span>
+                </div>
             </article>
 
             <article class="rounded-[1.75rem] border-t-4 border-amber-400 bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -80,6 +91,7 @@
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Jumlah</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Metode</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Status</th>
+                            <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Status Pengisian</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white">
@@ -103,10 +115,20 @@
                                         {{ $payment->display_payment_status_label }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-5">
+                                    @php
+                                        $fillingBadgeClasses = $payment->display_filling_status_tone === 'emerald'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-amber-100 text-amber-700';
+                                    @endphp
+                                    <span class="inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold {{ $fillingBadgeClasses }}">
+                                        {{ $payment->display_filling_status_label }}
+                                    </span>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran formulir.</td>
+                                <td colspan="8" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran formulir.</td>
                             </tr>
                         @endforelse
                     </tbody>

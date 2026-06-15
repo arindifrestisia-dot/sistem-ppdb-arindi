@@ -54,6 +54,10 @@ class PanitiaFinanceController extends Controller
         $payments = $this->paginateCollection($filteredPayments, $request, 10);
         $paidPayments = $allPayments->where('display_payment_status_key', 'lunas');
         $pendingCount = $allPayments->where('display_payment_status_key', 'menunggu')->count();
+        $completedForms = $allPayments->where('display_filling_status_label', 'Diisi Lengkap')->count();
+        $completionRate = $allPayments->count() > 0
+            ? round(($completedForms / $allPayments->count()) * 100, 1)
+            : 0;
 
         return view('dashboard.panitia.finance.form-payments', [
             'payments' => $payments,
@@ -67,7 +71,9 @@ class PanitiaFinanceController extends Controller
             'academicYearOptions' => $allPayments->pluck('display_academic_year')->filter()->unique()->sortDesc()->values(),
             'stats' => [
                 'total_forms' => $allPayments->count(),
-            'total_income' => $paidPayments->sum('amount'),
+                'total_income' => $paidPayments->sum('amount'),
+                'completed_forms' => $completedForms,
+                'completion_rate' => $completionRate,
                 'unconfirmed_count' => $pendingCount,
                 'current_academic_year' => $academicYear !== '' ? $academicYear : ($allPayments->pluck('display_academic_year')->filter()->first() ?? $this->resolveAcademicYear(now())),
             ],
@@ -107,7 +113,7 @@ class PanitiaFinanceController extends Controller
             ->values();
 
         $csv = collect([
-            ['No. Formulir', 'Nama Pembeli', 'Nama Calon Siswa', 'Tanggal Bayar', 'Jumlah', 'Metode', 'Status', 'Tahun Ajaran'],
+            ['No. Formulir', 'Nama Pembeli', 'Nama Calon Siswa', 'Tanggal Bayar', 'Jumlah', 'Metode', 'Status', 'Status Pengisian', 'Tahun Ajaran'],
         ])->concat(
             $rows->map(fn (PpdbFormPayment $payment) => [
                 $payment->display_form_number,
@@ -117,6 +123,7 @@ class PanitiaFinanceController extends Controller
                 $payment->display_form_amount,
                 $payment->display_form_method,
                 $payment->display_payment_status_label,
+                $payment->display_filling_status_label,
                 $payment->display_academic_year,
             ])
         )->map(fn (array $columns) => implode(',', array_map(fn ($value) => '"' . str_replace('"', '""', (string) $value) . '"', $columns)))
@@ -273,6 +280,12 @@ class PanitiaFinanceController extends Controller
         $payment->display_payment_status_key = $statusKey;
         $payment->display_payment_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Menunggu';
         $payment->display_payment_status_tone = $statusTone;
+        $payment->display_filling_status_label = $registration?->submitted_at
+            ? 'Diisi Lengkap'
+            : 'Belum Lengkap';
+        $payment->display_filling_status_tone = $registration?->submitted_at
+            ? 'emerald'
+            : 'amber';
         $payment->display_academic_year = $this->resolveAcademicYear($purchaseDate);
 
         return $payment;

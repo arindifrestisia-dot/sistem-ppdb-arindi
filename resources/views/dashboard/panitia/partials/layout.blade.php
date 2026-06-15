@@ -134,8 +134,8 @@
 
             return new \Illuminate\Support\HtmlString($svg);
         };
-        $isFormMenuActive = request()->routeIs('panitia.forms.*');
         $isInterviewMenuActive = request()->routeIs('panitia.interviews.*');
+        $isParentFormFieldsActive = request()->routeIs('panitia.parent-form-fields.*');
         $isFinanceFormPaymentsActive = request()->routeIs('panitia.finances.form-payments.*');
         $isFinanceReRegistrationsActive = request()->routeIs('panitia.finances.re-registrations.*');
     @endphp
@@ -219,20 +219,6 @@
                     <p class="px-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Formulir</p>
                     <div class="mt-3 space-y-1">
                         <a
-                            href="{{ route('panitia.forms.index') }}"
-                            class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isFormMenuActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
-                        >
-                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 3h6"></path>
-                                <path d="M10 7h4"></path>
-                                <rect x="6" y="3" width="12" height="18" rx="2"></rect>
-                                <path d="M9 12h6"></path>
-                                <path d="M9 16h6"></path>
-                            </svg>
-                            <span>Formulir Terjual</span>
-                        </a>
-
-                        <a
                             href="{{ route('panitia.interviews.index') }}"
                             class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isInterviewMenuActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
                         >
@@ -247,12 +233,21 @@
                             </svg>
                             <span>Jadwal Wawancara</span>
                         </a>
-                    </div>
-                </div>
 
-                <div class="pt-4">
-                    <p class="px-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Keuangan</p>
-                    <div class="mt-3 space-y-1">
+                        <a
+                            href="{{ route('panitia.parent-form-fields.index') }}"
+                            class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isParentFormFieldsActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
+                        >
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 3h6"></path>
+                                <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h8"></path>
+                                <path d="M8 17h5"></path>
+                            </svg>
+                            <span>Formulir Orang Tua</span>
+                        </a>
+
                         <a
                             href="{{ route('panitia.finances.form-payments.index') }}"
                             class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isFinanceFormPaymentsActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
@@ -300,10 +295,59 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="rounded-full bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 sm:px-5">Keluar</button>
-                </form>
+                <div id="panitia-user-menu" class="relative shrink-0">
+                    <button
+                        id="panitia-user-menu-button"
+                        type="button"
+                        class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left shadow-sm transition hover:border-sky-300 hover:bg-sky-50"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="panitia-user-dropdown"
+                    >
+                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-sky-600 text-white">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <circle cx="12" cy="8" r="4"></circle>
+                                <path d="M4 21a8 8 0 0 1 16 0Z"></path>
+                            </svg>
+                        </span>
+                        <span class="hidden max-w-36 truncate font-semibold text-slate-800 sm:block">{{ auth()->user()->name }}</span>
+                        <svg id="panitia-user-menu-chevron" class="h-4 w-4 text-slate-500 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+
+                    <div
+                        id="panitia-user-dropdown"
+                        class="absolute right-0 top-full z-50 mt-2 hidden w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+                    >
+                        <div class="flex items-center gap-3 border-b border-slate-100 p-4">
+                            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white">
+                                <svg class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4"></circle>
+                                    <path d="M4 21a8 8 0 0 1 16 0Z"></path>
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="truncate font-bold text-slate-900">{{ auth()->user()->name }}</p>
+                                <p class="text-sm text-slate-500">Admin PPDB</p>
+                            </div>
+                        </div>
+
+                        <div class="p-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center gap-3 rounded-xl bg-rose-50 px-3 py-3 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-100">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M10 17l5-5-5-5"></path>
+                                        <path d="M15 12H3"></path>
+                                        <path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"></path>
+                                    </svg>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </header>
 
             <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -334,6 +378,34 @@
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 1024) {
                 togglePanitiaSidebar(false);
+            }
+        });
+
+        const panitiaUserMenu = document.getElementById('panitia-user-menu');
+        const panitiaUserMenuButton = document.getElementById('panitia-user-menu-button');
+        const panitiaUserDropdown = document.getElementById('panitia-user-dropdown');
+        const panitiaUserMenuChevron = document.getElementById('panitia-user-menu-chevron');
+
+        function togglePanitiaUserMenu(open) {
+            panitiaUserDropdown?.classList.toggle('hidden', !open);
+            panitiaUserMenuChevron?.classList.toggle('rotate-180', open);
+            panitiaUserMenuButton?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        panitiaUserMenuButton?.addEventListener('click', () => {
+            togglePanitiaUserMenu(panitiaUserDropdown?.classList.contains('hidden'));
+        });
+
+        document.addEventListener('click', (event) => {
+            if (panitiaUserMenu && !panitiaUserMenu.contains(event.target)) {
+                togglePanitiaUserMenu(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                togglePanitiaUserMenu(false);
+                panitiaUserMenuButton?.focus();
             }
         });
     </script>

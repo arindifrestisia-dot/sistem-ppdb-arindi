@@ -76,6 +76,7 @@ class StudentRegistration extends Model
         'parents_id_card_path',
         'birth_certificate_path',
         'family_card_path',
+        'custom_form_data',
     ];
 
     protected function casts(): array
@@ -93,6 +94,7 @@ class StudentRegistration extends Model
             'special_needs' => 'boolean',
             'weight_kg' => 'decimal:2',
             'height_cm' => 'decimal:2',
+            'custom_form_data' => 'array',
         ];
     }
 

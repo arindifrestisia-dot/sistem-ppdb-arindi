@@ -186,6 +186,8 @@
                                 </div>
                             </div>
 
+                            @include('dashboard.panel-ortu.partials.custom-form-fields', ['fields' => $childCustomFields])
+
                             <div class="mt-10 flex justify-end">
                                 <button type="button" class="rounded-2xl bg-blue-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-800" data-next-step="2">Lanjut</button>
                             </div>
@@ -375,6 +377,8 @@
                                 </div>
                             </div>
 
+                            @include('dashboard.panel-ortu.partials.custom-form-fields', ['fields' => $parentCustomFields])
+
                             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-between">
                                 <button type="button" class="rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-50" data-prev-step="1">Kembali</button>
                                 <button type="button" class="rounded-2xl bg-blue-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-800" data-next-step="3">Lanjut</button>
@@ -462,8 +466,8 @@
                                         <p class="mt-3 border-l-2 border-slate-300 pl-3 text-sm text-slate-500">Tombol tidak aktif &middot; Tidak ada aksi yang bisa dilakukan &middot; Jika perlu perubahan, hubungi admin sekolah</p>
                                     </div>
                                 @else
-                                    <div>
-                                        <div id="viewModeActions" class="{{ $startInEditMode ? 'hidden' : 'flex' }} flex-col gap-3 sm:flex-row">
+                                    <div class="ml-auto flex flex-col items-end">
+                                        <div id="viewModeActions" class="{{ $startInEditMode ? 'hidden' : 'flex' }} flex-col items-end gap-3 sm:flex-row sm:justify-end">
                                             <button type="button" id="editDataButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
                                                 <span aria-hidden="true">&#9998;</span>
                                                 Edit data
@@ -473,7 +477,7 @@
                                                 Kunci pendaftaran
                                             </button>
                                         </div>
-                                        <div id="editModeActions" class="{{ $startInEditMode ? 'flex' : 'hidden' }} flex-col gap-3 sm:flex-row">
+                                        <div id="editModeActions" class="{{ $startInEditMode ? 'flex' : 'hidden' }} flex-col items-end gap-3 sm:flex-row sm:justify-end">
                                             <button type="submit" name="action" value="lock" id="saveAndLockButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
                                                 <span aria-hidden="true">&#128274;</span>
                                                 Kunci pendaftaran

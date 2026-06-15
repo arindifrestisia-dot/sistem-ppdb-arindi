@@ -5,8 +5,8 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\HeadmasterDashboardController;
 use App\Http\Controllers\PanitiaDashboardController;
 use App\Http\Controllers\PanitiaFinanceController;
-use App\Http\Controllers\PanitiaFormSaleController;
 use App\Http\Controllers\PanitiaInterviewScheduleController;
+use App\Http\Controllers\PanitiaParentFormFieldController;
 use App\Http\Controllers\PanitiaRegistrationController;
 use App\Http\Controllers\PanitiaSchoolContentController;
 use App\Http\Controllers\PanitiaUserController;
@@ -112,11 +112,13 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
     Route::get('/pendaftaran/export', [PanitiaRegistrationController::class, 'export'])->name('registrations.export');
     Route::get('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'show'])->name('registrations.show');
     Route::put('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'update'])->name('registrations.update');
-    Route::get('/formulir', [PanitiaFormSaleController::class, 'index'])->name('forms.index');
-    Route::get('/formulir/export', [PanitiaFormSaleController::class, 'export'])->name('forms.export');
     Route::get('/wawancara', [PanitiaInterviewScheduleController::class, 'index'])->name('interviews.index');
     Route::get('/wawancara/export', [PanitiaInterviewScheduleController::class, 'export'])->name('interviews.export');
     Route::post('/wawancara/{registration}/jadwalkan', [PanitiaInterviewScheduleController::class, 'assign'])->name('interviews.assign');
+    Route::resource('/formulir-orang-tua', PanitiaParentFormFieldController::class)
+        ->except(['show'])
+        ->parameters(['formulir-orang-tua' => 'parentFormField'])
+        ->names('parent-form-fields');
     Route::get('/keuangan/bayar-formulir', [PanitiaFinanceController::class, 'formPayments'])->name('finances.form-payments.index');
     Route::get('/keuangan/bayar-formulir/export', [PanitiaFinanceController::class, 'exportFormPayments'])->name('finances.form-payments.export');
     Route::get('/keuangan/daftar-ulang', [PanitiaFinanceController::class, 'reRegistrations'])->name('finances.re-registrations.index');

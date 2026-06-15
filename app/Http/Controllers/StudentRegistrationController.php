@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ParentFormField;
 use App\Models\StudentRegistration;
 use App\Services\MidtransSnapService;
 use App\Services\PpdbNotificationService;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 use Illuminate\View\View;
 
@@ -37,8 +39,16 @@ class StudentRegistrationController extends Controller
                 ->with('status', 'Silakan lunasi pembelian formulir terlebih dahulu sebelum mengisi data diri.');
         }
 
+        $customFields = ParentFormField::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
         return view('dashboard.panel-ortu.data-diri-page', [
             'registration' => $request->user()->studentRegistration,
+            'childCustomFields' => $customFields->where('section', 'child')->values(),
+            'parentCustomFields' => $customFields->where('section', 'parent')->values(),
         ]);
     }
 
@@ -90,7 +100,13 @@ class StudentRegistrationController extends Controller
             }
         }
 
-        $validated = $request->validate([
+        $customFields = ParentFormField::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $rules = [
             'action' => ['required', 'in:save,submit,lock'],
             'full_name' => ['required', 'string', 'max:255'],
             'nickname' => ['required', 'string', 'max:255'],
@@ -135,7 +151,16 @@ class StudentRegistrationController extends Controller
             'birth_certificate' => $fileRules['birth_certificate'],
             'family_card' => $fileRules['family_card'],
             'agreement' => [$action === 'submit' ? 'accepted' : 'nullable'],
-        ]);
+        ];
+
+        foreach ($customFields as $field) {
+            $rules['custom_fields.' . $field->field_key] = $this->customFieldRules(
+                $field,
+                $action !== 'save'
+            );
+        }
+
+        $validated = $request->validate($rules);
 
         $registration->fill([
             'full_name' => $validated['full_name'],
@@ -178,6 +203,10 @@ class StudentRegistrationController extends Controller
             'mother_income' => $validated['mother_income'],
             'mother_phone' => $validated['mother_phone'],
             'mother_address' => $validated['mother_address'],
+            'custom_form_data' => array_merge(
+                $registration->custom_form_data ?? [],
+                $validated['custom_fields'] ?? []
+            ),
         ]);
 
         $registration->user()->associate($request->user());
@@ -757,6 +786,19 @@ class StudentRegistrationController extends Controller
     protected function formatCurrency(int $amount): string
     {
         return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    protected function customFieldRules(ParentFormField $field, bool $enforceRequired): array
+    {
+        $rules = [$enforceRequired && $field->is_required ? 'required' : 'nullable'];
+
+        return match ($field->type) {
+            'number' => [...$rules, 'numeric'],
+            'date' => [...$rules, 'date'],
+            'select' => [...$rules, Rule::in($field->options ?? [])],
+            'textarea' => [...$rules, 'string', 'max:5000'],
+            default => [...$rules, 'string', 'max:255'],
+        };
     }
 
     protected function redirectPanitia(Request $request): ?RedirectResponse
