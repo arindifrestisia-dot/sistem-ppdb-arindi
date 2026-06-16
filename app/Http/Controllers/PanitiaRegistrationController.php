@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\ParentFormField;
 use App\Models\StudentRegistration;
 use App\Services\PpdbNotificationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PanitiaRegistrationController extends Controller
@@ -143,6 +146,30 @@ class PanitiaRegistrationController extends Controller
         return view('dashboard.panitia.registrations.show', [
             'registration' => $registration,
         ]);
+    }
+
+    public function downloadBiodataPdf(StudentRegistration $registration): Response
+    {
+        $registration->load(['user', 'verifier']);
+
+        $customFields = ParentFormField::query()
+            ->where('is_active', true)
+            ->orderBy('section')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('section');
+
+        $pdf = Pdf::loadView('dashboard.panitia.registrations.pdf.biodata-siswa', [
+            'registration' => $registration,
+            'customFields' => $customFields,
+            'academicYear' => $this->resolveAcademicYear($registration),
+            'classLabel' => $this->resolveClassLabel($registration),
+        ])->setPaper('a4', 'portrait');
+
+        $fileName = 'biodata-siswa-' . Str::slug($registration->registration_number ?: $registration->full_name ?: 'ra-fadhilah') . '.pdf';
+
+        return $pdf->download($fileName);
     }
 
     public function update(Request $request, StudentRegistration $registration): RedirectResponse

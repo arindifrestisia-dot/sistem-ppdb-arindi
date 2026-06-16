@@ -10,25 +10,7 @@
             <a href="{{ route('panitia.users.index') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900">Kembali</a>
         </div>
 
-        <div class="grid items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <aside class="bg-white p-6 text-center shadow-sm">
-                <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                    <svg class="h-14 w-14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 21a8 8 0 0 1 16 0Z"></path>
-                    </svg>
-                </div>
-
-                <p id="profileName" class="mt-5 text-lg font-bold text-slate-800">User Baru</p>
-                <p id="profileEmail" class="mt-1 break-all text-sm text-slate-400">email@example.com</p>
-
-                <div class="mt-6 border-t border-slate-100 pt-5 text-left">
-                    <p class="text-xs font-semibold text-slate-400">Role</p>
-                    <p id="profileRole" class="mt-1 text-sm font-semibold text-slate-700">Orang Tua</p>
-                </div>
-            </aside>
-
-            <div class="space-y-6">
+        <div class="space-y-6">
                 <section class="bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-5 md:px-8">
                         <h2 class="font-bold text-slate-800">Informasi Akun</h2>
@@ -144,30 +126,19 @@
                         </div>
                     </div>
                 </section>
-            </div>
         </div>
     </form>
 
     <script>
-        const nameInput = document.getElementById('name');
-        const emailInput = document.getElementById('email');
         const roleInput = document.getElementById('role');
-        const profileName = document.getElementById('profileName');
-        const profileEmail = document.getElementById('profileEmail');
-        const profileRole = document.getElementById('profileRole');
         const registrationInfo = document.getElementById('registrationInfo');
 
-        function updateProfilePreview() {
-            profileName.textContent = nameInput.value.trim() || 'User Baru';
-            profileEmail.textContent = emailInput.value.trim() || 'email@example.com';
-            profileRole.textContent = roleInput.options[roleInput.selectedIndex].text;
+        function updateRegistrationInfo() {
             registrationInfo.classList.toggle('hidden', roleInput.value !== @json(\App\Models\User::ROLE_PARENT));
         }
 
-        nameInput.addEventListener('input', updateProfilePreview);
-        emailInput.addEventListener('input', updateProfilePreview);
-        roleInput.addEventListener('change', updateProfilePreview);
-        updateProfilePreview();
+        roleInput.addEventListener('change', updateRegistrationInfo);
+        updateRegistrationInfo();
 
         document.querySelectorAll('[data-password-toggle]').forEach((button) => {
             button.addEventListener('click', () => {

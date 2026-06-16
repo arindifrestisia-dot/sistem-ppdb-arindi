@@ -82,7 +82,12 @@
                     <p class="mt-2 text-sm text-slate-500">{{ $registration->registration_number ?? 'Belum submit final' }} | {{ $registration->user?->email }}</p>
                 </div>
             </div>
-            <a href="{{ route('panitia.registrations.index', $backQuery) }}" class="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Kembali</a>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('panitia.registrations.biodata-pdf', $registration) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200">
+                    Export PDF
+                </a>
+                <a href="{{ route('panitia.registrations.index', $backQuery) }}" class="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Kembali</a>
+            </div>
         </div>
 
         <section class="overflow-hidden rounded-[2rem] bg-white shadow-sm">

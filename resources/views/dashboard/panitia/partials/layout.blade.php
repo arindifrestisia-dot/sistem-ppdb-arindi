@@ -168,12 +168,6 @@
                 </button>
             </div>
 
-            <div class="border-b border-slate-800 px-6 py-5">
-                <p class="text-lg font-bold">{{ auth()->user()->name }}</p>
-                <p class="text-sm text-slate-300">{{ auth()->user()->email }}</p>
-                <span class="mt-3 inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-950">Panitia</span>
-            </div>
-
             <nav class="space-y-2 px-4 py-6 text-sm font-semibold">
                 <a href="{{ route('panitia.dashboard') }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ request()->routeIs('panitia.dashboard') ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}">
                     {!! $sidebarIcon('dashboard') !!}

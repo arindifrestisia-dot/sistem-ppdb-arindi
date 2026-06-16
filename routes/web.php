@@ -110,6 +110,7 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
     Route::delete('/users/{user}', [PanitiaUserController::class, 'destroy'])->name('users.destroy');
     Route::get('/pendaftaran', [PanitiaRegistrationController::class, 'index'])->name('registrations.index');
     Route::get('/pendaftaran/export', [PanitiaRegistrationController::class, 'export'])->name('registrations.export');
+    Route::get('/pendaftaran/{registration}/biodata-pdf', [PanitiaRegistrationController::class, 'downloadBiodataPdf'])->name('registrations.biodata-pdf');
     Route::get('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'show'])->name('registrations.show');
     Route::put('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'update'])->name('registrations.update');
     Route::get('/wawancara', [PanitiaInterviewScheduleController::class, 'index'])->name('interviews.index');
