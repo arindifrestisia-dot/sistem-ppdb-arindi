@@ -135,6 +135,11 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
 
 Route::middleware(['auth', 'role:kepsek'])->prefix('kepsek')->name('kepsek.')->group(function () {
     Route::get('/dashboard', [HeadmasterDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pendaftaran', [PanitiaRegistrationController::class, 'index'])->name('registrations.index');
+    Route::get('/pendaftaran/export', [PanitiaRegistrationController::class, 'export'])->name('registrations.export');
+    Route::get('/pendaftaran/{registration}/biodata-pdf', [PanitiaRegistrationController::class, 'downloadBiodataPdf'])->name('registrations.biodata-pdf');
+    Route::get('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'show'])->name('registrations.show');
+    Route::get('/konten', [PanitiaSchoolContentController::class, 'index'])->name('contents.index');
 });
 
 Route::get('/panel-admin', fn () => redirect()->route('panitia.dashboard'))

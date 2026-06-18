@@ -1,7 +1,11 @@
-<x-panitia-layout title="Kelola Konten Sekolah">
-    @php
-        $isTeacherType = $type === \App\Models\SchoolContent::TYPE_TEACHER;
-    @endphp
+@php
+    $isKepsek = auth()->user()?->isKepsek();
+    $layoutComponent = $isKepsek ? 'kepsek-layout' : 'panitia-layout';
+    $contentRoutePrefix = $isKepsek ? 'kepsek' : 'panitia';
+    $isTeacherType = $type === \App\Models\SchoolContent::TYPE_TEACHER;
+@endphp
+
+<x-dynamic-component :component="$layoutComponent" title="Kelola Konten Sekolah">
 
     <section class="rounded-[2rem] bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -13,9 +17,11 @@
 
             <div class="flex flex-wrap gap-2">
                 @foreach ($typeOptions as $typeKey => $label)
-                    <a href="{{ route('panitia.contents.index', ['type' => $typeKey]) }}" class="rounded-full px-4 py-2 text-sm font-semibold {{ $type === $typeKey ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700' }}">{{ $label }}</a>
+                    <a href="{{ route($contentRoutePrefix . '.contents.index', ['type' => $typeKey]) }}" class="rounded-full px-4 py-2 text-sm font-semibold {{ $type === $typeKey ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700' }}">{{ $label }}</a>
                 @endforeach
-                <a href="{{ route('panitia.contents.create', ['type' => $type]) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950">{{ $isTeacherType ? 'Tambah Guru' : 'Tambah Konten' }}</a>
+                @unless ($isKepsek)
+                    <a href="{{ route('panitia.contents.create', ['type' => $type]) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950">{{ $isTeacherType ? 'Tambah Guru' : 'Tambah Konten' }}</a>
+                @endunless
             </div>
         </div>
 
@@ -35,7 +41,9 @@
                         @unless ($isTeacherType)
                             <th class="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
                         @endunless
-                        <th class="px-4 py-3 text-left font-semibold text-slate-600">Aksi</th>
+                        @unless ($isKepsek)
+                            <th class="px-4 py-3 text-left font-semibold text-slate-600">Aksi</th>
+                        @endunless
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -71,20 +79,22 @@
                                     </span>
                                 </td>
                             @endunless
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <a href="{{ route('panitia.contents.edit', $content) }}" class="font-semibold text-sky-700">Edit</a>
-                                    <form method="POST" action="{{ route('panitia.contents.destroy', $content) }}" onsubmit="return confirm('Hapus konten ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="font-semibold text-rose-600">Hapus</button>
-                                    </form>
-                                </div>
-                            </td>
+                            @unless ($isKepsek)
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <a href="{{ route('panitia.contents.edit', $content) }}" class="font-semibold text-sky-700">Edit</a>
+                                        <form method="POST" action="{{ route('panitia.contents.destroy', $content) }}" onsubmit="return confirm('Hapus konten ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="font-semibold text-rose-600">Hapus</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            @endunless
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isTeacherType ? 3 : 7 }}" class="px-4 py-5 text-center text-slate-500">{{ $isTeacherType ? 'Belum ada data guru.' : 'Belum ada konten untuk kategori ini.' }}</td>
+                            <td colspan="{{ $isTeacherType ? ($isKepsek ? 2 : 3) : ($isKepsek ? 6 : 7) }}" class="px-4 py-5 text-center text-slate-500">{{ $isTeacherType ? 'Belum ada data guru.' : 'Belum ada konten untuk kategori ini.' }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -95,4 +105,4 @@
             {{ $contents->links() }}
         </div>
     </section>
-</x-panitia-layout>
+</x-dynamic-component>

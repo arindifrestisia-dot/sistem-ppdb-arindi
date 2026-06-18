@@ -1,4 +1,9 @@
-<x-panitia-layout title="Data Siswa dan Calon Siswa">
+@php
+    $layoutComponent = auth()->user()?->isKepsek() ? 'kepsek-layout' : 'panitia-layout';
+    $registrationRoutePrefix = auth()->user()?->isKepsek() ? 'kepsek' : 'panitia';
+@endphp
+
+<x-dynamic-component :component="$layoutComponent" title="Data Siswa dan Calon Siswa">
     <section class="space-y-6">
         <div class="rounded-[2rem] bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-4">
@@ -11,7 +16,7 @@
                 <div class="flex flex-wrap gap-2">
                     @foreach ($segmentOptions as $segmentKey => $label)
                         <a
-                            href="{{ route('panitia.registrations.index', ['segment' => $segmentKey]) }}"
+                            href="{{ route($registrationRoutePrefix . '.registrations.index', ['segment' => $segmentKey]) }}"
                             class="rounded-full px-4 py-2 text-sm font-semibold {{ $segment === $segmentKey ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700' }}"
                         >
                             {{ $label }}
@@ -58,7 +63,7 @@
                 </div>
 
                 <a
-                    href="{{ route('panitia.registrations.export', ['segment' => $segment, 'q' => $search, 'class' => $class, 'ta' => $academicYear]) }}"
+                    href="{{ route($registrationRoutePrefix . '.registrations.export', ['segment' => $segment, 'q' => $search, 'class' => $class, 'ta' => $academicYear]) }}"
                     class="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                     Ekspor Excel
@@ -106,7 +111,7 @@
                                 <td class="px-6 py-5 text-slate-700">{{ $registration->display_class }}</td>
                                 <td class="px-6 py-5 text-slate-700">{{ $registration->gender }}</td>
                                 <td class="px-6 py-5">
-                                    <a href="{{ route('panitia.registrations.show', ['registration' => $registration, 'segment' => $segment, 'q' => $search, 'class' => $class, 'ta' => $academicYear]) }}" class="inline-flex rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800">
+                                    <a href="{{ route($registrationRoutePrefix . '.registrations.show', ['registration' => $registration, 'segment' => $segment, 'q' => $search, 'class' => $class, 'ta' => $academicYear]) }}" class="inline-flex rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800">
                                         Lihat data
                                     </a>
                                 </td>
@@ -125,4 +130,4 @@
             </div>
         </section>
     </section>
-</x-panitia-layout>
+</x-dynamic-component>

@@ -1,4 +1,9 @@
-<x-panitia-layout title="Verifikasi Berkas Pendaftaran">
+@php
+    $layoutComponent = auth()->user()?->isKepsek() ? 'kepsek-layout' : 'panitia-layout';
+    $registrationRoutePrefix = auth()->user()?->isKepsek() ? 'kepsek' : 'panitia';
+@endphp
+
+<x-dynamic-component :component="$layoutComponent" title="Verifikasi Berkas Pendaftaran">
     @php
         $backQuery = array_filter([
             'segment' => request('segment'),
@@ -83,10 +88,10 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('panitia.registrations.biodata-pdf', $registration) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200">
+                <a href="{{ route($registrationRoutePrefix . '.registrations.biodata-pdf', $registration) }}" class="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200">
                     Export PDF
                 </a>
-                <a href="{{ route('panitia.registrations.index', $backQuery) }}" class="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Kembali</a>
+                <a href="{{ route($registrationRoutePrefix . '.registrations.index', $backQuery) }}" class="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Kembali</a>
             </div>
         </div>
 
@@ -150,59 +155,61 @@
             </div>
         </section>
 
-        <section class="overflow-hidden rounded-[2rem] bg-white shadow-sm">
-            <div class="bg-blue-900 px-6 py-4 text-white">
-                <h3 class="text-lg font-bold">Kelola Verifikasi</h3>
-            </div>
-            <form method="POST" action="{{ route('panitia.registrations.update', $registration) }}" class="space-y-5 p-6">
-                @csrf
-                @method('PUT')
-                @foreach ($backQuery as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endforeach
+        @if (auth()->user()?->isPanitia())
+            <section class="overflow-hidden rounded-[2rem] bg-white shadow-sm">
+                <div class="bg-blue-900 px-6 py-4 text-white">
+                    <h3 class="text-lg font-bold">Kelola Verifikasi</h3>
+                </div>
+                <form method="POST" action="{{ route('panitia.registrations.update', $registration) }}" class="space-y-5 p-6">
+                    @csrf
+                    @method('PUT')
+                    @foreach ($backQuery as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
 
-                <div class="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-slate-700">Status Verifikasi</label>
-                        <select name="verification_status" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
-                            @foreach ([
-                                'belum_diperiksa' => 'Belum diperiksa',
-                                'terverifikasi' => 'Diterima',
-                                'ditolak' => 'Ditolak',
-                            ] as $statusOption => $statusLabel)
-                                <option value="{{ $statusOption }}" @selected(old('verification_status', $registration->verification_status) === $statusOption)>{{ $statusLabel }}</option>
-                            @endforeach
-                        </select>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">Status Verifikasi</label>
+                            <select name="verification_status" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+                                @foreach ([
+                                    'belum_diperiksa' => 'Belum diperiksa',
+                                    'terverifikasi' => 'Diterima',
+                                    'ditolak' => 'Ditolak',
+                                ] as $statusOption => $statusLabel)
+                                    <option value="{{ $statusOption }}" @selected(old('verification_status', $registration->verification_status) === $statusOption)>{{ $statusLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">Hasil Seleksi</label>
+                            <select name="selection_result" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+                                <option value="">Belum ditentukan</option>
+                                <option value="lulus" @selected(old('selection_result', $registration->selection_result) === 'lulus')>Lulus</option>
+                                <option value="tidak_lulus" @selected(old('selection_result', $registration->selection_result) === 'tidak_lulus')>Tidak Lulus</option>
+                            </select>
+                        </div>
                     </div>
+
                     <div>
-                        <label class="mb-2 block text-sm font-semibold text-slate-700">Hasil Seleksi</label>
-                        <select name="selection_result" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
-                            <option value="">Belum ditentukan</option>
-                            <option value="lulus" @selected(old('selection_result', $registration->selection_result) === 'lulus')>Lulus</option>
-                            <option value="tidak_lulus" @selected(old('selection_result', $registration->selection_result) === 'tidak_lulus')>Tidak Lulus</option>
-                        </select>
+                        <label class="mb-2 block text-sm font-semibold text-slate-700">Catatan Verifikasi</label>
+                        <textarea name="verification_notes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">{{ old('verification_notes', $registration->verification_notes) }}</textarea>
                     </div>
-                </div>
 
-                <div>
-                    <label class="mb-2 block text-sm font-semibold text-slate-700">Catatan Verifikasi</label>
-                    <textarea name="verification_notes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">{{ old('verification_notes', $registration->verification_notes) }}</textarea>
-                </div>
+                    <label class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                        <input type="checkbox" name="publish_selection" value="1" class="mt-1" @checked(old('publish_selection', $registration->selection_published_at !== null))>
+                        <span>Tampilkan hasil seleksi ke dashboard orang tua</span>
+                    </label>
 
-                <label class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                    <input type="checkbox" name="publish_selection" value="1" class="mt-1" @checked(old('publish_selection', $registration->selection_published_at !== null))>
-                    <span>Tampilkan hasil seleksi ke dashboard orang tua</span>
-                </label>
+                    <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        <p><span class="font-semibold text-slate-800">Diverifikasi oleh:</span> {{ $registration->verifier?->name ?? '-' }}</p>
+                        <p class="mt-1"><span class="font-semibold text-slate-800">Waktu verifikasi:</span> {{ $formatDateTime($registration->verified_at) }}</p>
+                    </div>
 
-                <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    <p><span class="font-semibold text-slate-800">Diverifikasi oleh:</span> {{ $registration->verifier?->name ?? '-' }}</p>
-                    <p class="mt-1"><span class="font-semibold text-slate-800">Waktu verifikasi:</span> {{ $formatDateTime($registration->verified_at) }}</p>
-                </div>
-
-                <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-700">
-                    Simpan Verifikasi
-                </button>
-            </form>
-        </section>
+                    <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        Simpan Verifikasi
+                    </button>
+                </form>
+            </section>
+        @endif
     </div>
-</x-panitia-layout>
+</x-dynamic-component>
