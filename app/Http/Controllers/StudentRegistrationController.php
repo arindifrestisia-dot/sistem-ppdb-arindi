@@ -418,6 +418,10 @@ class StudentRegistrationController extends Controller
             return response()->json(['status' => 'paid', 'message' => 'Pembayaran daftar ulang sudah lunas.']);
         }
 
+        if ($registration->reregistration_status === 'manual_pending') {
+            return response()->json(['message' => 'Pembayaran sedang menunggu verifikasi panitia.'], 422);
+        }
+
         if (! $this->midtrans->isConfigured()) {
             return response()->json(['message' => 'Konfigurasi Midtrans sandbox belum lengkap.'], 422);
         }
@@ -451,6 +455,7 @@ class StudentRegistrationController extends Controller
             'reregistration_snap_token' => (string) ($transaction['token'] ?? ''),
             'reregistration_snap_redirect_url' => $transaction['redirect_url'] ?? null,
             'reregistration_status' => 'pending',
+            'reregistration_payment_type' => 'midtrans',
             'reregistration_midtrans_payload' => $transaction,
         ])->save();
 
@@ -482,6 +487,56 @@ class StudentRegistrationController extends Controller
             'status' => $registration->reregistration_status,
             'paid' => $this->isReRegistrationPaid($registration),
         ]);
+    }
+
+    public function submitManualReRegistration(Request $request): RedirectResponse
+    {
+        $redirect = $this->redirectPanitia($request);
+        if ($redirect) {
+            return $redirect;
+        }
+
+        $registration = $request->user()->studentRegistration;
+        abort_unless($this->canPayReRegistration($registration), 403);
+
+        if ($this->isReRegistrationPaid($registration)) {
+            return back()->with('status', 'Pembayaran daftar ulang sudah lunas.');
+        }
+
+        if ($registration->reregistration_status === 'manual_pending') {
+            return back()->with('status', 'Bukti pembayaran sudah dikirim dan sedang menunggu verifikasi panitia.');
+        }
+
+        $validated = $request->validate([
+            'payment_method' => ['required', 'in:transfer,cash'],
+            'proof' => ['nullable', 'required_if:payment_method,transfer', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'proof.required_if' => 'Bukti pembayaran wajib diunggah untuk metode transfer atau DANA.',
+            'proof.mimes' => 'Bukti pembayaran harus berupa JPG, PNG, atau PDF.',
+            'proof.max' => 'Ukuran bukti pembayaran maksimal 5 MB.',
+        ]);
+
+        $oldProof = $registration->reregistration_proof_path;
+        $proofPath = $request->hasFile('proof')
+            ? $request->file('proof')->store('payment-proofs/reregistration', 'public')
+            : $oldProof;
+
+        $registration->forceFill([
+            'reregistration_order_id' => $registration->reregistration_order_id ?: $this->generateReRegistrationOrderId($registration),
+            'reregistration_amount' => (int) config('ppdb_notifications.amounts.re_registration', 1500000),
+            'reregistration_status' => 'manual_pending',
+            'reregistration_payment_type' => 'manual_' . $validated['payment_method'],
+            'reregistration_proof_path' => $proofPath,
+            'reregistration_paid_at' => null,
+            'reregistration_verified_by' => null,
+            'reregistration_verified_at' => null,
+        ])->save();
+
+        if ($request->hasFile('proof') && $oldProof && $oldProof !== $proofPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldProof);
+        }
+
+        return back()->with('status', 'Pembayaran daftar ulang dikirim dan sedang menunggu verifikasi panitia.');
     }
 
     public function handleMidtransReRegistrationNotification(Request $request): JsonResponse
@@ -609,32 +664,21 @@ class StudentRegistrationController extends Controller
     {
         Carbon::setLocale('id');
 
-        $sessions = [
-            ['label' => 'Sesi 1', 'time' => '08.00 - 08.30 WIB'],
-            ['label' => 'Sesi 2', 'time' => '09.00 - 09.30 WIB'],
-            ['label' => 'Sesi 3', 'time' => '10.00 - 10.30 WIB'],
-        ];
-
         $options = [];
         $period = $this->interviewSchedulePeriod();
         $date = $period['start']->copy();
 
         while ($date->lte($period['end'])) {
-            $room = $this->interviewRoomForDate($date);
-
-            foreach ($sessions as $sessionIndex => $session) {
-                $key = $date->toDateString() . '-session-' . ($sessionIndex + 1);
-
-                $options[$key] = [
-                    'key' => $key,
-                    'session_label' => $session['label'],
-                    'date' => $date->copy(),
-                    'day_name' => Str::headline($date->translatedFormat('l')),
-                    'formatted_date' => $date->translatedFormat('d F Y'),
-                    'time' => $session['time'],
-                    'room' => $room,
-                ];
-            }
+            $key = $date->toDateString();
+            $options[$key] = [
+                'key' => $key,
+                'session_label' => 'Jadwal Wawancara',
+                'date' => $date->copy(),
+                'day_name' => Str::headline($date->translatedFormat('l')),
+                'formatted_date' => $date->translatedFormat('d F Y'),
+                'time' => 'Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00',
+                'room' => 'RUANGAN TU',
+            ];
 
             $date->addDay();
         }

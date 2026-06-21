@@ -52,6 +52,13 @@
                         <path d="M8 13h5"></path>
                     </svg>
                 SVG,
+                'banner' => <<<'SVG'
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                        <circle cx="8.5" cy="10" r="1.5"></circle>
+                        <path d="m4 17 5-4 3 2 3-3 5 5"></path>
+                    </svg>
+                SVG,
                 'prestasi' => <<<'SVG'
                     <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M8 5h8"></path>
@@ -138,6 +145,12 @@
         $isParentFormFieldsActive = request()->routeIs('panitia.parent-form-fields.*');
         $isFinanceFormPaymentsActive = request()->routeIs('panitia.finances.form-payments.*');
         $isFinanceReRegistrationsActive = request()->routeIs('panitia.finances.re-registrations.*');
+        $isSchoolInformationActive = request()->routeIs('panitia.banners.*', 'panitia.contents.*');
+        $isStudentDataActive = request()->routeIs('panitia.registrations.*');
+        $isFormMenuActive = $isInterviewMenuActive
+            || $isParentFormFieldsActive
+            || $isFinanceFormPaymentsActive
+            || $isFinanceReRegistrationsActive;
     @endphp
     <div class="flex min-h-screen">
         <button
@@ -179,9 +192,21 @@
                     <span>Manajemen User</span>
                 </a>
 
-                <div class="pt-4">
-                    <p class="px-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Informasi Sekolah</p>
-                    <div class="mt-3 space-y-1">
+                <details class="group pt-4" {{ $isSchoolInformationActive ? 'open' : '' }}>
+                    <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 [&::-webkit-details-marker]:hidden">
+                        <span>Informasi Sekolah</span>
+                        <svg class="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </summary>
+                    <div class="mt-2 space-y-1 border-l border-slate-800 pl-2">
+                        <a
+                            href="{{ route('panitia.banners.index') }}"
+                            class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ request()->routeIs('panitia.banners.*') ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
+                        >
+                            {!! $sidebarIcon('banner') !!}
+                            <span>Banner</span>
+                        </a>
                         @foreach ($contentMenuItems as $typeKey => $label)
                             <a
                                 href="{{ route('panitia.contents.index', ['type' => $typeKey]) }}"
@@ -192,11 +217,16 @@
                             </a>
                         @endforeach
                     </div>
-                </div>
+                </details>
 
-                <div class="pt-4">
-                    <p class="px-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Data Siswa</p>
-                    <div class="mt-3 space-y-1">
+                <details class="group pt-4" {{ $isStudentDataActive ? 'open' : '' }}>
+                    <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 [&::-webkit-details-marker]:hidden">
+                        <span>Data Siswa</span>
+                        <svg class="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </summary>
+                    <div class="mt-2 space-y-1 border-l border-slate-800 pl-2">
                         @foreach ($studentMenuItems as $segmentKey => $label)
                             <a
                                 href="{{ route('panitia.registrations.index', ['segment' => $segmentKey]) }}"
@@ -207,11 +237,16 @@
                             </a>
                         @endforeach
                     </div>
-                </div>
+                </details>
 
-                <div class="pt-4">
-                    <p class="px-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Formulir</p>
-                    <div class="mt-3 space-y-1">
+                <details class="group pt-4" {{ $isFormMenuActive ? 'open' : '' }}>
+                    <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 [&::-webkit-details-marker]:hidden">
+                        <span>Formulir</span>
+                        <svg class="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </summary>
+                    <div class="mt-2 space-y-1 border-l border-slate-800 pl-2">
                         <a
                             href="{{ route('panitia.interviews.index') }}"
                             class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isInterviewMenuActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
@@ -266,7 +301,7 @@
                             <span>Pembayaran Daftar Ulang</span>
                         </a>
                     </div>
-                </div>
+                </details>
                 <a href="{{ route('profile.dashboard') }}" class="block rounded-2xl px-4 py-3 text-slate-200 hover:bg-slate-800">Lihat Website Publik</a>
             </nav>
         </aside>

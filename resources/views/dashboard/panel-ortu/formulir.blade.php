@@ -25,10 +25,10 @@
                     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div>
                             <h1 class="text-3xl font-extrabold text-blue-950 md:text-5xl">Pembelian Formulir PPDB</h1>
-                            <p class="mt-2 text-lg text-slate-500">Lunasi formulir melalui Midtrans sandbox untuk membuka akses pengisian data diri.</p>
+                            <p class="mt-2 text-lg text-slate-500">Pilih pembayaran Midtrans, transfer/DANA, atau cash di sekolah.</p>
                         </div>
                         <span class="inline-flex rounded-2xl px-4 py-2 text-sm font-semibold {{ $isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                            {{ $isPaid ? 'Formulir Lunas' : 'Menunggu Pembayaran' }}
+                            {{ $isPaid ? 'Pembayaran Terverifikasi' : ($payment?->status === 'manual_pending' ? 'Menunggu Verifikasi' : 'Menunggu Pembayaran') }}
                         </span>
                     </div>
 
@@ -36,6 +36,10 @@
                         <div class="mt-6 rounded-3xl bg-amber-50 p-5 text-sm font-semibold leading-7 text-amber-700 ring-1 ring-amber-100">
                             {{ session('status') }}
                         </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="mt-6 rounded-3xl bg-rose-50 p-5 text-sm font-semibold text-rose-700 ring-1 ring-rose-100">{{ $errors->first() }}</div>
                     @endif
 
                     <section class="mt-8 overflow-hidden rounded-[2rem] bg-white shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100">
@@ -50,7 +54,7 @@
                                 <div class="mt-8 grid gap-4 md:grid-cols-3">
                                     <div class="rounded-3xl bg-blue-50 p-5">
                                         <p class="text-sm font-semibold text-blue-700">1. Bayar</p>
-                                        <p class="mt-2 text-sm leading-6 text-slate-600">Klik tombol bayar dan selesaikan transaksi di Snap Midtrans.</p>
+                                        <p class="mt-2 text-sm leading-6 text-slate-600">Bayar melalui Snap Midtrans. Status lunas terverifikasi otomatis tanpa upload bukti.</p>
                                     </div>
                                     <div class="rounded-3xl bg-emerald-50 p-5">
                                         <p class="text-sm font-semibold text-emerald-700">2. Isi Formulir</p>
@@ -94,34 +98,60 @@
                             <div>
                                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Status Pembayaran</p>
                                 <h2 class="mt-2 text-2xl font-bold {{ $isPaid ? 'text-emerald-600' : 'text-blue-950' }}" id="formPaymentStatusLabel">
-                                    {{ $isPaid ? 'Pembayaran formulir lunas' : 'Formulir belum lunas' }}
+                                    {{ $isPaid ? 'Pembayaran Formulir Berhasil Diverifikasi' : ($payment?->status === 'manual_pending' ? 'Bukti pembayaran berhasil diunggah' : 'Formulir belum lunas') }}
                                 </h2>
                                 <p class="mt-2 text-sm leading-7 text-slate-500" id="formPaymentMessage">
-                                    {{ $isPaid ? 'Anda sudah dapat membuka dan mengisi formulir pendaftaran.' : 'Selesaikan pembayaran terlebih dahulu agar formulir pendaftaran terbuka.' }}
+                                    {{ $isPaid ? 'Pembayaran formulir Anda telah diverifikasi oleh panitia. Silakan klik tombol di bawah untuk melanjutkan pengisian formulir pendaftaran peserta didik baru.' : ($payment?->status === 'manual_pending' ? 'Pembayaran formulir Anda sedang dalam proses verifikasi oleh panitia. Mohon menunggu hingga proses verifikasi selesai.' : 'Selesaikan pembayaran terlebih dahulu agar formulir pendaftaran terbuka.') }}
                                 </p>
                             </div>
 
                             @if ($isPaid)
-                                <a href="{{ route('data-diri') }}" class="inline-flex justify-center rounded-full bg-emerald-600 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] transition hover:bg-emerald-500">
-                                    Buka Formulir
-                                </a>
+                                <div class="flex flex-col items-start gap-3 md:items-end">
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2.5 text-sm font-extrabold text-emerald-700">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                        Pembayaran Terverifikasi
+                                    </span>
+                                    <a href="{{ route('data-diri') }}" class="inline-flex justify-center rounded-full bg-emerald-600 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] transition hover:bg-emerald-500">
+                                        Isi Formulir Pendaftaran
+                                    </a>
+                                </div>
+                            @elseif ($payment?->status === 'manual_pending')
+                                <span class="inline-flex rounded-full bg-amber-100 px-6 py-3 text-sm font-extrabold text-amber-700">Menunggu Verifikasi Panitia</span>
                             @elseif (! $isMidtransConfigured)
                                 <span class="inline-flex rounded-2xl bg-amber-50 px-5 py-4 text-sm font-semibold text-amber-700">
                                     Midtrans belum dikonfigurasi
                                 </span>
                             @else
-                                <button type="button" id="payFormButton" class="inline-flex justify-center rounded-full bg-blue-600 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(59,130,246,0.28)] transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-400">
-                                    Bayar Formulir
-                                </button>
+                                <div class="text-right">
+                                    <button type="button" id="payFormButton" class="inline-flex justify-center rounded-full bg-blue-600 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(59,130,246,0.28)] transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-400">Bayar via Midtrans</button>
+                                    <p class="mt-2 text-xs font-semibold text-emerald-600">Otomatis lunas setelah transaksi berhasil</p>
+                                </div>
                             @endif
                         </div>
 
-                        @if (! $isPaid && ! $isMidtransConfigured)
+                        @if (! $isPaid && $payment?->status !== 'manual_pending' && ! $isMidtransConfigured)
                             <div class="mt-6 rounded-3xl bg-amber-50 p-5 text-sm font-semibold leading-7 text-amber-700">
                                 Isi `MIDTRANS_SERVER_KEY` dan `MIDTRANS_CLIENT_KEY` sandbox di file `.env`, lalu jalankan `php artisan config:clear`.
                             </div>
                         @endif
                     </section>
+
+                    @if (! $isPaid && $payment?->status !== 'manual_pending')
+                        <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-blue-100 md:p-8">
+                            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Pembayaran Manual</p>
+                            <h2 class="mt-2 text-2xl font-bold text-blue-950">Transfer/DANA atau cash ke sekolah</h2>
+                            <div class="mt-5 grid gap-4 md:grid-cols-2">
+                                <div class="rounded-3xl bg-blue-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-blue-900">Transfer Bank BRI</p><p class="mt-1 text-lg font-bold">5510 0106 1682 530</p><p>a.n Arindi Frestisia Ningtias</p></div>
+                                <div class="rounded-3xl bg-sky-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-sky-900">DANA</p><p class="mt-1 text-lg font-bold">0853 6294 4666</p><p>a.n Arindi Frestisia Ningtias</p></div>
+                            </div>
+                            <form method="POST" action="{{ route('ortu.formulir.manual') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">
+                                @csrf
+                                <div><label for="formPaymentMethod" class="text-sm font-bold text-slate-700">Metode pembayaran</label><select id="formPaymentMethod" name="payment_method" required class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"><option value="transfer">Transfer BRI atau DANA</option><option value="cash">Bayar Cash ke Sekolah</option></select></div>
+                                <div><label for="formPaymentProof" class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input id="formPaymentProof" name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-sky-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA; opsional untuk cash. JPG, PNG, atau PDF maksimal 5 MB.</p></div>
+                                <div class="md:col-span-2 flex flex-wrap items-center gap-4"><button class="rounded-full bg-sky-600 px-7 py-3 font-bold text-white hover:bg-sky-500">Kirim untuk Verifikasi</button>@if ($payment?->status === 'manual_pending')<span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Menunggu verifikasi panitia</span>@endif</div>
+                            </form>
+                        </section>
+                    @endif
                 </div>
             </main>
 

@@ -55,7 +55,7 @@
                                 <div>
                                     <p class="text-xs font-bold uppercase tracking-[0.28em] text-sky-600">Jadwal Terpilih</p>
                                     <h1 class="mt-2 text-2xl font-extrabold text-blue-950 md:text-4xl">{{ $registration->full_name }}</h1>
-                                    <p class="mt-2 text-sm text-slate-500">Sesi wawancara yang sudah dipilih tidak dapat diganti lagi.</p>
+                                    <p class="mt-2 text-sm text-slate-500">Tanggal wawancara yang sudah dipilih tidak dapat diganti lagi.</p>
                                 </div>
                                 <div class="rounded-[1rem] bg-blue-950 px-6 py-5 text-white shadow-lg">
                                     <p class="text-sm text-sky-100">Dipilih pada</p>
@@ -74,11 +74,11 @@
                                 </div>
                                 <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Jam</p>
-                                    <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_time ?: '-' }}</p>
+                                    <p class="mt-2 text-lg font-bold leading-7 text-slate-800">Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-50 p-5">
                                     <p class="text-sm font-medium text-slate-500">Ruangan</p>
-                                    <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_room ?: '-' }}</p>
+                                    <p class="mt-2 text-lg font-bold text-slate-800">RUANGAN TU</p>
                                 </div>
                             </div>
                         </section>
@@ -90,9 +90,9 @@
                         >
                             <div class="flex flex-col gap-5 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
                                 <div>
-                                    <p class="text-xs font-extrabold uppercase tracking-[0.35em] text-sky-600">Daftar Slot Wawancara</p>
-                                    <h1 class="mt-2 text-2xl font-extrabold text-blue-950 md:text-3xl">Kalender Slot Wawancara</h1>
-                                    <p class="mt-1 text-sm text-slate-500">Tanggal bertanda memiliki slot. Klik tanggal untuk melihat sesi yang tersedia.</p>
+                                    <p class="text-xs font-extrabold uppercase tracking-[0.35em] text-sky-600">Jadwal Wawancara</p>
+                                    <h1 class="mt-2 text-2xl font-extrabold text-blue-950 md:text-3xl">Pilih Tanggal Wawancara</h1>
+                                    <p class="mt-1 text-sm text-slate-500">Pilih tanggal yang tersedia, lalu klik tombol konfirmasi jadwal.</p>
                                 </div>
 
                                 <label class="block w-full max-w-xs">
@@ -136,7 +136,7 @@
                                                         class="mx-auto mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold"
                                                         :class="selectedDate === cell.date ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'"
                                                     >
-                                                        <span x-text="slotCount(cell.date)"></span>&nbsp;slot
+                                                    tersedia
                                                     </span>
                                                 </button>
                                             </template>
@@ -148,17 +148,15 @@
                                         <h2 class="mt-2 text-2xl font-extrabold text-blue-950" x-text="selectedDateLabel"></h2>
                                         <p class="mt-1 text-sm text-slate-500" x-text="selectedDateSummary"></p>
 
-                                        <div class="mt-5 space-y-3">
-                                            <template x-for="slot in selectedSlots" :key="slot.key">
-                                                <label class="block cursor-pointer">
-                                                    <input type="radio" class="peer sr-only" name="session_choice" :value="slot.key" @change="selectSession(slot)" :checked="selectedSessionKey === slot.key">
-                                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 transition peer-checked:border-blue-700 peer-checked:bg-blue-950 peer-checked:text-white">
-                                                        <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-sky-600 peer-checked:text-sky-100" x-text="slot.session_label"></p>
-                                                        <p class="mt-2 text-lg font-extrabold text-blue-950 peer-checked:text-white" x-text="slot.time"></p>
-                                                        <p class="mt-1 text-sm font-semibold text-slate-500 peer-checked:text-slate-100" x-text="slot.room"></p>
-                                                    </div>
-                                                </label>
-                                            </template>
+                                        <div x-show="selectedSession" class="mt-5 space-y-3">
+                                            <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                                                <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-blue-600">Jam</p>
+                                                <p class="mt-2 text-base font-extrabold leading-7 text-blue-950" x-text="selectedSession?.time"></p>
+                                            </div>
+                                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                                <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-slate-500">Ruangan</p>
+                                                <p class="mt-2 text-lg font-extrabold text-blue-950" x-text="selectedSession?.room"></p>
+                                            </div>
                                         </div>
 
                                         <div class="mt-5 rounded-xl bg-blue-50 p-4">
@@ -236,15 +234,15 @@
                     },
                     get selectedDateSummary() {
                         return this.selectedSlots.length
-                            ? `${this.selectedSlots[0].day_name}, ${this.selectedSlots.length} sesi tersedia`
+                            ? `${this.selectedSlots[0].day_name}, tanggal tersedia untuk wawancara`
                             : 'Klik tanggal pada kalender.';
                     },
                     get selectedChoiceText() {
                         if (! this.selectedSession) {
-                            return 'Belum ada sesi dipilih.';
+                            return 'Belum ada tanggal dipilih.';
                         }
 
-                        return `${this.selectedSession.formatted_date}, ${this.selectedSession.time}, ${this.selectedSession.room}`;
+                        return `${this.selectedSession.formatted_date} - ${this.selectedSession.room}`;
                     },
                     slotCount(date) {
                         return (this.slotsByDate[date] || []).length;
@@ -255,18 +253,14 @@
                         }
 
                         this.selectedDate = date;
-                        this.selectedSessionKey = '';
-                        this.selectedSession = null;
-                    },
-                    selectSession(slot) {
-                        this.selectedSessionKey = slot.key;
-                        this.selectedSession = slot;
+                        this.selectedSession = this.slotsByDate[date][0];
+                        this.selectedSessionKey = this.selectedSession.key;
                     },
                     selectFirstAvailableDate() {
                         const date = Object.keys(this.slotsByDate).find((item) => item.startsWith(this.selectedMonth));
                         this.selectedDate = date || '';
-                        this.selectedSessionKey = '';
-                        this.selectedSession = null;
+                        this.selectedSession = date ? this.slotsByDate[date][0] : null;
+                        this.selectedSessionKey = this.selectedSession?.key || '';
                     },
                     dayClass(cell) {
                         if (cell.blank) {

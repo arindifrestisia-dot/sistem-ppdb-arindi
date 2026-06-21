@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -27,19 +28,14 @@ class PpdbFormPaymentController extends Controller
             return redirect()->route('dashboard');
         }
 
-        if ($request->user()->hasPaidPpdbForm()) {
-            return redirect()
-                ->route('data-diri')
-                ->with('status', 'Pembelian formulir sudah lunas. Silakan lanjut mengisi data diri.');
-        }
-
-        $payment = $request->user()->ppdbFormPayment;
+        $payment = $request->user()->ppdbFormPayment()->first();
+        $request->user()->setRelation('ppdbFormPayment', $payment);
 
         return view('dashboard.panel-ortu.formulir', [
             'payment' => $payment,
             'isPaid' => (bool) $payment?->isPaid(),
-            'formAmount' => (int) config('ppdb_notifications.amounts.form', 100000),
-            'formAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.form', 100000)),
+            'formAmount' => (int) config('ppdb_notifications.amounts.form', 150000),
+            'formAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.form', 150000)),
             'midtransClientKey' => (string) config('services.midtrans.client_key'),
             'isMidtransConfigured' => $this->midtrans->isConfigured(),
         ]);
@@ -55,11 +51,15 @@ class PpdbFormPaymentController extends Controller
             return response()->json(['status' => 'paid', 'message' => 'Pembayaran formulir sudah lunas.']);
         }
 
+        if ($request->user()->ppdbFormPayment?->status === 'manual_pending') {
+            return response()->json(['message' => 'Pembayaran sedang menunggu verifikasi panitia.'], 422);
+        }
+
         if (! $this->midtrans->isConfigured()) {
             return response()->json(['message' => 'Konfigurasi Midtrans sandbox belum lengkap.'], 422);
         }
 
-        $amount = (int) config('ppdb_notifications.amounts.form', 100000);
+        $amount = (int) config('ppdb_notifications.amounts.form', 150000);
         $payment = $request->user()->ppdbFormPayment;
 
         if (! $payment || in_array($payment->status, ['deny', 'cancel', 'expire', 'failure'], true)) {
@@ -88,14 +88,72 @@ class PpdbFormPaymentController extends Controller
             'snap_token' => (string) ($transaction['token'] ?? ''),
             'snap_redirect_url' => $transaction['redirect_url'] ?? null,
             'status' => 'pending',
+            'payment_type' => 'midtrans',
             'midtrans_payload' => $transaction,
         ])->save();
+
+        $request->user()->setRelation('ppdbFormPayment', $payment);
 
         return response()->json([
             'status' => 'pending',
             'snap_token' => $payment->snap_token,
             'redirect_url' => $payment->snap_redirect_url,
         ]);
+    }
+
+    public function submitManual(Request $request): RedirectResponse
+    {
+        if ($request->user()?->isStaff()) {
+            abort(403);
+        }
+
+        if ($request->user()->hasPaidPpdbForm()) {
+            return back()->with('status', 'Pembayaran formulir sudah lunas.');
+        }
+
+        if ($request->user()->ppdbFormPayment?->status === 'manual_pending') {
+            return back()->with('status', 'Bukti pembayaran sudah dikirim dan sedang menunggu verifikasi panitia.');
+        }
+
+        $validated = $request->validate([
+            'payment_method' => ['required', 'in:transfer,cash'],
+            'proof' => ['nullable', 'required_if:payment_method,transfer', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'proof.required_if' => 'Bukti pembayaran wajib diunggah untuk metode transfer atau DANA.',
+            'proof.mimes' => 'Bukti pembayaran harus berupa JPG, PNG, atau PDF.',
+            'proof.max' => 'Ukuran bukti pembayaran maksimal 5 MB.',
+        ]);
+
+        $payment = $request->user()->ppdbFormPayment;
+        $oldProof = $payment?->proof_path;
+        $proofPath = $request->hasFile('proof')
+            ? $request->file('proof')->store('payment-proofs/form', 'public')
+            : $oldProof;
+
+        if (! $payment) {
+            $payment = new PpdbFormPayment([
+                'user_id' => $request->user()->id,
+                'order_id' => $this->generateOrderId(),
+                'amount' => (int) config('ppdb_notifications.amounts.form', 150000),
+            ]);
+        }
+
+        $payment->forceFill([
+            'status' => 'manual_pending',
+            'payment_type' => 'manual_' . $validated['payment_method'],
+            'proof_path' => $proofPath,
+            'paid_at' => null,
+            'verified_by' => null,
+            'verified_at' => null,
+        ])->save();
+
+        $request->user()->setRelation('ppdbFormPayment', $payment);
+
+        if ($request->hasFile('proof') && $oldProof && $oldProof !== $proofPath) {
+            Storage::disk('public')->delete($oldProof);
+        }
+
+        return back()->with('status', 'Pembayaran berhasil dikirim dan sedang menunggu verifikasi panitia.');
     }
 
     public function sync(Request $request): JsonResponse

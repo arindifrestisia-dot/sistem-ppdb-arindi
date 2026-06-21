@@ -15,7 +15,10 @@ class PpdbFormPayment extends Model
         'amount',
         'status',
         'payment_type',
+        'proof_path',
         'paid_at',
+        'verified_by',
+        'verified_at',
         'midtrans_payload',
     ];
 
@@ -24,6 +27,7 @@ class PpdbFormPayment extends Model
         return [
             'amount' => 'integer',
             'paid_at' => 'datetime',
+            'verified_at' => 'datetime',
             'midtrans_payload' => 'array',
         ];
     }

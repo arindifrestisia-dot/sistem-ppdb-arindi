@@ -11,11 +11,77 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use App\Services\PpdbNotificationService;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PanitiaFinanceController extends Controller
 {
     private const FORM_PAYMENT_AMOUNT = 150000;
     private const REREGISTRATION_AMOUNT = 2500000;
+
+    public function __construct(private readonly PpdbNotificationService $notifications)
+    {
+    }
+
+    public function verifyFormPayment(Request $request, PpdbFormPayment $payment): RedirectResponse
+    {
+        abort_unless(str_starts_with((string) $payment->payment_type, 'manual_'), 422);
+
+        if (! $payment->isPaid()) {
+            $payment->forceFill([
+                'status' => 'settlement',
+                'paid_at' => now(),
+                'verified_by' => $request->user()->id,
+                'verified_at' => now(),
+            ])->save();
+
+            $this->notifications->send('form_payment_approved', $payment->user);
+        }
+
+        return back()->with('status', 'Pembayaran formulir berhasil diverifikasi.');
+    }
+
+    public function formPaymentProof(PpdbFormPayment $payment): BinaryFileResponse
+    {
+        abort_unless($payment->proof_path && Storage::disk('public')->exists($payment->proof_path), 404);
+
+        return response()->file(Storage::disk('public')->path($payment->proof_path));
+    }
+
+    public function verifyReRegistration(Request $request, StudentRegistration $registration): RedirectResponse
+    {
+        abort_unless($registration->selection_result === 'lulus', 404);
+        abort_if($registration->reregistration_payment_type === 'midtrans', 422);
+
+        if (! $registration->reregistration_paid_at) {
+            $registration->forceFill([
+                'reregistration_status' => 'settlement',
+                'reregistration_payment_type' => $registration->reregistration_payment_type ?: 'manual_cash',
+                'reregistration_amount' => $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT),
+                'reregistration_paid_at' => now(),
+                'reregistration_verified_by' => $request->user()->id,
+                'reregistration_verified_at' => now(),
+            ])->save();
+
+            $this->notifications->send('re_registration_approved', $registration->user, $registration);
+            $this->notifications->send('student_officially_registered', $registration->user, $registration);
+        }
+
+        return back()->with('status', 'Pembayaran daftar ulang berhasil diverifikasi.');
+    }
+
+    public function reRegistrationProof(StudentRegistration $registration): BinaryFileResponse
+    {
+        abort_unless(
+            $registration->reregistration_proof_path
+                && Storage::disk('public')->exists($registration->reregistration_proof_path),
+            404
+        );
+
+        return response()->file(Storage::disk('public')->path($registration->reregistration_proof_path));
+    }
 
     public function formPayments(Request $request): View
     {
@@ -188,6 +254,8 @@ class PanitiaFinanceController extends Controller
             'academicYear' => $academicYear,
             'paymentTypeOptions' => [
                 'midtrans' => 'Midtrans',
+                'manual_transfer' => 'Transfer BRI / DANA',
+                'manual_cash' => 'Cash ke Sekolah',
             ],
             'statusOptions' => [
                 'lunas' => 'Lunas',
@@ -276,9 +344,15 @@ class PanitiaFinanceController extends Controller
         $payment->display_student_name = filled($registration?->full_name) ? $registration->full_name : '-';
         $payment->display_payment_date = $purchaseDate->translatedFormat('j M Y');
         $payment->display_form_amount = $this->formatCurrency($payment->amount ?: self::FORM_PAYMENT_AMOUNT);
-        $payment->display_form_method = $payment->payment_type ? Str::headline(str_replace('_', ' ', $payment->payment_type)) : 'Midtrans';
+        $payment->display_form_method = match ($payment->payment_type) {
+            'manual_transfer' => 'Transfer BRI / DANA',
+            'manual_cash' => 'Cash ke Sekolah',
+            default => $payment->payment_type ? Str::headline(str_replace('_', ' ', $payment->payment_type)) : 'Midtrans',
+        };
         $payment->display_payment_status_key = $statusKey;
-        $payment->display_payment_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Menunggu';
+        $payment->display_payment_status_label = $statusKey === 'lunas'
+            ? 'Lunas'
+            : ($payment->status === 'manual_pending' ? 'Menunggu Verifikasi' : 'Menunggu');
         $payment->display_payment_status_tone = $statusTone;
         $payment->display_filling_status_label = $registration?->submitted_at
             ? 'Diisi Lengkap'
@@ -294,7 +368,9 @@ class PanitiaFinanceController extends Controller
     private function decorateReRegistrationPayment(StudentRegistration $registration): StudentRegistration
     {
         $amount = $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT);
-        $paymentTypeKey = 'midtrans';
+        $paymentTypeKey = str_starts_with((string) $registration->reregistration_payment_type, 'manual_')
+            ? $registration->reregistration_payment_type
+            : 'midtrans';
         $statusKey = $registration->reregistration_paid_at && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
             ? 'lunas'
             : 'belum_lunas';
@@ -307,12 +383,16 @@ class PanitiaFinanceController extends Controller
         $registration->display_class = $this->resolveClassLabel($registration);
         $registration->display_rereg_amount = $this->formatCurrency($amount);
         $registration->display_rereg_payment_type_key = $paymentTypeKey;
-        $registration->display_rereg_payment_type_label = $registration->reregistration_payment_type
-            ? Str::headline(str_replace('_', ' ', $registration->reregistration_payment_type))
-            : 'Midtrans';
+        $registration->display_rereg_payment_type_label = match ($registration->reregistration_payment_type) {
+            'manual_transfer' => 'Transfer BRI / DANA',
+            'manual_cash' => 'Cash ke Sekolah',
+            default => $registration->reregistration_payment_type ? Str::headline(str_replace('_', ' ', $registration->reregistration_payment_type)) : 'Midtrans',
+        };
         $registration->display_rereg_payment_type_tone = 'blue';
         $registration->display_rereg_status_key = $statusKey;
-        $registration->display_rereg_status_label = $statusKey === 'lunas' ? 'Lunas' : 'Belum Lunas';
+        $registration->display_rereg_status_label = $statusKey === 'lunas'
+            ? 'Lunas'
+            : ($registration->reregistration_status === 'manual_pending' ? 'Menunggu Verifikasi' : 'Belum Lunas');
         $registration->display_rereg_status_tone = $statusKey === 'lunas' ? 'emerald' : 'amber';
         $registration->display_installments = $installments;
         $registration->display_installment_export = collect($installments)

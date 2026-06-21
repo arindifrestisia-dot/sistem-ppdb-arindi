@@ -25,6 +25,13 @@
                     <h1 class="text-3xl font-extrabold text-blue-950 md:text-5xl">Daftar Ulang</h1>
                     <p class="mt-2 text-lg text-slate-500">Ikuti instruksi dan selesaikan pembayaran daftar ulang ananda.</p>
 
+                    @if (session('status'))
+                        <div class="mt-6 rounded-3xl bg-amber-50 p-5 text-sm font-semibold text-amber-700 ring-1 ring-amber-100">{{ session('status') }}</div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="mt-6 rounded-3xl bg-rose-50 p-5 text-sm font-semibold text-rose-700 ring-1 ring-rose-100">{{ $errors->first() }}</div>
+                    @endif
+
                     <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-emerald-100 md:p-8">
                         <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                             <div>
@@ -41,7 +48,7 @@
                             <div class="rounded-3xl bg-emerald-50 px-5 py-4 text-left lg:min-w-64">
                                 <p class="text-sm font-medium text-emerald-700">Status Pembayaran</p>
                                 <p class="mt-1 text-xl font-extrabold {{ $isReRegistrationPaid ? 'text-emerald-700' : 'text-amber-600' }}" id="reregStatusLabel">
-                                    {{ $isReRegistrationPaid ? 'Lunas' : 'Belum Lunas' }}
+                                    {{ $isReRegistrationPaid ? 'Lunas' : ($registration?->reregistration_status === 'manual_pending' ? 'Menunggu Verifikasi' : 'Belum Lunas') }}
                                 </p>
                             </div>
                         </div>
@@ -53,7 +60,7 @@
                             </div>
                             <div class="rounded-3xl bg-slate-50 p-5">
                                 <p class="text-sm font-medium text-slate-500">Gateway</p>
-                                <p class="mt-2 text-lg font-bold text-slate-800">Midtrans Sandbox</p>
+                                <p class="mt-2 text-lg font-bold text-slate-800">Midtrans Sandbox (opsional)</p>
                             </div>
                             <div class="rounded-3xl bg-slate-50 p-5">
                                 <p class="text-sm font-medium text-slate-500">Order ID</p>
@@ -61,7 +68,11 @@
                             </div>
                         </div>
 
-                        @if (! $isMidtransConfigured)
+                        @if ($registration?->reregistration_status === 'manual_pending')
+                            <div class="mt-6 flex justify-center rounded-3xl bg-amber-50 p-5">
+                                <span class="inline-flex rounded-full bg-amber-100 px-6 py-3 text-sm font-extrabold text-amber-700">Menunggu Verifikasi Panitia</span>
+                            </div>
+                        @elseif (! $isMidtransConfigured)
                             <div class="mt-6 rounded-3xl bg-amber-50 p-5 text-sm font-semibold leading-7 text-amber-700">
                                 Konfigurasi Midtrans sandbox belum lengkap. Hubungi admin sekolah untuk mengaktifkan pembayaran daftar ulang.
                             </div>
@@ -72,9 +83,9 @@
                                     id="payReregistrationButton"
                                     class="inline-flex justify-center rounded-full bg-emerald-500 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-400"
                                 >
-                                    Bayar Daftar Ulang
+                                    Bayar via Midtrans
                                 </button>
-                                <p class="text-sm text-slate-500" id="reregistrationPaymentMessage">Jendela pembayaran Midtrans akan terbuka setelah tombol diklik.</p>
+                                <div><p class="text-sm text-slate-500" id="reregistrationPaymentMessage">Jendela pembayaran Midtrans akan terbuka setelah tombol diklik.</p><p class="mt-1 text-xs font-semibold text-emerald-600">Tanpa upload bukti dan otomatis lunas setelah transaksi berhasil.</p></div>
                             </div>
                         @else
                             <div class="mt-6 rounded-3xl bg-emerald-50 p-5 text-sm font-semibold leading-7 text-emerald-700">
@@ -82,6 +93,24 @@
                             </div>
                         @endif
                     </section>
+
+                    @unless ($isReRegistrationPaid)
+                        <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-emerald-100 md:p-8">
+                            @if ($registration->reregistration_status === 'manual_pending')
+                                <div class="flex min-h-32 items-center justify-center text-center">
+                                    <span class="inline-flex rounded-full bg-amber-100 px-7 py-4 text-base font-extrabold text-amber-700">Menunggu Verifikasi Panitia</span>
+                                </div>
+                            @else
+                            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Pembayaran Manual</p><h2 class="mt-2 text-2xl font-bold text-blue-950">Transfer/DANA atau cash ke sekolah</h2>
+                            <div class="mt-5 grid gap-4 md:grid-cols-2"><div class="rounded-3xl bg-emerald-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-emerald-900">Bank BRI</p><p class="mt-1 text-lg font-bold">5510 0106 1682 530</p><p>a.n Arindi Frestisia Ningtias</p></div><div class="rounded-3xl bg-sky-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-sky-900">DANA</p><p class="mt-1 text-lg font-bold">0853 6294 4666</p><p>a.n Arindi Frestisia Ningtias</p></div></div>
+                            <form method="POST" action="{{ route('daftar-ulang.manual') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">@csrf
+                                <div><label class="text-sm font-bold text-slate-700">Metode pembayaran</label><select name="payment_method" required class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"><option value="transfer">Transfer BRI atau DANA</option><option value="cash">Bayar Cash ke Sekolah</option></select></div>
+                                <div><label class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-emerald-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA; opsional untuk cash. Maksimal 5 MB.</p></div>
+                                <div class="md:col-span-2 flex flex-wrap items-center gap-4"><button class="rounded-full bg-emerald-600 px-7 py-3 font-bold text-white hover:bg-emerald-500">Kirim untuk Verifikasi</button>@if ($registration->reregistration_status === 'manual_pending')<span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Menunggu verifikasi panitia</span>@endif</div>
+                            </form>
+                            @endif
+                        </section>
+                    @endunless
                 </div>
             </main>
 

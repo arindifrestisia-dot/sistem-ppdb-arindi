@@ -450,11 +450,9 @@
                                 <button type="button" class="rounded-2xl border border-slate-300 px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-50" data-prev-step="2">Kembali</button>
                                 @if (! $hasSubmittedRegistration)
                                     <div class="flex flex-col gap-3 sm:flex-row">
-                                        <button type="submit" name="action" value="submit" id="submitRegistrationButton" class="rounded-full bg-gradient-to-r from-indigo-500 to-purple-700 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(79,70,229,0.25)] transition hover:opacity-95">
+                                        <input type="hidden" name="action" value="submit">
+                                        <button type="submit" id="submitRegistrationButton" class="rounded-full bg-gradient-to-r from-indigo-500 to-purple-700 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_35px_rgba(79,70,229,0.25)] transition hover:opacity-95">
                                             Ya, Saya Mendaftar
-                                        </button>
-                                        <button type="submit" name="action" value="save" id="saveDraftButton" class="rounded-full bg-gradient-to-r from-amber-100 to-orange-300 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-amber-900 shadow-[0_18px_35px_rgba(251,146,60,0.2)] transition hover:opacity-95">
-                                            Simpan Perubahan
                                         </button>
                                     </div>
                                 @elseif ($isRegistrationLocked)
@@ -516,7 +514,6 @@
         const activeStepInput = document.getElementById('activeStepInput');
         const registrationForm = document.getElementById('registrationForm');
         const submitRegistrationButton = document.getElementById('submitRegistrationButton');
-        const saveDraftButton = document.getElementById('saveDraftButton');
         const saveAndLockButton = document.getElementById('saveAndLockButton');
         const editDataButton = document.getElementById('editDataButton');
         const cancelEditButton = document.getElementById('cancelEditButton');
@@ -791,10 +788,6 @@
 
             if (submitRegistrationButton) {
                 submitRegistrationButton.disabled = true;
-            }
-
-            if (saveDraftButton) {
-                saveDraftButton.disabled = true;
             }
 
             if (saveAndLockButton) {

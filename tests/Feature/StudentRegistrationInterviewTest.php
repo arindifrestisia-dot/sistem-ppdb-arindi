@@ -28,7 +28,8 @@ class StudentRegistrationInterviewTest extends TestCase
         $response
             ->assertOk()
             ->assertViewHas('isInterviewAvailable', true)
-            ->assertSee('Daftar Slot Wawancara');
+            ->assertSee('Pilih Tanggal Wawancara')
+            ->assertDontSee('Sesi 1');
     }
 
     public function test_submitted_parent_can_save_interview_schedule_without_locking_registration(): void
@@ -44,7 +45,7 @@ class StudentRegistrationInterviewTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => '2026-10-01-session-1',
+                'interview_schedule_key' => '2026-10-01',
             ]);
 
         $response
@@ -53,7 +54,9 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration->refresh();
 
-        $this->assertSame('2026-10-01-session-1', $registration->interview_schedule_key);
+        $this->assertSame('2026-10-01', $registration->interview_schedule_key);
+        $this->assertSame('Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00', $registration->interview_time);
+        $this->assertSame('RUANGAN TU', $registration->interview_room);
         $this->assertNotNull($registration->interview_selected_at);
         $this->assertNull($registration->locked_at);
     }
@@ -78,7 +81,7 @@ class StudentRegistrationInterviewTest extends TestCase
             ->actingAs($user)
             ->from(route('wawancara'))
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => '2026-10-02-session-2',
+                'interview_schedule_key' => '2026-10-02',
             ]);
 
         $response
@@ -116,6 +119,8 @@ class StudentRegistrationInterviewTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Jadwal Terpilih')
+            ->assertSee('Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00')
+            ->assertSee('RUANGAN TU')
             ->assertDontSee('Simpan Jadwal Wawancara');
     }
 

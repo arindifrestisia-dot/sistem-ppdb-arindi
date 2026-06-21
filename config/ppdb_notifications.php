@@ -9,7 +9,7 @@ return [
     ],
 
     'amounts' => [
-        'form' => (int) env('PPDB_FORM_PAYMENT_AMOUNT', 100000),
+        'form' => (int) env('PPDB_FORM_PAYMENT_AMOUNT', 150000),
         're_registration' => (int) env('PPDB_REREGISTRATION_AMOUNT', 1500000),
     ],
 

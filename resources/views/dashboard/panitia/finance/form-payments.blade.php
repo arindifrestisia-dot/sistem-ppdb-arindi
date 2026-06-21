@@ -92,6 +92,7 @@
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Metode</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Status</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Status Pengisian</th>
+                            <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Bukti & Verifikasi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white">
@@ -125,10 +126,25 @@
                                         {{ $payment->display_filling_status_label }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex min-w-40 flex-col gap-2">
+                                        @if ($payment->proof_path)
+                                            <a href="{{ route('panitia.finances.form-payments.proof', $payment) }}" target="_blank" class="font-semibold text-sky-600 hover:underline">Lihat Bukti</a>
+                                        @else
+                                            <span class="text-xs text-slate-400">Tidak ada bukti</span>
+                                        @endif
+                                        @if (! $payment->isPaid() && str_starts_with((string) $payment->payment_type, 'manual_'))
+                                            <form method="POST" action="{{ route('panitia.finances.form-payments.verify', $payment) }}" onsubmit="return confirm('Verifikasi pembayaran formulir ini?');">
+                                                @csrf @method('PATCH')
+                                                <button class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Verifikasi Lunas</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran formulir.</td>
+                                <td colspan="9" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran formulir.</td>
                             </tr>
                         @endforelse
                     </tbody>

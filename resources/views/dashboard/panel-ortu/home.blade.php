@@ -21,7 +21,8 @@
         $isSelectionPublished = (bool) ($registration && $registration->selection_published_at);
         $isPassed = $isSelectionPublished && $registration?->selection_result === 'lulus';
         $isReRegistrationPaid = (bool) $registration?->reregistration_paid_at;
-        $formRoute = $isFormPaid ? route('data-diri') : route('ortu.formulir');
+        $formRoute = route('ortu.formulir');
+        $dataRoute = $isFormPaid ? route('data-diri') : $formRoute;
 
         $registrationStages = [
             [
@@ -29,7 +30,7 @@
                 'status' => $isFormPaid ? 'Lunas' : 'Belum',
                 'title' => 'Pembelian Formulir',
                 'link' => $formRoute,
-                'action' => $isFormPaid ? 'Lanjut isi data diri ->' : 'Beli formulir ->',
+                'action' => $isFormPaid ? 'Lihat status pembayaran ->' : 'Beli formulir ->',
                 'active' => true,
                 'tone' => $isFormPaid ? 'emerald' : 'amber',
             ],
@@ -37,7 +38,7 @@
                 'number' => 2,
                 'status' => $isDataSubmitted ? 'Selesai' : 'Belum',
                 'title' => 'Pengisian Data Diri',
-                'link' => $formRoute,
+                'link' => $dataRoute,
                 'action' => $isFormPaid ? 'Buka data diri ->' : 'Lunasi formulir dulu ->',
                 'active' => $isFormPaid,
                 'tone' => $isDataSubmitted ? 'emerald' : ($isFormPaid ? 'blue' : 'slate'),
@@ -123,7 +124,7 @@
                                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">Ringkasan</p>
                                 <h3 class="mt-2 text-xl font-bold text-white md:text-2xl">Panduan Pendaftaran Anda</h3>
                             </div>
-                            <a href="{{ $formRoute }}" class="inline-flex rounded-full bg-yellow-300 px-6 py-3 text-sm font-semibold text-blue-950 transition hover:bg-yellow-200">
+                            <a href="{{ $dataRoute }}" class="inline-flex rounded-full bg-yellow-300 px-6 py-3 text-sm font-semibold text-blue-950 transition hover:bg-yellow-200">
                                 {{ $isFormPaid ? 'Lanjut Data Diri' : 'Mulai dari Formulir' }}
                             </a>
                         </div>

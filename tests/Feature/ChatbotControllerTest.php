@@ -23,7 +23,7 @@ class ChatbotControllerTest extends TestCase
         ],
         [
             'question' => 'Berapa biaya pendaftarannya?',
-            'answer' => 'Pendaftaran dikenakan biaya Rp100.000 per formulir',
+            'answer' => 'Pendaftaran dikenakan biaya Rp150.000 per formulir.',
         ],
         [
             'question' => 'Berapa biaya masuk sekolah?',
@@ -129,7 +129,7 @@ class ChatbotControllerTest extends TestCase
     {
         $this->assertCount(14, self::SCHOOL_FAQ);
         $this->assertSame(
-            'Pendaftaran dikenakan biaya Rp100.000 per formulir',
+            'Pendaftaran dikenakan biaya Rp150.000 per formulir.',
             collect(self::SCHOOL_FAQ)->firstWhere('question', 'Berapa biaya pendaftarannya?')['answer']
         );
         $this->assertSame(

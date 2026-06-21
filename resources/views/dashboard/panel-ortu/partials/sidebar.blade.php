@@ -11,7 +11,7 @@
     class="fixed inset-y-0 left-0 z-50 w-[min(18rem,86vw)] -translate-x-full overflow-y-auto bg-blue-950 text-white shadow-2xl transition-transform duration-300 md:sticky md:top-0 md:z-20 md:min-h-screen md:w-72 md:shrink-0 md:translate-x-0 md:shadow-none"
 >
     @php($studentRegistration = Auth::user()->studentRegistration)
-    @php($formMenuRoute = Auth::user()->hasPaidPpdbForm() ? route('data-diri') : route('ortu.formulir'))
+    @php($formMenuRoute = route('ortu.formulir'))
     <div class="flex items-start justify-between gap-4 border-b border-blue-900 px-5 py-5">
         <div>
             <h1 class="text-xl font-extrabold text-yellow-300">PPDB RA FADHILAH</h1>

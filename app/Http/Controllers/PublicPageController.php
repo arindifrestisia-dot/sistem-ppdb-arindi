@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolContent;
+use App\Models\HomeBanner;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -11,6 +12,9 @@ class PublicPageController extends Controller
     public function home(): View
     {
         return view('public.home', [
+            'homeBanners' => Schema::hasTable('home_banners')
+                ? HomeBanner::query()->get()->keyBy('slot')
+                : collect(),
             'informationItems' => $this->getContents(SchoolContent::TYPE_INFORMATION, 6),
             'achievementItems' => $this->getContents(SchoolContent::TYPE_ACHIEVEMENT, 3),
             'galleryItems' => $this->getContents(SchoolContent::TYPE_GALLERY, 8),

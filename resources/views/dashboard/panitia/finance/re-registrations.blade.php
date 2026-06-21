@@ -87,6 +87,7 @@
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Jenis Pembayaran</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Detail Cicilan</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Status Pelunasan</th>
+                            <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Bukti & Verifikasi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white">
@@ -135,10 +136,25 @@
                                         {{ $record->display_rereg_status_label }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex min-w-40 flex-col gap-2">
+                                        @if ($record->reregistration_proof_path)
+                                            <a href="{{ route('panitia.finances.re-registrations.proof', $record) }}" target="_blank" class="font-semibold text-sky-600 hover:underline">Lihat Bukti</a>
+                                        @else
+                                            <span class="text-xs text-slate-400">Tidak ada bukti</span>
+                                        @endif
+                                        @if (! $record->reregistration_paid_at && $record->reregistration_payment_type !== 'midtrans')
+                                            <form method="POST" action="{{ route('panitia.finances.re-registrations.verify', $record) }}" onsubmit="return confirm('Verifikasi pembayaran daftar ulang ini?');">
+                                                @csrf @method('PATCH')
+                                                <button class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Verifikasi Lunas</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran daftar ulang.</td>
+                                <td colspan="8" class="px-6 py-10 text-center text-slate-500">Belum ada data pembayaran daftar ulang.</td>
                             </tr>
                         @endforelse
                     </tbody>

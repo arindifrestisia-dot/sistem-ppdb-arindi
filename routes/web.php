@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\HeadmasterDashboardController;
 use App\Http\Controllers\PanitiaDashboardController;
+use App\Http\Controllers\PanitiaBannerController;
 use App\Http\Controllers\PanitiaFinanceController;
 use App\Http\Controllers\PanitiaInterviewScheduleController;
 use App\Http\Controllers\PanitiaParentFormFieldController;
@@ -81,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/panel-ortu/formulir', [PpdbFormPaymentController::class, 'show'])->name('ortu.formulir');
     Route::post('/panel-ortu/formulir/midtrans/token', [PpdbFormPaymentController::class, 'createToken'])->name('ortu.formulir.midtrans.token');
     Route::post('/panel-ortu/formulir/midtrans/sync', [PpdbFormPaymentController::class, 'sync'])->name('ortu.formulir.midtrans.sync');
+    Route::post('/panel-ortu/formulir/pembayaran-manual', [PpdbFormPaymentController::class, 'submitManual'])->name('ortu.formulir.manual');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -95,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daftar-ulang', [StudentRegistrationController::class, 'reRegistration'])->name('daftar-ulang');
     Route::post('/daftar-ulang/midtrans/token', [StudentRegistrationController::class, 'createReRegistrationPayment'])->name('daftar-ulang.midtrans.token');
     Route::post('/daftar-ulang/midtrans/sync', [StudentRegistrationController::class, 'syncReRegistrationPayment'])->name('daftar-ulang.midtrans.sync');
+    Route::post('/daftar-ulang/pembayaran-manual', [StudentRegistrationController::class, 'submitManualReRegistration'])->name('daftar-ulang.manual');
     Route::get('/data-diri/download/formulir', [StudentRegistrationController::class, 'downloadFormPdf'])->name('data-diri.download.formulir');
     Route::get('/data-diri/download/kartu-bukti', [StudentRegistrationController::class, 'downloadCardPdf'])->name('data-diri.download.kartu');
 });
@@ -102,6 +105,9 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->name('panitia.')->group(function () {
     Route::get('/dashboard', [PanitiaDashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/jumlah-siswa-tahunan', [PanitiaDashboardController::class, 'updateAnnualStudentCounts'])->name('dashboard.annual-student-counts.update');
+    Route::get('/banner', [PanitiaBannerController::class, 'index'])->name('banners.index');
+    Route::put('/banner/{slot}', [PanitiaBannerController::class, 'update'])->whereIn('slot', [1, 2, 3])->name('banners.update');
+    Route::delete('/banner/{slot}', [PanitiaBannerController::class, 'destroy'])->whereIn('slot', [1, 2, 3])->name('banners.destroy');
     Route::get('/users', [PanitiaUserController::class, 'index'])->name('users.index');
     Route::get('/users/tambah', [PanitiaUserController::class, 'create'])->name('users.create');
     Route::post('/users', [PanitiaUserController::class, 'store'])->name('users.store');
@@ -122,8 +128,12 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
         ->names('parent-form-fields');
     Route::get('/keuangan/bayar-formulir', [PanitiaFinanceController::class, 'formPayments'])->name('finances.form-payments.index');
     Route::get('/keuangan/bayar-formulir/export', [PanitiaFinanceController::class, 'exportFormPayments'])->name('finances.form-payments.export');
+    Route::patch('/keuangan/bayar-formulir/{payment}/verifikasi', [PanitiaFinanceController::class, 'verifyFormPayment'])->name('finances.form-payments.verify');
+    Route::get('/keuangan/bayar-formulir/{payment}/bukti', [PanitiaFinanceController::class, 'formPaymentProof'])->name('finances.form-payments.proof');
     Route::get('/keuangan/daftar-ulang', [PanitiaFinanceController::class, 'reRegistrations'])->name('finances.re-registrations.index');
     Route::get('/keuangan/daftar-ulang/export', [PanitiaFinanceController::class, 'exportReRegistrations'])->name('finances.re-registrations.export');
+    Route::patch('/keuangan/daftar-ulang/{registration}/verifikasi', [PanitiaFinanceController::class, 'verifyReRegistration'])->name('finances.re-registrations.verify');
+    Route::get('/keuangan/daftar-ulang/{registration}/bukti', [PanitiaFinanceController::class, 'reRegistrationProof'])->name('finances.re-registrations.proof');
 
     Route::get('/konten', [PanitiaSchoolContentController::class, 'index'])->name('contents.index');
     Route::get('/konten/tambah', [PanitiaSchoolContentController::class, 'create'])->name('contents.create');
