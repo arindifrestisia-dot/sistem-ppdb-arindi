@@ -175,6 +175,19 @@ class PanitiaRegistrationController extends Controller
     public function update(Request $request, StudentRegistration $registration): RedirectResponse
     {
         $registration->loadMissing('user');
+
+        if ($registration->verified_at !== null) {
+            return redirect()
+                ->route('panitia.registrations.show', array_filter([
+                    'registration' => $registration,
+                    'segment' => $request->input('segment'),
+                    'q' => $request->input('q'),
+                    'class' => $request->input('class'),
+                    'ta' => $request->input('ta'),
+                ], fn ($value) => $value !== null && $value !== ''))
+                ->with('status', 'Verifikasi sudah selesai dan tidak dapat diubah kembali.');
+        }
+
         $previousVerificationStatus = $registration->verification_status;
         $previousSelectionResult = $registration->selection_result;
         $previousSelectionPublishedAt = $registration->selection_published_at;
@@ -227,7 +240,7 @@ class PanitiaRegistrationController extends Controller
                 'class' => $request->input('class'),
                 'ta' => $request->input('ta'),
             ], fn ($value) => $value !== null && $value !== ''))
-            ->with('status', 'Data pendaftaran berhasil diperbarui.');
+            ->with('status', 'Verifikasi berhasil diselesaikan.');
     }
 
     private function segmentOptions(): array

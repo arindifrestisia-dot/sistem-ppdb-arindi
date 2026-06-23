@@ -36,6 +36,7 @@ class PpdbFormPaymentController extends Controller
             'isPaid' => (bool) $payment?->isPaid(),
             'formAmount' => (int) config('ppdb_notifications.amounts.form', 150000),
             'formAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.form', 150000)),
+            'formPaymentMethodLabel' => $this->getPaymentMethodLabel($payment),
             'midtransClientKey' => (string) config('services.midtrans.client_key'),
             'isMidtransConfigured' => $this->midtrans->isConfigured(),
         ]);
@@ -253,5 +254,14 @@ class PpdbFormPaymentController extends Controller
     private function formatCurrency(int $amount): string
     {
         return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    private function getPaymentMethodLabel(?PpdbFormPayment $payment): string
+    {
+        return match ($payment?->payment_type) {
+            'manual_transfer' => 'Transfer BRI / DANA',
+            'manual_cash' => 'Cash ke Sekolah',
+            default => 'Midtrans Sandbox',
+        };
     }
 }

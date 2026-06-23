@@ -38,7 +38,7 @@
                                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Pendaftaran Ulang</p>
                                 <h2 class="mt-2 text-2xl font-bold text-blue-950">Selesaikan pembayaran daftar ulang</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-500">
-                                    Untuk mengunci kursi peserta didik, lakukan pembayaran daftar ulang melalui Midtrans sandbox sebesar <span class="font-bold text-slate-800">{{ $reRegistrationAmountLabel }}</span>.
+                                    Untuk mengunci kursi peserta didik, lakukan pembayaran daftar ulang melalui Midtrans sandbox, Transfer Rekening atau Cash ke sekolah sebesar <span class="font-bold text-slate-800">{{ $reRegistrationAmountLabel }}</span>.
                                     @if ($reRegistrationDeadline)
                                         Batas pembayaran sampai {{ $reRegistrationDeadline->translatedFormat('d F Y') }}.
                                     @endif
@@ -59,8 +59,8 @@
                                 <p class="mt-2 text-lg font-bold text-slate-800">{{ $reRegistrationAmountLabel }}</p>
                             </div>
                             <div class="rounded-3xl bg-slate-50 p-5">
-                                <p class="text-sm font-medium text-slate-500">Gateway</p>
-                                <p class="mt-2 text-lg font-bold text-slate-800">Midtrans Sandbox (opsional)</p>
+                                <p class="text-sm font-medium text-slate-500">Metode Pembayaran</p>
+                                <p class="mt-2 text-lg font-bold text-slate-800">{{ $reRegistrationPaymentMethodLabel }}</p>
                             </div>
                             <div class="rounded-3xl bg-slate-50 p-5">
                                 <p class="text-sm font-medium text-slate-500">Order ID</p>
@@ -104,8 +104,8 @@
                             <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Pembayaran Manual</p><h2 class="mt-2 text-2xl font-bold text-blue-950">Transfer/DANA atau cash ke sekolah</h2>
                             <div class="mt-5 grid gap-4 md:grid-cols-2"><div class="rounded-3xl bg-emerald-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-emerald-900">Bank BRI</p><p class="mt-1 text-lg font-bold">5510 0106 1682 530</p><p>a.n Arindi Frestisia Ningtias</p></div><div class="rounded-3xl bg-sky-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-sky-900">DANA</p><p class="mt-1 text-lg font-bold">0853 6294 4666</p><p>a.n Arindi Frestisia Ningtias</p></div></div>
                             <form method="POST" action="{{ route('daftar-ulang.manual') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">@csrf
-                                <div><label class="text-sm font-bold text-slate-700">Metode pembayaran</label><select name="payment_method" required class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"><option value="transfer">Transfer BRI atau DANA</option><option value="cash">Bayar Cash ke Sekolah</option></select></div>
-                                <div><label class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-emerald-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA; opsional untuk cash. Maksimal 5 MB.</p></div>
+                                <div><label for="reregistrationPaymentMethod" class="text-sm font-bold text-slate-700">Metode pembayaran</label><select id="reregistrationPaymentMethod" name="payment_method" required class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"><option value="transfer">Transfer BRI atau DANA</option><option value="cash">Bayar Cash ke Sekolah</option></select></div>
+                                <div id="reregistrationPaymentProofBox"><label class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input id="reregistrationPaymentProof" name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-emerald-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA. Maksimal 5 MB.</p></div>
                                 <div class="md:col-span-2 flex flex-wrap items-center gap-4"><button class="rounded-full bg-emerald-600 px-7 py-3 font-bold text-white hover:bg-emerald-500">Kirim untuk Verifikasi</button>@if ($registration->reregistration_status === 'manual_pending')<span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Menunggu verifikasi panitia</span>@endif</div>
                             </form>
                             @endif
@@ -205,5 +205,26 @@
             });
         </script>
     @endif
+    <script>
+        const reregistrationPaymentMethod = document.getElementById('reregistrationPaymentMethod');
+        const reregistrationPaymentProofBox = document.getElementById('reregistrationPaymentProofBox');
+        const reregistrationPaymentProof = document.getElementById('reregistrationPaymentProof');
+
+        const toggleReregistrationProof = () => {
+            const shouldShowProof = reregistrationPaymentMethod?.value !== 'cash';
+
+            reregistrationPaymentProofBox?.classList.toggle('hidden', !shouldShowProof);
+
+            if (reregistrationPaymentProof) {
+                reregistrationPaymentProof.disabled = !shouldShowProof;
+                if (! shouldShowProof) {
+                    reregistrationPaymentProof.value = '';
+                }
+            }
+        };
+
+        reregistrationPaymentMethod?.addEventListener('change', toggleReregistrationProof);
+        toggleReregistrationProof();
+    </script>
 </body>
 </html>

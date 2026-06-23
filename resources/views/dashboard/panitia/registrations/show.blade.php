@@ -15,6 +15,7 @@
         $displayValue = fn ($value) => filled($value) ? $value : '-';
         $formatDate = fn ($date) => $date ? $date->translatedFormat('d F Y') : '-';
         $formatDateTime = fn ($date) => $date ? $date->format('d-m-Y H:i') : '-';
+        $verificationLocked = $registration->verified_at !== null;
 
         $studentRows = [
             'Kode Pendaftaran' => $registration->registration_number ?? 'Belum submit final',
@@ -167,10 +168,16 @@
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endforeach
 
+                    @if ($verificationLocked)
+                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                            Proses verifikasi telah selesai. Status verifikasi sudah dikunci dan tidak dapat diedit kembali oleh panitia.
+                        </div>
+                    @endif
+
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-700">Status Verifikasi</label>
-                            <select name="verification_status" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+                            <select name="verification_status" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:bg-slate-100 disabled:text-slate-500" @disabled($verificationLocked)>
                                 @foreach ([
                                     'belum_diperiksa' => 'Belum diperiksa',
                                     'terverifikasi' => 'Diterima',
@@ -182,7 +189,7 @@
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-700">Hasil Seleksi</label>
-                            <select name="selection_result" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+                            <select name="selection_result" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:bg-slate-100 disabled:text-slate-500" @disabled($verificationLocked)>
                                 <option value="">Belum ditentukan</option>
                                 <option value="lulus" @selected(old('selection_result', $registration->selection_result) === 'lulus')>Lulus</option>
                                 <option value="tidak_lulus" @selected(old('selection_result', $registration->selection_result) === 'tidak_lulus')>Tidak Lulus</option>
@@ -192,11 +199,11 @@
 
                     <div>
                         <label class="mb-2 block text-sm font-semibold text-slate-700">Catatan Verifikasi</label>
-                        <textarea name="verification_notes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">{{ old('verification_notes', $registration->verification_notes) }}</textarea>
+                        <textarea name="verification_notes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:bg-slate-100 disabled:text-slate-500" @disabled($verificationLocked)>{{ old('verification_notes', $registration->verification_notes) }}</textarea>
                     </div>
 
                     <label class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                        <input type="checkbox" name="publish_selection" value="1" class="mt-1" @checked(old('publish_selection', $registration->selection_published_at !== null))>
+                        <input type="checkbox" name="publish_selection" value="1" class="mt-1 disabled:opacity-60" @checked(old('publish_selection', $registration->selection_published_at !== null)) @disabled($verificationLocked)>
                         <span>Tampilkan hasil seleksi ke dashboard orang tua</span>
                     </label>
 
@@ -205,9 +212,15 @@
                         <p class="mt-1"><span class="font-semibold text-slate-800">Waktu verifikasi:</span> {{ $formatDateTime($registration->verified_at) }}</p>
                     </div>
 
-                    <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-700">
-                        Simpan Verifikasi
-                    </button>
+                    @if ($verificationLocked)
+                        <button type="button" disabled class="w-full rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white opacity-90">
+                            Verifikasi Selesai
+                        </button>
+                    @else
+                        <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-700">
+                            Selesaikan Verifikasi
+                        </button>
+                    @endif
                 </form>
             </section>
         @endif

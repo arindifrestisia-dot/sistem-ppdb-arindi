@@ -4,8 +4,11 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Jobs\SendWablasMessage;
+use App\Models\ChatbotKnowledgeChunk;
 use App\Models\PpdbNotificationLog;
 use App\Models\StudentRegistration;
+use App\Services\ChatbotEmbeddingService;
+use App\Services\ChatbotKnowledgeService;
 use App\Services\PpdbNotificationService;
 
 Artisan::command('inspire', function () {
@@ -100,5 +103,39 @@ Artisan::command('ppdb:test-wablas {phone} {message=Tes notifikasi PPDB RA Fadhi
 
     return self::SUCCESS;
 })->purpose('Send a test WhatsApp message through Wablas');
+
+Artisan::command('chatbot:index-knowledge {--fresh : Hapus index lama sebelum membuat ulang}', function (
+    ChatbotKnowledgeService $knowledgeService,
+    ChatbotEmbeddingService $embeddingService,
+) {
+    $chunks = $knowledgeService->knowledgeChunks();
+
+    if ($chunks === []) {
+        $this->warn('Tidak ada knowledge chatbot yang dapat di-index.');
+
+        return self::SUCCESS;
+    }
+
+    $this->info('Meng-index '.count($chunks).' chunk knowledge chatbot menggunakan model '.$embeddingService->embeddingModel().'.');
+
+    try {
+        $stats = $embeddingService->indexChunks($chunks, (bool) $this->option('fresh'));
+    } catch (\Throwable $exception) {
+        $this->error($exception->getMessage());
+        $this->line('Pastikan Ollama berjalan dan model embedding sudah tersedia. Contoh: ollama pull embeddinggemma');
+
+        return self::FAILURE;
+    }
+
+    $this->info(sprintf(
+        'Index selesai. Dibuat: %d, diperbarui: %d, dilewati: %d, total tersimpan: %d.',
+        $stats['created'],
+        $stats['updated'],
+        $stats['skipped'],
+        ChatbotKnowledgeChunk::query()->count()
+    ));
+
+    return self::SUCCESS;
+})->purpose('Build chatbot RAG embedding index from school knowledge');
 
 Schedule::command('ppdb:send-reminders')->dailyAt('08:00');

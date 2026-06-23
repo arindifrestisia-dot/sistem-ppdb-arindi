@@ -5,9 +5,15 @@ namespace App\Services;
 use App\Models\SchoolContent;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ChatbotKnowledgeService
 {
+    public function __construct(
+        private readonly ChatbotEmbeddingService $embeddingService,
+    ) {
+    }
+
     private const MANUAL_KNOWLEDGE = [
         [
             'question' => 'Halo',
@@ -420,11 +426,144 @@ class ChatbotKnowledgeService
         return null;
     }
 
-    public function buildPromptContext(): string
+    public function findDataBackedAnswer(string $message): ?string
     {
+        $normalizedMessage = $this->normalize($message);
+
+        if (
+            Str::contains($normalizedMessage, ['berapa guru', 'jumlah guru', 'berapa tenaga pendidik', 'jumlah tenaga pendidik'])
+            && Schema::hasTable('school_contents')
+        ) {
+            $teachers = SchoolContent::query()
+                ->where('type', SchoolContent::TYPE_TEACHER)
+                ->published()
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->pluck('title')
+                ->filter()
+                ->values();
+
+            if ($teachers->isNotEmpty()) {
+                return 'Saat ini terdapat '.$teachers->count().' tenaga pendidik di RA Fadhilah, antara lain '.$teachers->take(5)->implode(', ').'.';
+            }
+        }
+
+        return null;
+    }
+
+    public function isSchoolScope(string $message): bool
+    {
+        $normalizedMessage = $this->normalize($message);
+
+        return Str::contains($normalizedMessage, [
+            'ra fadhilah',
+            'ra',
+            'tk',
+            'paud',
+            'sekolah',
+            'ppdb',
+            'daftar',
+            'pendaftaran',
+            'mendaftar',
+            'daftarkan',
+            'formulir',
+            'siswa',
+            'calon siswa',
+            'anak',
+            'orang tua',
+            'masuk',
+            'kesini',
+            'ke sini',
+            'bayar',
+            'pembayaran',
+            'biaya',
+            'cash',
+            'tunai',
+            'transfer',
+            'dana',
+            'daftar ulang',
+            'lulus',
+            'kelulusan',
+            'seleksi',
+            'wawancara',
+            'berkas',
+            'dokumen',
+            'akta',
+            'kartu keluarga',
+            'ktp',
+            'pas foto',
+            'umur',
+            'usia',
+            'alamat',
+            'lokasi',
+            'fasilitas',
+            'program',
+            'kegiatan',
+            'belajar',
+            'kurikulum',
+            'guru',
+            'kelas',
+            'jadwal',
+        ]);
+    }
+
+    public function buildScopedFallbackAnswer(string $message): ?string
+    {
+        if ($answer = $this->findDataBackedAnswer($message)) {
+            return $answer;
+        }
+
+        if ($answer = $this->buildRetrievedFallbackAnswer($message)) {
+            return $answer;
+        }
+
+        if (! $this->isSchoolScope($message)) {
+            return null;
+        }
+
+        return 'Maaf, informasi yang Anda cari belum tersedia. Silakan hubungi pihak sekolah untuk informasi lebih lanjut.';
+    }
+
+    private function buildRetrievedFallbackAnswer(string $message): ?string
+    {
+        try {
+            $results = $this->embeddingService->search($message, 1, 0.25);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        if ($results === []) {
+            return null;
+        }
+
+        $content = (string) $results[0]['chunk']->content;
+
+        if (preg_match('/Jawaban:\s*(.*?)(?:\s*Kata kunci:|$)/s', $content, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return 'Berdasarkan data sekolah: '.Str::of($content)
+            ->replaceMatches('/^(Kategori|Judul|Isi):\s*/m', '')
+            ->squish()
+            ->limit(420, '.')
+            ->toString();
+    }
+
+    public function buildPromptContext(?string $message = null): string
+    {
+        if ($message !== null && trim($message) !== '') {
+            $embeddingKnowledge = $this->formatEmbeddingKnowledge($message);
+
+            if ($embeddingKnowledge !== '') {
+                return "Konteks sekolah hasil pencarian embedding:\n".$embeddingKnowledge;
+            }
+        }
+
         $sections = [];
 
-        $manualKnowledge = $this->formatManualKnowledge();
+        $manualKnowledge = $this->formatManualKnowledge($message);
         if ($manualKnowledge !== '') {
             $sections[] = "Pengetahuan sekolah yang sudah ditetapkan:\n".$manualKnowledge;
         }
@@ -442,9 +581,218 @@ class ChatbotKnowledgeService
         return self::MANUAL_KNOWLEDGE;
     }
 
-    private function formatManualKnowledge(): string
+    public function knowledgeChunks(): array
+    {
+        return array_merge(
+            $this->manualKnowledgeChunks(),
+            $this->operationalKnowledgeChunks(),
+            $this->databaseKnowledgeChunks()
+        );
+    }
+
+    private function formatEmbeddingKnowledge(string $message): string
+    {
+        try {
+            $results = $this->embeddingService->search(
+                $message,
+                (int) config('services.ollama.rag_limit', 5)
+            );
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return '';
+        }
+
+        if ($results === []) {
+            return '';
+        }
+
+        return collect($results)
+            ->map(function (array $result) {
+                $chunk = $result['chunk'];
+                $score = number_format((float) $result['score'], 3);
+
+                return sprintf(
+                    '[%s | relevansi %s] %s',
+                    $chunk->title ?: $chunk->source_type,
+                    $score,
+                    $chunk->content
+                );
+            })
+            ->implode("\n\n");
+    }
+
+    private function manualKnowledgeChunks(): array
     {
         return collect(self::MANUAL_KNOWLEDGE)
+            ->values()
+            ->map(function (array $item, int $index) {
+                return [
+                    'source_key' => 'manual:'.$index,
+                    'source_type' => 'manual',
+                    'source_id' => null,
+                    'title' => $item['question'],
+                    'content' => trim("Pertanyaan: {$item['question']}\nJawaban: {$item['answer']}\nKata kunci: ".implode(', ', $item['keywords'])),
+                ];
+            })
+            ->all();
+    }
+
+    private function operationalKnowledgeChunks(): array
+    {
+        $formAmount = $this->formatCurrency((int) config('ppdb_notifications.amounts.form', 150000));
+        $reRegistrationAmount = $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1500000));
+
+        return [
+            [
+                'source_key' => 'operational:form-payment',
+                'source_type' => 'operational',
+                'source_id' => null,
+                'title' => 'Pembayaran formulir PPDB',
+                'content' => "Biaya formulir PPDB RA Fadhilah adalah {$formAmount}. Orang tua dapat membayar melalui Midtrans, transfer BRI/DANA, atau cash ke sekolah. Untuk transfer BRI/DANA, bukti pembayaran perlu diunggah. Untuk cash ke sekolah, upload bukti tidak diperlukan.",
+            ],
+            [
+                'source_key' => 'operational:re-registration-payment',
+                'source_type' => 'operational',
+                'source_id' => null,
+                'title' => 'Pembayaran daftar ulang',
+                'content' => "Biaya daftar ulang RA Fadhilah adalah {$reRegistrationAmount}. Pembayaran daftar ulang tersedia setelah calon siswa dinyatakan lulus. Orang tua dapat membayar melalui Midtrans, transfer BRI/DANA, atau cash ke sekolah. Untuk transfer BRI/DANA, bukti pembayaran perlu diunggah. Untuk cash ke sekolah, upload bukti tidak diperlukan.",
+            ],
+            [
+                'source_key' => 'operational:registration-flow',
+                'source_type' => 'operational',
+                'source_id' => null,
+                'title' => 'Alur pendaftaran PPDB',
+                'content' => 'Alur pendaftaran PPDB RA Fadhilah: orang tua membeli formulir, mengisi data diri calon siswa dan orang tua, mengunggah berkas persyaratan, memilih jadwal wawancara, menunggu verifikasi dan hasil seleksi dari panitia, lalu melakukan daftar ulang jika dinyatakan lulus.',
+            ],
+        ];
+    }
+
+    private function databaseKnowledgeChunks(): array
+    {
+        if (! Schema::hasTable('school_contents')) {
+            return [];
+        }
+
+        return SchoolContent::query()
+            ->whereIn('type', [
+                SchoolContent::TYPE_INFORMATION,
+                SchoolContent::TYPE_FACILITY,
+                SchoolContent::TYPE_ACTIVITY,
+                SchoolContent::TYPE_ACHIEVEMENT,
+                SchoolContent::TYPE_TEACHER,
+            ])
+            ->published()
+            ->orderBy('type')
+            ->orderBy('sort_order')
+            ->orderByDesc('published_at')
+            ->get(['id', 'type', 'title', 'excerpt', 'content'])
+            ->flatMap(function (SchoolContent $item) {
+                $body = Str::of(strip_tags((string) ($item->excerpt ?: $item->content ?: '')))
+                    ->squish()
+                    ->toString();
+
+                $text = trim("Kategori: {$item->type}\nJudul: {$item->title}\nIsi: {$body}");
+
+                return collect($this->splitIntoChunks($text))
+                    ->values()
+                    ->map(function (string $chunk, int $index) use ($item) {
+                        return [
+                            'source_key' => 'school_content:'.$item->id.':'.$index,
+                            'source_type' => 'school_content',
+                            'source_id' => $item->id,
+                            'title' => $item->title,
+                            'content' => $chunk,
+                        ];
+                    });
+            })
+            ->values()
+            ->all();
+    }
+
+    private function splitIntoChunks(string $text, int $maxLength = 900): array
+    {
+        $text = Str::of($text)->squish()->toString();
+
+        if ($text === '') {
+            return [];
+        }
+
+        if (strlen($text) <= $maxLength) {
+            return [$text];
+        }
+
+        $chunks = [];
+        $current = '';
+
+        foreach (preg_split('/(?<=[.!?])\s+/', $text) ?: [$text] as $sentence) {
+            if (strlen($current.' '.$sentence) > $maxLength && $current !== '') {
+                $chunks[] = trim($current);
+                $current = '';
+            }
+
+            $current = trim($current.' '.$sentence);
+        }
+
+        if ($current !== '') {
+            $chunks[] = $current;
+        }
+
+        return $chunks;
+    }
+
+    private function formatCurrency(int $amount): string
+    {
+        return 'Rp '.number_format($amount, 0, ',', '.');
+    }
+
+    private function formatManualKnowledge(?string $message = null): string
+    {
+        $items = collect(self::MANUAL_KNOWLEDGE);
+
+        if ($message !== null && trim($message) !== '') {
+            $normalizedMessage = $this->normalize($message);
+            $messageWords = collect(explode(' ', $normalizedMessage))
+                ->filter(fn (string $word) => strlen($word) >= 4)
+                ->values();
+            $messageTerms = $messageWords
+                ->concat($messageWords->flatMap(function (string $word) {
+                    return match (true) {
+                        Str::contains($word, 'daftar') => ['daftar', 'mendaftar', 'pendaftaran'],
+                        Str::contains($word, 'bayar') => ['bayar', 'pembayaran', 'biaya'],
+                        default => [],
+                    };
+                }))
+                ->unique()
+                ->values();
+
+            $items = $items
+                ->map(function (array $item) use ($normalizedMessage, $messageTerms) {
+                    $keywordMatches = collect($item['keywords'])
+                        ->filter(fn (string $keyword) => Str::contains($normalizedMessage, $this->normalize($keyword)))
+                        ->count();
+
+                    $haystack = $this->normalize($item['question'].' '.implode(' ', $item['keywords']));
+                    $wordMatches = $messageTerms
+                        ->filter(fn (string $word) => Str::contains($haystack, $word))
+                        ->count();
+
+                    return [
+                        'item' => $item,
+                        'score' => ($keywordMatches * 3) + $wordMatches,
+                    ];
+                })
+                ->filter(fn (array $scoredItem) => $scoredItem['score'] > 0)
+                ->sortByDesc('score')
+                ->take(6)
+                ->pluck('item');
+        }
+
+        if ($items->isEmpty()) {
+            return '';
+        }
+
+        return $items
             ->map(fn (array $item) => 'Q: '.$item['question']."\nA: ".$item['answer'])
             ->implode("\n\n");
     }
@@ -495,6 +843,7 @@ class ChatbotKnowledgeService
     {
         $value = Str::lower(trim($value));
         $value = preg_replace('/[^\pL\pN\s]/u', '', $value) ?? $value;
+        $value = preg_replace('/\bdi\s+(tutup|buka)\b/u', 'di$1', $value) ?? $value;
 
         return Str::of($value)->squish()->toString();
     }

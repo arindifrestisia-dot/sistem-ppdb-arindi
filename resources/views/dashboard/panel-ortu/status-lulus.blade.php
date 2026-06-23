@@ -44,7 +44,7 @@
                             </div>
                             <h2 class="mt-6 text-2xl font-bold text-blue-950 md:text-3xl">Panitia PPDB sedang melakukan proses seleksi</h2>
                             <p class="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-500 md:text-lg">
-                                Hasil kelulusan belum dipublikasikan. Silakan pantau halaman ini secara berkala untuk melihat pengumuman resmi dari panitia PPDB.
+                                Hasil kelulusan belum dipublikasikan. Silakan pantau halaman ini secara berkala untuk melihat pengumuman resmi dari panitia.
                             </p>
                         </section>
                     @else
@@ -80,7 +80,7 @@
                                 <div>
                                     <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Detail Hasil</p>
                                     <h2 class="mt-2 text-2xl font-bold text-blue-950">{{ $registration?->full_name ?: Auth::user()->name }}</h2>
-                                    <p class="mt-2 text-slate-500">Hasil seleksi resmi telah dipublikasikan oleh panitia PPDB.</p>
+                                    <p class="mt-2 text-slate-500">Hasil seleksi resmi telah dipublikasikan.</p>
                                 </div>
                                 <span class="inline-flex rounded-2xl px-4 py-2 text-sm font-bold {{ $selectionResultTone === 'emerald' ? 'bg-emerald-100 text-emerald-700' : ($selectionResultTone === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700') }}">
                                     {{ $selectionResultLabel }}
@@ -106,13 +106,13 @@
                                 <div class="mt-6 rounded-3xl bg-emerald-50 p-5">
                                     <p class="font-semibold text-emerald-800">Selamat, ananda dinyatakan lulus seleksi.</p>
                                     <p class="mt-2 text-sm leading-7 text-emerald-700">
-                                        Silakan lihat instruksi daftar ulang untuk melanjutkan proses penerimaan peserta didik.
+                                        Silakan lakukan daftar ulang untuk melanjutkan proses penerimaan peserta didik.
                                     </p>
                                     <a
                                         href="{{ route('daftar-ulang') }}"
                                         class="mt-4 inline-flex rounded-full bg-yellow-300 px-6 py-3 text-sm font-bold text-blue-950 transition hover:bg-yellow-200"
                                     >
-                                        Instruksi Daftar Ulang
+                                        Daftar Ulang
                                     </a>
                                 </div>
                             @endif

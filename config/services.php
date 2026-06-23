@@ -37,11 +37,16 @@ return [
 
     'ollama' => [
         'base_url' => env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
-        'model' => env('OLLAMA_MODEL', 'gemma:2b'),
+        'model' => env('OLLAMA_MODEL', 'mistral'),
         'system_prompt' => env('OLLAMA_SYSTEM_PROMPT', 'Kamu adalah asisten virtual RA Fadhilah. Jawab dengan bahasa Indonesia yang ramah, singkat, dan membantu. Jika informasi sekolah tidak tersedia, katakan dengan jujur dan sarankan menghubungi pihak sekolah.'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
         'keep_alive' => env('OLLAMA_KEEP_ALIVE', '10m'),
-        'num_predict' => (int) env('OLLAMA_NUM_PREDICT', 256),
+        'num_predict' => (int) env('OLLAMA_NUM_PREDICT', 60),
+        'num_ctx' => (int) env('OLLAMA_NUM_CTX', 1024),
+        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'embeddinggemma'),
+        'embedding_timeout' => (int) env('OLLAMA_EMBEDDING_TIMEOUT', 60),
+        'rag_limit' => (int) env('OLLAMA_RAG_LIMIT', 5),
+        'rag_min_score' => (float) env('OLLAMA_RAG_MIN_SCORE', 0.15),
     ],
 
     'wablas' => [

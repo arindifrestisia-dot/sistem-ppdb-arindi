@@ -240,6 +240,7 @@
                     <textarea
                         id="school-chat-input"
                         x-model="input"
+                        @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }"
                         rows="1"
                         placeholder="Tulis pertanyaan Anda..."
                         :disabled="isLoading"

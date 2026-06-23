@@ -48,13 +48,13 @@
                                 <p class="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Tahap 1</p>
                                 <h2 class="mt-2 text-2xl font-bold text-blue-950">Formulir Pendaftaran PPDB Reguler</h2>
                                 <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                                    Pembelian formulir dilakukan satu kali untuk satu akun orang tua. Setelah status pembayaran lunas, menu data diri dapat digunakan untuk mengisi data calon peserta didik dan mengunggah berkas.
+                                    Pembelian formulir bisa dilakukan lebih dari satu kali untuk satu akun orang tua. Setelah status pembayaran lunas, menu data diri dapat digunakan untuk mengisi data calon peserta didik dan mengunggah berkas.
                                 </p>
 
                                 <div class="mt-8 grid gap-4 md:grid-cols-3">
                                     <div class="rounded-3xl bg-blue-50 p-5">
                                         <p class="text-sm font-semibold text-blue-700">1. Bayar</p>
-                                        <p class="mt-2 text-sm leading-6 text-slate-600">Bayar melalui Snap Midtrans. Status lunas terverifikasi otomatis tanpa upload bukti.</p>
+                                        <p class="mt-2 text-sm leading-6 text-slate-600">Bayar melalui Snap Midtrans, Transfer rekening atau Cash ke sekolah. Status lunas terverifikasi otomatis tanpa upload bukti.</p>
                                     </div>
                                     <div class="rounded-3xl bg-emerald-50 p-5">
                                         <p class="text-sm font-semibold text-emerald-700">2. Isi Formulir</p>
@@ -81,8 +81,8 @@
                                         <span class="text-right text-xl font-extrabold text-yellow-300">{{ $formAmountLabel }}</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-4 border-b border-white/15 pb-4">
-                                        <span class="text-sky-100">Gateway</span>
-                                        <span class="text-right font-semibold">Midtrans Sandbox</span>
+                                        <span class="text-sky-100">Metode Pembayaran</span>
+                                        <span class="text-right font-semibold">{{ $formPaymentMethodLabel }}</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-4">
                                         <span class="text-sky-100">Order ID</span>
@@ -112,7 +112,7 @@
                                         Pembayaran Terverifikasi
                                     </span>
                                     <a href="{{ route('data-diri') }}" class="inline-flex justify-center rounded-full bg-emerald-600 px-8 py-4 text-base font-extrabold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] transition hover:bg-emerald-500">
-                                        Isi Formulir Pendaftaran
+                                        Buka Formulir Pendaftaran
                                     </a>
                                 </div>
                             @elseif ($payment?->status === 'manual_pending')
@@ -147,7 +147,7 @@
                             <form method="POST" action="{{ route('ortu.formulir.manual') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">
                                 @csrf
                                 <div><label for="formPaymentMethod" class="text-sm font-bold text-slate-700">Metode pembayaran</label><select id="formPaymentMethod" name="payment_method" required class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3"><option value="transfer">Transfer BRI atau DANA</option><option value="cash">Bayar Cash ke Sekolah</option></select></div>
-                                <div><label for="formPaymentProof" class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input id="formPaymentProof" name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-sky-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA; opsional untuk cash. JPG, PNG, atau PDF maksimal 5 MB.</p></div>
+                                <div id="formPaymentProofBox"><label for="formPaymentProof" class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input id="formPaymentProof" name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-sky-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA. JPG, PNG, atau PDF maksimal 5 MB.</p></div>
                                 <div class="md:col-span-2 flex flex-wrap items-center gap-4"><button class="rounded-full bg-sky-600 px-7 py-3 font-bold text-white hover:bg-sky-500">Kirim untuk Verifikasi</button>@if ($payment?->status === 'manual_pending')<span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Menunggu verifikasi panitia</span>@endif</div>
                             </form>
                         </section>
@@ -246,5 +246,26 @@
             });
         </script>
     @endif
+    <script>
+        const formPaymentMethod = document.getElementById('formPaymentMethod');
+        const formPaymentProofBox = document.getElementById('formPaymentProofBox');
+        const formPaymentProof = document.getElementById('formPaymentProof');
+
+        const toggleFormPaymentProof = () => {
+            const shouldShowProof = formPaymentMethod?.value !== 'cash';
+
+            formPaymentProofBox?.classList.toggle('hidden', !shouldShowProof);
+
+            if (formPaymentProof) {
+                formPaymentProof.disabled = !shouldShowProof;
+                if (! shouldShowProof) {
+                    formPaymentProof.value = '';
+                }
+            }
+        };
+
+        formPaymentMethod?.addEventListener('change', toggleFormPaymentProof);
+        toggleFormPaymentProof();
+    </script>
 </body>
 </html>

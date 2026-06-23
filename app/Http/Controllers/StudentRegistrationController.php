@@ -396,6 +396,7 @@ class StudentRegistrationController extends Controller
             'reRegistrationDeadline' => $registration?->selection_published_at
                 ? $registration->selection_published_at->copy()->addDays((int) config('ppdb_notifications.deadlines.re_registration_days', 7))
                 : null,
+            'reRegistrationPaymentMethodLabel' => $this->getReRegistrationPaymentMethodLabel($registration),
             'midtransClientKey' => (string) config('services.midtrans.client_key'),
             'isMidtransConfigured' => $this->midtrans->isConfigured(),
             'isReRegistrationPaid' => $this->isReRegistrationPaid($registration),
@@ -760,6 +761,15 @@ class StudentRegistrationController extends Controller
             'lulus' => 'emerald',
             'tidak_lulus' => 'rose',
             default => 'slate',
+        };
+    }
+
+    protected function getReRegistrationPaymentMethodLabel(?StudentRegistration $registration): string
+    {
+        return match ($registration?->reregistration_payment_type) {
+            'manual_transfer' => 'Transfer BRI / DANA',
+            'manual_cash' => 'Cash ke Sekolah',
+            default => 'Midtrans Sandbox',
         };
     }
 
