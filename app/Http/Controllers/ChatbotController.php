@@ -35,6 +35,13 @@ class ChatbotController extends Controller
             ]);
         }
 
+        if (! $this->knowledgeService->isSchoolScope($validated['message'])) {
+            return response()->json([
+                'reply' => $this->outOfScopeReply(),
+                'source' => 'scope',
+            ]);
+        }
+
         $baseUrl = rtrim((string) config('services.ollama.base_url'), '/');
         $model = (string) config('services.ollama.model');
         $systemPrompt = (string) config('services.ollama.system_prompt');
@@ -56,9 +63,7 @@ class ChatbotController extends Controller
             ], 500);
         }
 
-        if (function_exists('set_time_limit')) {
-            @set_time_limit($timeout + 5);
-        }
+        $this->extendPhpExecutionTime($timeout);
 
         $payload = [
             'model' => $model,
@@ -151,14 +156,19 @@ class ChatbotController extends Controller
 
     private function resolveOllamaTimeout(): int
     {
-        $timeout = max(10, (int) config('services.ollama.timeout', 45));
-        $phpMaxExecutionTime = (int) ini_get('max_execution_time');
+        return max(10, (int) config('services.ollama.timeout', 45));
+    }
 
-        if ($phpMaxExecutionTime > 0) {
-            return min($timeout, max(10, $phpMaxExecutionTime - 20));
+    private function extendPhpExecutionTime(int $ollamaTimeout): void
+    {
+        if (! function_exists('set_time_limit')) {
+            return;
         }
 
-        return $timeout;
+        $embeddingTimeout = max(0, (int) config('services.ollama.embedding_timeout', 60));
+        $requestBudget = $ollamaTimeout + $embeddingTimeout + 30;
+
+        @set_time_limit($requestBudget);
     }
 
     private function buildSystemPrompt(string $basePrompt, string $message): string
@@ -170,6 +180,7 @@ class ChatbotController extends Controller
             ."- Jika pertanyaannya masih seputar sekolah/PPDB tetapi detailnya tidak ada di data, berikan jawaban umum yang aman dan arahkan untuk konfirmasi ke panitia/sekolah.\n"
             ."- Jangan mengarang angka, tanggal, nominal, alamat, atau kebijakan resmi baru yang tidak tersedia di data.\n"
             ."- Jika pertanyaan di luar ruang lingkup sekolah/PPDB, jawab bahwa kamu hanya membantu pertanyaan seputar RA Fadhilah dan PPDB.\n"
+            ."- Jangan menampilkan label internal seperti Pertanyaan, Jawaban, Kata kunci, atau relevansi.\n"
             ."- Ringkas, jelas, dan gunakan bahasa Indonesia.";
 
         $context = $this->knowledgeService->buildPromptContext($message);
@@ -179,5 +190,10 @@ class ChatbotController extends Controller
         }
 
         return $prompt;
+    }
+
+    private function outOfScopeReply(): string
+    {
+        return 'Maaf, silakan ajukan pertanyaan mengenai RA Fadhilah atau penerimaan peserta didik baru di RA Fadhilah.';
     }
 }

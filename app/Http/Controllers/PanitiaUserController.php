@@ -36,6 +36,10 @@ class PanitiaUserController extends Controller
                 });
             })
             ->when(array_key_exists($role, $this->roleOptions()), fn ($query) => $query->where('role', $role))
+            ->orderByRaw(
+                'CASE WHEN role = ? THEN 0 WHEN role = ? THEN 1 ELSE 2 END',
+                [User::ROLE_COMMITTEE, User::ROLE_PRINCIPAL]
+            )
             ->latest()
             ->paginate(15)
             ->withQueryString();

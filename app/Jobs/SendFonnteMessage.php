@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class SendWablasMessage implements ShouldQueue
+class SendFonnteMessage implements ShouldQueue
 {
     use Queueable;
 
@@ -26,14 +26,14 @@ class SendWablasMessage implements ShouldQueue
             return;
         }
 
-        $baseUrl = rtrim((string) config('services.wablas.base_url'), '/');
-        $authorization = $this->authorizationToken();
-        $endpoint = '/' . ltrim((string) config('services.wablas.send_endpoint', '/api/send-message'), '/');
+        $baseUrl = rtrim((string) config('services.fonnte.base_url'), '/');
+        $authorization = trim((string) config('services.fonnte.token'));
+        $endpoint = '/' . ltrim((string) config('services.fonnte.send_endpoint', '/send'), '/');
 
         if ($baseUrl === '' || $authorization === '') {
             $log->update([
                 'status' => 'failed',
-                'error' => 'Konfigurasi Wablas belum lengkap.',
+                'error' => 'Konfigurasi Fonnte belum lengkap.',
             ]);
 
             return;
@@ -42,18 +42,20 @@ class SendWablasMessage implements ShouldQueue
         try {
             $response = Http::withHeaders([
                 'Authorization' => $authorization,
-            ])->timeout((int) config('services.wablas.timeout', 15))
+            ])->timeout((int) config('services.fonnte.timeout', 15))
                 ->asForm()
                 ->post($baseUrl . $endpoint, [
-                    'phone' => $log->recipient,
+                    'target' => $log->recipient,
                     'message' => $this->messageBody($log),
-                    'ref_id' => (string) $log->id,
+                    'countryCode' => (string) config('services.fonnte.country_code', '62'),
                 ]);
 
-            if (! $response->successful() || $response->json('status') === false) {
+            $responseStatus = $response->json('status', $response->json('Status'));
+
+            if (! $response->successful() || $responseStatus === false) {
                 $log->update([
                     'status' => 'failed',
-                    'error' => $response->body(),
+                    'error' => $response->json('reason') ?: $response->json('detail') ?: $response->body(),
                 ]);
 
                 return;
@@ -70,28 +72,12 @@ class SendWablasMessage implements ShouldQueue
                 'error' => $exception->getMessage(),
             ]);
 
-            Log::error('Gagal mengirim pesan Wablas.', [
+            Log::error('Gagal mengirim pesan Fonnte.', [
                 'notification_log_id' => $log->id,
                 'recipient' => $log->recipient,
                 'error' => $exception->getMessage(),
             ]);
         }
-    }
-
-    private function authorizationToken(): string
-    {
-        $token = trim((string) config('services.wablas.token'));
-        $secretKey = trim((string) config('services.wablas.secret_key'));
-
-        if ($token === '') {
-            return '';
-        }
-
-        if ($secretKey === '' || str_contains($token, '.')) {
-            return $token;
-        }
-
-        return $token . '.' . $secretKey;
     }
 
     private function messageBody(PpdbNotificationLog $log): string

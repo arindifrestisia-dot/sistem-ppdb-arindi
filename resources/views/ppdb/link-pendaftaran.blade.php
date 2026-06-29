@@ -58,7 +58,7 @@
     <main>
         <section class="mx-auto grid max-w-7xl gap-10 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:pb-24 lg:pt-14">
             <div class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-green-600 to-emerald-400 p-3 shadow-[0_25px_60px_rgba(15,23,42,0.25)]">
-                <img src="{{ asset('image/berita1.png') }}" alt="Kegiatan siswa RA Fadhilah" class="h-full min-h-[280px] w-full rounded-[1.5rem] object-cover">
+                <img src="{{ asset('image/ppdb-hero-lomba-estafet.png') }}" alt="Kegiatan lomba estafet RA Fadhilah" class="h-full min-h-[280px] w-full rounded-[1.5rem] object-cover">
             </div>
 
             <div class="flex flex-col justify-center">

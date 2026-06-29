@@ -18,6 +18,9 @@ use App\Http\Controllers\StudentRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicPageController::class, 'home'])->name('home');
+Route::post('/testimoni', [PublicPageController::class, 'storeTestimonial'])
+    ->middleware('throttle:6,1')
+    ->name('testimonials.store');
 Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');
 
 // Halaman PPDB
@@ -33,31 +36,21 @@ Route::get('/dashboard', DashboardRedirectController::class)->middleware(['auth'
 Route::get('/profile/dashboard', [PublicPageController::class, 'home'])->name('profile.dashboard');
 
 
-Route::get('/profile/kata-sambutan', function () {
-    return view('profile.katasambutan');
-});
+Route::get('/profile/kata-sambutan', [PublicPageController::class, 'greeting'])->name('profile.kata-sambutan');
 
-Route::get('/profile/sejarah', function () {
-    return view('profile.sejarah');
-});
+Route::get('/profile/sejarah', [PublicPageController::class, 'history'])->name('profile.sejarah');
 
-Route::get('/profile/visi-misi', function () {
-    return view('profile.visi-misi');
-});
+Route::get('/profile/visi-misi', [PublicPageController::class, 'vision'])->name('profile.visi-misi');
 
 Route::get('/profile/tenaga-pendidik', [PublicPageController::class, 'teachers']);
 Route::get('/profile/tenaga-pendidik/{teacher}', [PublicPageController::class, 'showTeacher'])
     ->name('profile.tenaga-pendidik.show');
 
-Route::get('/profile/kontak-kami', function () {
-    return view('profile.kontak-kami');
-});
+Route::get('/profile/kontak-kami', [PublicPageController::class, 'contact'])->name('profile.kontak-kami');
 
 Route::get('/profile/fasilitas', [PublicPageController::class, 'facilities'])->name('profile.fasilitas');
 
-Route::get('/profile/program-kegiatan-ra', function () {
-    return view('profile.program-kegiatan-ra');
-})->name('profile.program-kegiatan-ra');
+Route::get('/profile/program-kegiatan-ra', [PublicPageController::class, 'profileProgram'])->name('profile.program-kegiatan-ra');
 
 Route::get('/blog/berita', [PublicPageController::class, 'news'])->name('blog.berita');
 Route::get('/blog/berita/{content}', [PublicPageController::class, 'showNews'])->name('blog.berita.show');
@@ -122,6 +115,7 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
     Route::get('/wawancara', [PanitiaInterviewScheduleController::class, 'index'])->name('interviews.index');
     Route::get('/wawancara/export', [PanitiaInterviewScheduleController::class, 'export'])->name('interviews.export');
     Route::post('/wawancara/{registration}/jadwalkan', [PanitiaInterviewScheduleController::class, 'assign'])->name('interviews.assign');
+    Route::patch('/wawancara/{registration}/status', [PanitiaInterviewScheduleController::class, 'updateStatus'])->name('interviews.status.update');
     Route::resource('/formulir-orang-tua', PanitiaParentFormFieldController::class)
         ->except(['show'])
         ->parameters(['formulir-orang-tua' => 'parentFormField'])

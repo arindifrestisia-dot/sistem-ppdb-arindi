@@ -12,17 +12,25 @@
     @php
         $mainNavItemClass = 'px-4 py-4 text-sm font-semibold transition hover:bg-white/10';
         $mainNavActiveClass = 'bg-[var(--brand-yellow)] px-5 py-4 text-sm font-bold text-white';
+        $profileLogo = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_LOGO] ?? null;
+        $profileName = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_NAME] ?? null;
+        $profileContact = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_CONTACT] ?? null;
+        $schoolName = $profileName?->title ?: 'FADHILAH';
+        $schoolSubtitle = $profileName?->excerpt ?: 'Pekanbaru, Riau';
+        $schoolEmail = $profileContact?->excerpt ?: 'admin@rafadhilah.sch.id';
+        $schoolPhone = $profileContact?->content ?: 'Telp: 0821 6207 736, WA: 0822 8681 7315';
+        $schoolLogoUrl = $profileLogo?->image_path ? asset('storage/' . $profileLogo->image_path) : asset('image/logo_RA.png');
     @endphp
 
     <header x-data="{ mobileOpen: false }" class="sticky top-0 z-50 shadow-sm">
         <div class="bg-white">
             <div class="mx-auto flex max-w-[1260px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                 <a href="{{ route('profile.dashboard') }}" class="flex min-w-0 items-center gap-4">
-                    <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="h-16 w-16 object-contain sm:h-20 sm:w-20">
+                    <img src="{{ $schoolLogoUrl }}" alt="Logo {{ $schoolName }}" class="h-16 w-16 object-contain sm:h-20 sm:w-20">
                     <div class="min-w-0">
                         <p class="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand-emerald)]">Raudhatul Athfal</p>
-                        <h1 class="truncate text-2xl font-black text-[var(--brand-blue)] sm:text-4xl">FADHILAH</h1>
-                        <p class="truncate text-xs font-semibold text-slate-500 sm:text-sm">Pekanbaru, Riau</p>
+                        <h1 class="truncate text-2xl font-black text-[var(--brand-blue)] sm:text-4xl">{{ $schoolName }}</h1>
+                        <p class="truncate text-xs font-semibold text-slate-500 sm:text-sm">{{ $schoolSubtitle }}</p>
                     </div>
                 </a>
 
@@ -35,7 +43,7 @@
                         </span>
                         <div>
                             <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Email</p>
-                            <a href="mailto:admin@rafadhilah.sch.id" class="text-sm font-semibold text-slate-800">admin@rafadhilah.sch.id</a>
+                            <a href="mailto:{{ $schoolEmail }}" class="text-sm font-semibold text-slate-800">{{ $schoolEmail }}</a>
                         </div>
                     </div>
 
@@ -47,7 +55,7 @@
                         </span>
                         <div>
                             <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Phone</p>
-                            <p class="text-sm font-semibold text-slate-800">Telp: 0821 6207 736, WA: 0822 8681 7315</p>
+                            <p class="text-sm font-semibold text-slate-800">{{ $schoolPhone }}</p>
                         </div>
                     </div>
                 </div>
@@ -154,6 +162,10 @@
 
         <div class="h-5 bg-[linear-gradient(90deg,#2f8f45_0%,#71c35b_50%,#2f8f45_100%)]"></div>
     </header>
+
+    <script type="module">
+   
+</script>
 
     <main>
         @yield('content')

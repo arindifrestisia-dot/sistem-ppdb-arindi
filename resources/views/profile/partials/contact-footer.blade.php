@@ -1,19 +1,30 @@
 <footer class="bg-[var(--brand-blue)] text-white">
+    @php
+        $profileLogo = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_LOGO] ?? null;
+        $profileName = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_NAME] ?? null;
+        $profileContact = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_CONTACT] ?? null;
+        $footerSchoolName = $profileName?->title ?: 'Fadhilah';
+        $footerSchoolSubtitle = $profileName?->excerpt ?: 'Yayasan Darel Fadhilah';
+        $footerSchoolSummary = $profileName?->content ?: 'Mewujudkan generasi yang Islami, berakhlak mulia, cerdas, ceria, dan mandiri melalui pendidikan anak usia dini yang berkualitas.';
+        $footerSchoolEmail = $profileContact?->excerpt ?: 'admin@rafadhilah.sch.id';
+        $footerSchoolPhone = $profileContact?->content ?: '0821 6207 736 / 0822 8681 7315';
+        $footerLogoUrl = $profileLogo?->image_path ? asset('storage/' . $profileLogo->image_path) : asset('image/logo_RA.png');
+    @endphp
     <div class="mx-auto grid max-w-[1260px] gap-10 px-6 py-14 sm:px-8 lg:grid-cols-[1.3fr_0.7fr_1.15fr_0.85fr] lg:gap-12 lg:py-16">
         <div>
             <div class="flex items-center gap-4">
                 <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/10 p-2 ring-1 ring-white/15">
-                    <img src="{{ asset('image/logo_RA.png') }}" alt="Logo RA Fadhilah" class="h-full w-full object-contain">
+                    <img src="{{ $footerLogoUrl }}" alt="Logo {{ $footerSchoolName }}" class="h-full w-full object-contain">
                 </div>
                 <div>
                     <p class="text-xs font-bold uppercase tracking-[0.22em] text-[var(--brand-yellow)]">Raudhatul Athfal</p>
-                    <h2 class="mt-1 text-2xl font-black">Fadhilah</h2>
-                    <p class="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/65">Yayasan Darel Fadhilah</p>
+                    <h2 class="mt-1 text-2xl font-black">{{ $footerSchoolName }}</h2>
+                    <p class="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/65">{{ $footerSchoolSubtitle }}</p>
                 </div>
             </div>
 
             <p class="mt-6 max-w-sm text-sm leading-7 text-white/75">
-                Mewujudkan generasi yang Islami, berakhlak mulia, cerdas, ceria, dan mandiri melalui pendidikan anak usia dini yang berkualitas.
+                {{ $footerSchoolSummary }}
             </p>
 
             <div class="mt-6 flex flex-wrap gap-3">
@@ -53,7 +64,7 @@
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fill-rule="evenodd" d="m1.885 3.056.638-.638a2.25 2.25 0 0 1 3.183 0l1.376 1.376a2.25 2.25 0 0 1 .43 2.584l-.613 1.226a.75.75 0 0 0 .14.865l4.492 4.492a.75.75 0 0 0 .865.14l1.226-.613a2.25 2.25 0 0 1 2.584.43l1.376 1.376a2.25 2.25 0 0 1 0 3.183l-.638.638c-1.272 1.272-3.189 1.727-4.845.95a24.056 24.056 0 0 1-11.164-11.164c-.777-1.656-.322-3.573.95-4.845Z" clip-rule="evenodd" />
                     </svg>
-                    <span>0821 6207 736</span>
+                    <span>{{ $footerSchoolPhone }}</span>
                 </a>
                 <a href="https://wa.me/6282286817315" target="_blank" rel="noreferrer" class="flex gap-3 transition hover:text-white">
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -65,7 +76,7 @@
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path d="M3 4.5A2.5 2.5 0 0 0 .5 7v6A2.5 2.5 0 0 0 3 15.5h14a2.5 2.5 0 0 0 2.5-2.5V7A2.5 2.5 0 0 0 17 4.5H3Zm0 1.5h14c.22 0 .425.06.6.165L10 11.1 2.4 6.165A1.17 1.17 0 0 1 3 6Z" />
                     </svg>
-                    <span>admin@rafadhilah.sch.id</span>
+                    <span>{{ $footerSchoolEmail }}</span>
                 </a>
             </div>
         </div>

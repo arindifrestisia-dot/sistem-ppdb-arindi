@@ -66,6 +66,7 @@ class PanitiaInterviewScheduleController extends Controller
                 'total' => $allRegistrations->count(),
                 'selected' => $allRegistrations->where('display_interview_status', 'sudah_pilih')->count(),
                 'waiting' => $allRegistrations->where('display_interview_status', 'belum_pilih')->count(),
+                'completed' => $allRegistrations->where('display_interview_completion_status', 'selesai')->count(),
             ],
         ]);
     }
@@ -112,6 +113,31 @@ class PanitiaInterviewScheduleController extends Controller
             ->with('status', 'Jadwal wawancara berhasil disimpan.');
     }
 
+    public function updateStatus(Request $request, StudentRegistration $registration): RedirectResponse
+    {
+        if (! $registration->interview_selected_at) {
+            return redirect()
+                ->route('panitia.interviews.index', $request->only(['q', 'status', 'ta', 'page']))
+                ->withErrors([
+                    'interview_status' => 'Status wawancara hanya bisa diubah setelah jadwal dipilih.',
+                ]);
+        }
+
+        $validated = $request->validate([
+            'interview_status' => ['required', 'in:selesai,belum_selesai'],
+        ]);
+
+        $registration->forceFill([
+            'interview_completed_at' => $validated['interview_status'] === 'selesai' ? now() : null,
+        ])->save();
+
+        return redirect()
+            ->route('panitia.interviews.index', $request->only(['q', 'status', 'ta', 'page']))
+            ->with('status', $validated['interview_status'] === 'selesai'
+                ? 'Calon siswa ditandai sudah selesai wawancara.'
+                : 'Status wawancara calon siswa dikembalikan menjadi belum selesai.');
+    }
+
     public function export(Request $request): Response
     {
         Carbon::setLocale('id');
@@ -146,7 +172,7 @@ class PanitiaInterviewScheduleController extends Controller
             ->values();
 
         $csv = collect([
-            ['No. Registrasi', 'Nama Siswa', 'Nama Orang Tua', 'Email Orang Tua', 'Tahun Ajaran', 'Status Jadwal', 'Hari Wawancara', 'Tanggal Wawancara', 'Jam Wawancara', 'Ruangan', 'Dipilih Pada', 'Tanggal Submit Formulir'],
+            ['No. Registrasi', 'Nama Siswa', 'Nama Orang Tua', 'Email Orang Tua', 'Tahun Ajaran', 'Status Jadwal', 'Status Wawancara', 'Hari Wawancara', 'Tanggal Wawancara', 'Jam Wawancara', 'Ruangan', 'Dipilih Pada', 'Selesai Pada', 'Tanggal Submit Formulir'],
         ])->concat(
             $rows->map(function (StudentRegistration $registration) {
                 return [
@@ -156,11 +182,13 @@ class PanitiaInterviewScheduleController extends Controller
                     $registration->user?->email ?? '-',
                     $registration->display_academic_year ?? '-',
                     $registration->display_interview_status_label ?? '-',
+                    $registration->display_interview_completion_label ?? '-',
                     $registration->interview_day_name ?? '-',
                     $registration->interview_date ? $registration->interview_date->translatedFormat('d F Y') : '-',
                     $registration->interview_time ?? '-',
                     $registration->interview_room ?? '-',
                     $registration->interview_selected_at ? $registration->interview_selected_at->format('d-m-Y H:i') . ' WIB' : '-',
+                    $registration->interview_completed_at ? $registration->interview_completed_at->format('d-m-Y H:i') . ' WIB' : '-',
                     $registration->submitted_at ? $registration->submitted_at->translatedFormat('d F Y H:i') . ' WIB' : '-',
                 ];
             })
@@ -181,6 +209,9 @@ class PanitiaInterviewScheduleController extends Controller
         $registration->display_interview_status = $registration->interview_selected_at ? 'sudah_pilih' : 'belum_pilih';
         $registration->display_interview_status_label = $registration->interview_selected_at ? 'Sudah Memilih' : 'Belum Memilih';
         $registration->display_interview_status_tone = $registration->interview_selected_at ? 'emerald' : 'amber';
+        $registration->display_interview_completion_status = $registration->interview_completed_at ? 'selesai' : 'belum_selesai';
+        $registration->display_interview_completion_label = $registration->interview_completed_at ? 'Selesai Wawancara' : 'Belum Selesai';
+        $registration->display_interview_completion_tone = $registration->interview_completed_at ? 'blue' : 'slate';
 
         return $registration;
     }

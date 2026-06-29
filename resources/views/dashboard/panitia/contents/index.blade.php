@@ -5,7 +5,7 @@
     $isTeacherType = $type === \App\Models\SchoolContent::TYPE_TEACHER;
 @endphp
 
-<x-dynamic-component :component="$layoutComponent" title="Kelola Konten Sekolah">
+<x-dynamic-component :component="$layoutComponent" :title="$isKepsek ? '' : 'Kelola Konten Sekolah'">
 
     <section class="rounded-[2rem] bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Jobs\SendWablasMessage;
+use App\Jobs\SendFonnteMessage;
 use App\Mail\PpdbNotificationMail;
 use App\Models\PpdbNotificationLog;
 use App\Models\StudentRegistration;
@@ -47,9 +47,9 @@ class PpdbNotificationService
             }
         }
 
-        if (config('ppdb_notifications.channels.wablas')) {
+        if (config('ppdb_notifications.channels.fonnte')) {
             foreach ($this->whatsappRecipients($registration) as $phone) {
-                $this->sendWablas($phone, $subject, $message, $key, $deduplicationKey, $user, $registration);
+                $this->sendFonnte($phone, $subject, $message, $key, $deduplicationKey, $user, $registration);
             }
         }
     }
@@ -82,19 +82,19 @@ class PpdbNotificationService
         }
     }
 
-    private function sendWablas(string $phone, string $subject, string $message, string $key, string $deduplicationKey, ?User $user, ?StudentRegistration $registration): void
+    private function sendFonnte(string $phone, string $subject, string $message, string $key, string $deduplicationKey, ?User $user, ?StudentRegistration $registration): void
     {
-        if ($this->alreadySent('wablas', $phone, $deduplicationKey)) {
+        if ($this->alreadySent('fonnte', $phone, $deduplicationKey)) {
             return;
         }
 
-        $log = $this->createLog('wablas', $phone, $subject, $message, $key, $deduplicationKey, $user, $registration);
+        $log = $this->createLog('fonnte', $phone, $subject, $message, $key, $deduplicationKey, $user, $registration);
 
         $log->update([
             'status' => 'queued',
         ]);
 
-        SendWablasMessage::dispatch($log->id);
+        SendFonnteMessage::dispatch($log->id);
     }
 
     private function createLog(string $channel, string $recipient, string $subject, string $message, string $key, string $deduplicationKey, ?User $user, ?StudentRegistration $registration): PpdbNotificationLog
@@ -144,8 +144,14 @@ class PpdbNotificationService
             'interview_date' => $registration?->interview_date ? Carbon::parse($registration->interview_date)->translatedFormat('d F Y') : '-',
             'interview_time' => $registration?->interview_time ?? '-',
             'interview_room' => $registration?->interview_room ?? '-',
+            'selection_date' => $selectionPublishedAt?->translatedFormat('d F Y') ?? '-',
             'form_amount' => $this->formatCurrency((int) config('ppdb_notifications.amounts.form')),
             're_registration_amount' => $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration')),
+            'payment_amount' => $data['payment_amount'] ?? $this->formatCurrency((int) ($registration?->reregistration_amount ?: config('ppdb_notifications.amounts.re_registration'))),
+            'payment_method' => $data['payment_method'] ?? $this->paymentMethodLabel($registration?->reregistration_payment_type),
+            'installment_label' => $data['installment_label'] ?? '-',
+            'installment_amount' => $data['installment_amount'] ?? '-',
+            'installment_deadline' => $data['installment_deadline'] ?? ($deadline ?? '-'),
             'bank_name' => config('ppdb_notifications.bank.bank_name'),
             'bank_account_number' => config('ppdb_notifications.bank.account_number'),
             'bank_account_name' => config('ppdb_notifications.bank.account_name'),
@@ -224,7 +230,17 @@ class PpdbNotificationService
 
     private function formatCurrency(int $amount): string
     {
-        return 'Rp' . number_format($amount, 0, ',', '.');
+        return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    private function paymentMethodLabel(?string $paymentType): string
+    {
+        return match ($paymentType) {
+            'manual_transfer' => 'Transfer BRI / DANA',
+            'manual_cash' => 'Cash ke Sekolah',
+            'midtrans' => 'Midtrans',
+            default => $paymentType ? Str::headline(str_replace('_', ' ', $paymentType)) : '-',
+        };
     }
 
     private function academicYear(?StudentRegistration $registration): string

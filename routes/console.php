@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-use App\Jobs\SendWablasMessage;
+use App\Jobs\SendFonnteMessage;
 use App\Models\ChatbotKnowledgeChunk;
 use App\Models\PpdbNotificationLog;
 use App\Models\StudentRegistration;
@@ -55,7 +55,7 @@ Artisan::command('ppdb:send-reminders', function (PpdbNotificationService $notif
     $this->info('Reminder PPDB selesai diproses.');
 })->purpose('Send PPDB interview and re-registration reminders');
 
-Artisan::command('ppdb:test-wablas {phone} {message=Tes notifikasi PPDB RA Fadhilah dari sistem website.}', function () {
+Artisan::command('ppdb:test-fonnte {phone} {message=Tes notifikasi PPDB RA Fadhilah dari sistem website.}', function () {
     $phone = preg_replace('/\D+/', '', (string) $this->argument('phone')) ?? '';
 
     if (str_starts_with($phone, '0')) {
@@ -73,20 +73,20 @@ Artisan::command('ppdb:test-wablas {phone} {message=Tes notifikasi PPDB RA Fadhi
     }
 
     $log = PpdbNotificationLog::create([
-        'notification_key' => 'wablas_test',
-        'channel' => 'wablas',
+        'notification_key' => 'fonnte_test',
+        'channel' => 'fonnte',
         'recipient' => $phone,
-        'subject' => 'Tes Wablas',
+        'subject' => 'Tes Fonnte',
         'message' => (string) $this->argument('message'),
-        'deduplication_key' => 'wablas-test:' . now()->timestamp,
+        'deduplication_key' => 'fonnte-test:' . now()->timestamp,
         'status' => 'pending',
     ]);
 
     try {
-        (new SendWablasMessage($log->id))->handle();
+        (new SendFonnteMessage($log->id))->handle();
     } catch (\Throwable $exception) {
         $log->refresh();
-        $this->error('Gagal mengirim tes Wablas: ' . ($log->error ?: $exception->getMessage()));
+        $this->error('Gagal mengirim tes Fonnte: ' . ($log->error ?: $exception->getMessage()));
 
         return self::FAILURE;
     }
@@ -94,15 +94,15 @@ Artisan::command('ppdb:test-wablas {phone} {message=Tes notifikasi PPDB RA Fadhi
     $log->refresh();
 
     if ($log->status !== 'sent') {
-        $this->error('Gagal mengirim tes Wablas: ' . ($log->error ?: 'Respons Wablas tidak berhasil.'));
+        $this->error('Gagal mengirim tes Fonnte: ' . ($log->error ?: 'Respons Fonnte tidak berhasil.'));
 
         return self::FAILURE;
     }
 
-    $this->info('Tes Wablas berhasil dikirim ke ' . $phone . '.');
+    $this->info('Tes Fonnte berhasil dikirim ke ' . $phone . '.');
 
     return self::SUCCESS;
-})->purpose('Send a test WhatsApp message through Wablas');
+})->purpose('Send a test WhatsApp message through Fonnte');
 
 Artisan::command('chatbot:index-knowledge {--fresh : Hapus index lama sebelum membuat ulang}', function (
     ChatbotKnowledgeService $knowledgeService,

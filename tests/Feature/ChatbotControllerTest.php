@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use ReflectionClass;
 use Tests\TestCase;
 
 class ChatbotControllerTest extends TestCase
@@ -103,7 +104,7 @@ class ChatbotControllerTest extends TestCase
         ]);
 
         $response = $this->postJson('/chatbot/message', [
-            'message' => 'Tolong jelaskan kegiatan sekolah terbaru',
+            'message' => 'Apakah boleh menemui langsung kepala sekolah?',
         ]);
 
         $response
@@ -116,13 +117,43 @@ class ChatbotControllerTest extends TestCase
         Http::assertSent(function ($request) {
             return $request->url() === 'http://127.0.0.1:11434/api/generate'
                 && $request['model'] === 'gemma:2b'
-                && $request['prompt'] === 'Tolong jelaskan kegiatan sekolah terbaru'
+                && $request['prompt'] === 'Apakah boleh menemui langsung kepala sekolah?'
                 && $request['stream'] === false
                 && str_contains($request['system'], 'Jawab dalam bahasa Indonesia.')
+                && str_contains($request['system'], 'Kamu boleh menjawab pertanyaan baru')
                 && str_contains($request['system'], 'Pengetahuan sekolah yang sudah ditetapkan:')
+                && ! str_contains($request['system'], 'Kata kunci:')
                 && $request['keep_alive'] === '10m'
                 && $request['options']['num_predict'] === 128;
         });
+    }
+
+    public function test_it_rejects_out_of_scope_messages_without_calling_ollama(): void
+    {
+        Http::fake();
+
+        $response = $this->postJson('/chatbot/message', [
+            'message' => 'Apa resep kue talam durian?',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'reply' => 'Maaf, silakan ajukan pertanyaan mengenai RA Fadhilah atau penerimaan peserta didik baru di RA Fadhilah.',
+                'source' => 'scope',
+            ]);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_ollama_timeout_is_not_reduced_by_php_execution_limit(): void
+    {
+        Config::set('services.ollama.timeout', 120);
+
+        $controller = app(\App\Http\Controllers\ChatbotController::class);
+        $method = (new ReflectionClass($controller))->getMethod('resolveOllamaTimeout');
+
+        $this->assertSame(120, $method->invoke($controller));
     }
 
     public function test_school_faq_fixture_contains_the_expected_pairs(): void

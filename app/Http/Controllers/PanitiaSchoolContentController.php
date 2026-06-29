@@ -15,7 +15,14 @@ class PanitiaSchoolContentController extends Controller
     {
         $type = (string) $request->string('type', SchoolContent::TYPE_INFORMATION);
 
-        abort_unless(array_key_exists($type, SchoolContent::typeOptions()), 404);
+        abort_unless(array_key_exists($type, SchoolContent::allTypeOptions()), 404);
+
+        if ($this->isProfileLogoType($type)) {
+            return view('dashboard.panitia.contents.logo-index', [
+                'type' => $type,
+                'contentItem' => $this->contentsQuery($type)->first(),
+            ]);
+        }
 
         if ($this->isGalleryType($type)) {
             return view('dashboard.panitia.contents.gallery-index', [
@@ -58,7 +65,7 @@ class PanitiaSchoolContentController extends Controller
 
         return view('dashboard.panitia.contents.index', [
             'type' => $type,
-            'typeOptions' => SchoolContent::typeOptions(),
+            'typeOptions' => $this->contentTypeOptionsFor($type),
             'contents' => $this->contentsQuery($type)
                 ->paginate(10)
                 ->withQueryString(),
@@ -69,7 +76,13 @@ class PanitiaSchoolContentController extends Controller
     {
         $type = (string) $request->string('type', SchoolContent::TYPE_INFORMATION);
 
-        abort_unless(array_key_exists($type, SchoolContent::typeOptions()), 404);
+        abort_unless(array_key_exists($type, SchoolContent::allTypeOptions()), 404);
+
+        if ($this->isProfileLogoType($type)) {
+            return view('dashboard.panitia.contents.logo-form', [
+                'contentItem' => new SchoolContent(['type' => $type, 'title' => 'RA Fadhilah', 'is_published' => true]),
+            ]);
+        }
 
         if ($this->isGalleryType($type)) {
             return view('dashboard.panitia.contents.gallery-form', [
@@ -103,13 +116,30 @@ class PanitiaSchoolContentController extends Controller
 
         return view('dashboard.panitia.contents.form', [
             'contentItem' => new SchoolContent(['type' => $type, 'is_published' => true]),
-            'typeOptions' => SchoolContent::typeOptions(),
+            'typeOptions' => $this->contentTypeOptionsFor($type),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $type = (string) $request->input('type', SchoolContent::TYPE_INFORMATION);
+
+        if ($this->isProfileLogoType($type)) {
+            $validated = $this->validateProfileLogoRequest($request);
+
+            $content = DB::transaction(function () use ($request, $validated) {
+                $content = new SchoolContent($validated);
+                $content->save();
+
+                $this->storeImages($request, $content);
+
+                return $content;
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Logo RA Fadhilah berhasil ditambahkan.');
+        }
 
         if ($this->isGalleryType($type)) {
             $validated = $this->validateGalleryRequest($request);
@@ -234,6 +264,12 @@ class PanitiaSchoolContentController extends Controller
         $this->ensureLegacyImageTracked($content);
         $content->load('images');
 
+        if ($this->isProfileLogoType($content->type)) {
+            return view('dashboard.panitia.contents.logo-form', [
+                'contentItem' => $content,
+            ]);
+        }
+
         if ($this->isGalleryType($content->type)) {
             return redirect()
                 ->route('panitia.contents.index', ['type' => $content->type])
@@ -266,13 +302,33 @@ class PanitiaSchoolContentController extends Controller
 
         return view('dashboard.panitia.contents.form', [
             'contentItem' => $content,
-            'typeOptions' => SchoolContent::typeOptions(),
+            'typeOptions' => $this->contentTypeOptionsFor($content->type),
         ]);
     }
 
     public function update(Request $request, SchoolContent $content): RedirectResponse
     {
         $this->ensureLegacyImageTracked($content);
+
+        if ($this->isProfileLogoType($content->type)) {
+            $validated = $this->validateProfileLogoRequest($request, true);
+
+            DB::transaction(function () use ($request, $validated, $content) {
+                $content->fill($validated);
+                $content->save();
+
+                if ($request->hasFile('images')) {
+                    $this->removeAllImages($content);
+                }
+
+                $this->storeImages($request, $content);
+                $this->syncCoverImage($content->fresh('images'));
+            });
+
+            return redirect()
+                ->route('panitia.contents.index', ['type' => $content->type])
+                ->with('status', 'Logo RA Fadhilah berhasil diperbarui.');
+        }
 
         if ($this->isGalleryType($content->type)) {
             return redirect()
@@ -400,7 +456,7 @@ class PanitiaSchoolContentController extends Controller
     protected function validateRequest(Request $request): array
     {
         return $request->validate([
-            'type' => ['required', 'in:' . implode(',', array_keys(SchoolContent::typeOptions()))],
+            'type' => ['required', 'in:' . implode(',', array_keys(SchoolContent::allTypeOptions()))],
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string'],
             'content' => ['nullable', 'string'],
@@ -429,6 +485,22 @@ class PanitiaSchoolContentController extends Controller
         ]) + [
             'is_published' => $request->boolean('is_published', true),
             'sort_order' => (int) $request->input('sort_order', 0),
+        ];
+    }
+
+    protected function validateProfileLogoRequest(Request $request, bool $isUpdate = false): array
+    {
+        return $request->validate([
+            'type' => ['required', 'in:' . SchoolContent::TYPE_PROFILE_LOGO],
+            'images' => [$isUpdate ? 'nullable' : 'required', 'array', 'max:1'],
+            'images.*' => ['image', 'max:4096'],
+        ]) + [
+            'title' => 'RA Fadhilah',
+            'excerpt' => null,
+            'content' => null,
+            'published_at' => now()->toDateString(),
+            'is_published' => true,
+            'sort_order' => 0,
         ];
     }
 
@@ -593,9 +665,21 @@ class PanitiaSchoolContentController extends Controller
             ->orderByDesc('id');
     }
 
+    protected function contentTypeOptionsFor(string $type): array
+    {
+        return array_key_exists($type, SchoolContent::profileTypeOptions())
+            ? SchoolContent::profileTypeOptions()
+            : SchoolContent::typeOptions();
+    }
+
     protected function isGalleryType(string $type): bool
     {
         return $type === SchoolContent::TYPE_GALLERY;
+    }
+
+    protected function isProfileLogoType(string $type): bool
+    {
+        return $type === SchoolContent::TYPE_PROFILE_LOGO;
     }
 
     protected function isFacilityType(string $type): bool

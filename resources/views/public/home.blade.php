@@ -610,7 +610,7 @@
         </div>
     </section>
 
-    <section class="mt-10 bg-[var(--brand-blue)] py-16 text-white">
+    <section id="testimoni" class="mt-10 bg-[var(--brand-blue)] py-16 text-white" x-data="{ showTestimonialForm: {{ $errors->any() ? 'true' : 'false' }} }">
         <div
             x-data="testimonialSlider({{ $testimonials->count() }})"
             x-init="init()"
@@ -622,6 +622,88 @@
         >
             <h2 class="text-center text-4xl font-black uppercase">Testimoni</h2>
             <p class="mt-4 text-center text-sm font-semibold text-white/80">Apa kata mereka tentang RA Fadhilah?</p>
+
+            <div class="mt-6 flex justify-center">
+                <button
+                    type="button"
+                    @click="showTestimonialForm = !showTestimonialForm"
+                    class="inline-flex items-center gap-2 rounded-full bg-[var(--brand-yellow)] px-6 py-3 text-sm font-black uppercase tracking-wide text-[var(--brand-blue)] shadow-lg transition hover:-translate-y-0.5 hover:bg-yellow-300 focus:outline-none focus:ring-4 focus:ring-white/25"
+                    :aria-expanded="showTestimonialForm.toString()"
+                >
+                    <span x-text="showTestimonialForm ? 'Tutup Form Testimoni' : 'Tulis Testimoni Orang Tua'"></span>
+                </button>
+            </div>
+
+            @if (session('testimonial_status'))
+                <div class="mx-auto mt-6 max-w-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-800">
+                    {{ session('testimonial_status') }}
+                </div>
+            @endif
+
+            <form
+                x-show="showTestimonialForm"
+                x-transition
+                method="POST"
+                action="{{ route('testimonials.store') }}"
+                enctype="multipart/form-data"
+                class="mx-auto mt-6 max-w-3xl border border-white/20 bg-white/10 p-6 shadow-xl backdrop-blur-sm"
+                style="display: none;"
+            >
+                @csrf
+                <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <label for="testimonial-name" class="mb-2 block text-sm font-bold text-white">Nama Orang Tua</label>
+                        <input
+                            id="testimonial-name"
+                            name="name"
+                            type="text"
+                            value="{{ old('name') }}"
+                            class="w-full border border-white/25 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-yellow)] focus:ring-4 focus:ring-yellow-300/30"
+                            placeholder="Contoh: Bunda Aisyah"
+                            required
+                        >
+                        @error('name')
+                            <p class="mt-2 text-sm font-semibold text-yellow-200">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="testimonial-photo" class="mb-2 block text-sm font-bold text-white">Foto Orang Tua <span class="font-medium text-white/70">(opsional)</span></label>
+                        <input
+                            id="testimonial-photo"
+                            name="photo"
+                            type="file"
+                            accept="image/*"
+                            class="w-full border border-white/25 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none transition file:mr-4 file:border-0 file:bg-[var(--brand-yellow)] file:px-4 file:py-2 file:text-sm file:font-bold file:text-[var(--brand-blue)] focus:border-[var(--brand-yellow)] focus:ring-4 focus:ring-yellow-300/30"
+                        >
+                        @error('photo')
+                            <p class="mt-2 text-sm font-semibold text-yellow-200">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <label for="testimonial-content" class="mb-2 block text-sm font-bold text-white">Isi Testimoni</label>
+                    <textarea
+                        id="testimonial-content"
+                        name="testimonial"
+                        rows="4"
+                        class="w-full resize-y border border-white/25 bg-white px-4 py-3 text-sm font-semibold leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-yellow)] focus:ring-4 focus:ring-yellow-300/30"
+                        placeholder="Ceritakan pengalaman Bunda/Ayah selama anak belajar di RA Fadhilah."
+                        required
+                    >{{ old('testimonial') }}</textarea>
+                    @error('testimonial')
+                        <p class="mt-2 text-sm font-semibold text-yellow-200">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mt-5 flex justify-end">
+                    <button type="submit" class="rounded-full bg-white px-6 py-3 text-sm font-black uppercase tracking-wide text-[var(--brand-blue)] transition hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-white/25">
+                        Kirim Testimoni
+                    </button>
+                </div>
+            </form>
 
             <div class="relative mt-12">
                 <button

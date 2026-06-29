@@ -455,9 +455,12 @@ class ChatbotKnowledgeService
     {
         $normalizedMessage = $this->normalize($message);
 
+        if (preg_match('/\bra\b/u', $normalizedMessage) === 1) {
+            return true;
+        }
+
         return Str::contains($normalizedMessage, [
             'ra fadhilah',
-            'ra',
             'tk',
             'paud',
             'sekolah',
@@ -538,9 +541,9 @@ class ChatbotKnowledgeService
             return null;
         }
 
-        $content = (string) $results[0]['chunk']->content;
+        $content = $this->stripInternalMetadata((string) $results[0]['chunk']->content);
 
-        if (preg_match('/Jawaban:\s*(.*?)(?:\s*Kata kunci:|$)/s', $content, $matches)) {
+        if (preg_match('/Jawaban:\s*(.*?)$/s', $content, $matches)) {
             return trim($matches[1]);
         }
 
@@ -616,7 +619,7 @@ class ChatbotKnowledgeService
                     '[%s | relevansi %s] %s',
                     $chunk->title ?: $chunk->source_type,
                     $score,
-                    $chunk->content
+                    $this->stripInternalMetadata((string) $chunk->content)
                 );
             })
             ->implode("\n\n");
@@ -632,7 +635,7 @@ class ChatbotKnowledgeService
                     'source_type' => 'manual',
                     'source_id' => null,
                     'title' => $item['question'],
-                    'content' => trim("Pertanyaan: {$item['question']}\nJawaban: {$item['answer']}\nKata kunci: ".implode(', ', $item['keywords'])),
+                    'content' => trim("Pertanyaan: {$item['question']}\nJawaban: {$item['answer']}"),
                 ];
             })
             ->all();
@@ -641,7 +644,7 @@ class ChatbotKnowledgeService
     private function operationalKnowledgeChunks(): array
     {
         $formAmount = $this->formatCurrency((int) config('ppdb_notifications.amounts.form', 150000));
-        $reRegistrationAmount = $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1500000));
+        $reRegistrationAmount = $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1550000));
 
         return [
             [
@@ -744,6 +747,14 @@ class ChatbotKnowledgeService
     private function formatCurrency(int $amount): string
     {
         return 'Rp '.number_format($amount, 0, ',', '.');
+    }
+
+    private function stripInternalMetadata(string $content): string
+    {
+        return Str::of($content)
+            ->replaceMatches('/\s*Kata kunci:\s*.*$/su', '')
+            ->squish()
+            ->toString();
     }
 
     private function formatManualKnowledge(?string $message = null): string

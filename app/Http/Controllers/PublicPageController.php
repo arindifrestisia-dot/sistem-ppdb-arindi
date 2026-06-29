@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\SchoolContent;
 use App\Models\HomeBanner;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -30,6 +32,56 @@ class PublicPageController extends Controller
         return view('public.facilities', [
             'facilityItems' => $this->getContents(SchoolContent::TYPE_FACILITY),
         ]);
+    }
+
+    public function greeting(): View
+    {
+        return $this->profileView(
+            SchoolContent::TYPE_PROFILE_GREETING,
+            'profile.katasambutan',
+            'Kata Sambutan',
+            'Sambutan RA Fadhilah'
+        );
+    }
+
+    public function vision(): View
+    {
+        return $this->profileView(
+            SchoolContent::TYPE_PROFILE_VISION,
+            'profile.visi-misi',
+            'Visi Misi & Strategi Pembelajaran',
+            'Visi, Misi, dan Strategi Pembelajaran RA Fadhilah'
+        );
+    }
+
+    public function history(): View
+    {
+        return $this->profileView(
+            SchoolContent::TYPE_PROFILE_HISTORY,
+            'profile.sejarah',
+            'Sejarah',
+            'Perjalanan RA Fadhilah'
+        );
+    }
+
+    public function profileProgram(): View
+    {
+        return $this->profileView(
+            SchoolContent::TYPE_PROFILE_PROGRAM,
+            'profile.program-kegiatan-ra',
+            'Program Kegiatan',
+            'Program Kegiatan RA Fadhilah'
+        );
+    }
+
+    public function contact(): View
+    {
+        return $this->profileView(
+            SchoolContent::TYPE_PROFILE_CONTACT,
+            'profile.kontak-kami',
+            'Kontak Kami',
+            'Kontak RA Fadhilah'
+        );
     }
 
     public function achievements(): View
@@ -72,6 +124,41 @@ class PublicPageController extends Controller
         return view('public.activities', [
             'activityItems' => $this->getContents(SchoolContent::TYPE_ACTIVITY),
         ]);
+    }
+
+    public function storeTestimonial(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'testimonial' => ['required', 'string', 'max:2000'],
+            'photo' => ['nullable', 'image', 'max:4096'],
+            'website' => ['nullable', 'prohibited'],
+        ]);
+
+        $imagePath = $request->hasFile('photo')
+            ? $request->file('photo')->store('school-contents', 'public')
+            : null;
+
+        $testimonial = SchoolContent::create([
+            'type' => SchoolContent::TYPE_TESTIMONIAL,
+            'title' => $validated['name'],
+            'excerpt' => null,
+            'content' => $validated['testimonial'],
+            'image_path' => $imagePath,
+            'published_at' => now()->toDateString(),
+            'is_published' => true,
+            'sort_order' => 0,
+        ]);
+
+        if ($imagePath) {
+            $testimonial->images()->create([
+                'image_path' => $imagePath,
+                'sort_order' => 0,
+            ]);
+        }
+
+        return redirect(route('home') . '#testimoni')
+            ->with('testimonial_status', 'Terima kasih, testimoni Bunda/Ayah sudah tampil di website.');
     }
 
     public function news(): View
@@ -146,6 +233,36 @@ class PublicPageController extends Controller
         }
 
         return $query->get();
+    }
+
+    protected function profileView(string $type, string $fallbackView, string $label, string $fallbackTitle): View
+    {
+        $content = $this->getProfileContent($type);
+
+        if (! $content) {
+            return view($fallbackView);
+        }
+
+        return view('profile.dynamic', [
+            'profileContent' => $content,
+            'profileLabel' => $label,
+            'profileTitle' => $content->title ?: $fallbackTitle,
+        ]);
+    }
+
+    protected function getProfileContent(string $type): ?SchoolContent
+    {
+        if (! Schema::hasTable('school_contents')) {
+            return null;
+        }
+
+        return SchoolContent::query()
+            ->where('type', $type)
+            ->published()
+            ->orderBy('sort_order')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->first();
     }
 
     protected function getTestimonials()

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Dashboard Kepsek' }}</title>
+    <title>{{ filled($title ?? null) ? $title : 'Dashboard Kepsek' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -185,7 +185,9 @@
                         &#8801;
                     </button>
                     <div class="min-w-0">
-                        <p class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-sky-700 sm:text-sm sm:tracking-[0.2em]">{{ $title ?? 'Dashboard Kepsek' }}</p>
+                        @if (filled($title ?? null))
+                            <p class="truncate text-xs font-semibold uppercase tracking-[0.14em] text-sky-700 sm:text-sm sm:tracking-[0.2em]">{{ $title }}</p>
+                        @endif
                         <p class="mt-1 hidden truncate text-sm text-slate-500 sm:block">Portal monitoring kepala sekolah.</p>
                     </div>
                 </div>

@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\AnnualStudentCount;
+use App\Models\PpdbFormPayment;
 use App\Models\SchoolContent;
 use App\Models\StudentRegistration;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HeadmasterDashboardController extends Controller
@@ -18,10 +20,19 @@ class HeadmasterDashboardController extends Controller
         $dashboardRegistrations = StudentRegistration::query()
             ->select([
                 'id',
+                'created_at',
                 'gender',
                 'birth_date',
+                'father_job',
+                'mother_job',
+                'father_education',
+                'mother_education',
+                'father_income',
+                'mother_income',
                 'origin_region',
                 'verification_status',
+                'submitted_at',
+                'interview_selected_at',
                 'selection_result',
                 'interview_room',
                 'reregistration_status',
@@ -30,7 +41,7 @@ class HeadmasterDashboardController extends Controller
             ])
             ->get();
 
-        return view('dashboard.kepsek.home', [
+        return view('dashboard.panitia.home', [
             'stats' => [
                 'total_pendaftar' => $dashboardRegistrations->count(),
                 'berkas_menunggu' => $dashboardRegistrations->where('verification_status', 'belum_diperiksa')->count(),
@@ -40,12 +51,22 @@ class HeadmasterDashboardController extends Controller
             ],
             'chartData' => [
                 'gender' => $this->buildGenderChart($dashboardRegistrations),
+                'ageDistribution' => $this->buildAgeDistributionChart($dashboardRegistrations),
+                'motherJobs' => $this->buildSingleFieldDistributionChart($dashboardRegistrations, 'mother_job', 'pekerjaan ibu'),
+                'fatherJobs' => $this->buildSingleFieldDistributionChart($dashboardRegistrations, 'father_job', 'pekerjaan ayah'),
+                'parentIncomes' => $this->buildParentFieldDistributionChart($dashboardRegistrations, ['father_income', 'mother_income'], 'penghasilan orang tua'),
+                'parentEducations' => $this->buildParentFieldDistributionChart($dashboardRegistrations, ['father_education', 'mother_education'], 'pendidikan orang tua'),
+                'applicantStatus' => $this->buildApplicantStatusChart($dashboardRegistrations),
+                'monthlyTrend' => $this->buildMonthlyRegistrationTrend($dashboardRegistrations),
                 'verification' => $this->buildVerificationChart($dashboardRegistrations),
                 'classQuota' => $this->buildClassQuotaChart($dashboardRegistrations, $classColumns),
                 'regions' => $this->buildRegionTreemapChart($dashboardRegistrations),
                 'annualRegistrations' => $this->buildAnnualRegistrationChart(),
                 'reRegistration' => $this->buildReRegistrationChart($dashboardRegistrations),
             ],
+            'classQuota' => $this->buildClassQuotaSummary($dashboardRegistrations),
+            'summaryCards' => $this->buildDashboardSummaryCards($dashboardRegistrations),
+            'stageProgress' => $this->buildStageProgressSummary($dashboardRegistrations),
             'recentRegistrations' => StudentRegistration::with('user')
                 ->latest()
                 ->limit(5)
@@ -60,6 +81,97 @@ class HeadmasterDashboardController extends Controller
         ]);
     }
 
+    private function buildClassQuotaSummary(Collection $registrations): array
+    {
+        $capacity = 90;
+        $filled = $registrations->where('selection_result', 'lulus')->count();
+        $remaining = max($capacity - $filled, 0);
+        $percentage = $capacity > 0 ? round(($filled / $capacity) * 100, 1) : 0;
+
+        return [
+            'capacity' => $capacity,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'percentage' => $percentage,
+            'is_full' => $filled >= $capacity,
+            'academic_year' => '2026/2027',
+        ];
+    }
+
+    private function buildStageProgressSummary(Collection $registrations): array
+    {
+        $paidFormCount = PpdbFormPayment::query()
+            ->whereIn('status', ['settlement', 'capture'])
+            ->whereNotNull('paid_at')
+            ->count();
+        $completedRegistrationCount = $registrations->whereNotNull('submitted_at')->count();
+        $interviewSelectedCount = $registrations->whereNotNull('interview_selected_at')->count();
+        $acceptedCount = $registrations->where('selection_result', 'lulus')->count();
+        $paidReRegistrationCount = $registrations
+            ->filter(fn (StudentRegistration $registration) => $registration->reregistration_paid_at
+                && in_array($registration->reregistration_status, ['settlement', 'capture'], true))
+            ->count();
+        $total = max($registrations->count(), $paidFormCount, 1);
+
+        return [
+            ['label' => 'Pembelian formulir lunas', 'count' => $paidFormCount, 'percentage' => $this->calculateDashboardPercentage($paidFormCount, $total)],
+            ['label' => 'Unggah formulir dan berkas lengkap', 'count' => $completedRegistrationCount, 'percentage' => $this->calculateDashboardPercentage($completedRegistrationCount, $total)],
+            ['label' => 'Wawancara yang telah dipilih', 'count' => $interviewSelectedCount, 'percentage' => $this->calculateDashboardPercentage($interviewSelectedCount, $total)],
+            ['label' => 'Diterima', 'count' => $acceptedCount, 'percentage' => $this->calculateDashboardPercentage($acceptedCount, $total)],
+            ['label' => 'Pembayaran lunas', 'count' => $paidReRegistrationCount, 'percentage' => $this->calculateDashboardPercentage($paidReRegistrationCount, $total)],
+        ];
+    }
+
+    private function buildDashboardSummaryCards(Collection $registrations): array
+    {
+        $totalRegistrations = $registrations->count();
+        $acceptedRegistrations = $registrations->where('selection_result', 'lulus');
+        $paidAcceptedRegistrations = $acceptedRegistrations
+            ->filter(fn (StudentRegistration $registration) => $registration->reregistration_paid_at
+                && in_array($registration->reregistration_status, ['settlement', 'capture'], true));
+        $maleCount = $registrations->where('gender', 'Laki-laki')->count();
+        $femaleCount = $registrations->where('gender', 'Perempuan')->count();
+        $genderTotal = $maleCount + $femaleCount;
+        $undecidedCount = $registrations
+            ->filter(fn (StudentRegistration $registration) => blank($registration->selection_result))
+            ->count();
+
+        return [
+            'graduation' => [
+                'percentage' => $this->formatDashboardPercentage($acceptedRegistrations->count(), $totalRegistrations),
+                'detail' => "{$acceptedRegistrations->count()} dari {$totalRegistrations} pendaftar diterima",
+            ],
+            'payment' => [
+                'percentage' => $this->formatDashboardPercentage($paidAcceptedRegistrations->count(), $totalRegistrations),
+                'detail' => "{$paidAcceptedRegistrations->count()} siswa diterima sudah melunasi pembayaran",
+            ],
+            'gender' => [
+                'ratio' => "{$maleCount} : {$femaleCount}",
+                'detail' => $genderTotal > 0
+                    ? $this->formatDashboardPercentage($maleCount, $genderTotal).' laki-laki'
+                    : 'Belum ada data jenis kelamin',
+            ],
+            'undecided' => [
+                'percentage' => $this->formatDashboardPercentage($undecidedCount, $totalRegistrations),
+                'detail' => "{$undecidedCount} pendaftar belum diputuskan",
+            ],
+        ];
+    }
+
+    private function calculateDashboardPercentage(int $value, int $total): float
+    {
+        return $total <= 0 ? 0 : round(($value / $total) * 100, 1);
+    }
+
+    private function formatDashboardPercentage(int $value, int $total): string
+    {
+        $formatted = number_format($this->calculateDashboardPercentage($value, $total), 1, ',', '.');
+
+        return str_ends_with($formatted, ',0')
+            ? substr($formatted, 0, -2).'%'
+            : $formatted.'%';
+    }
+
     private function buildGenderChart(Collection $registrations): array
     {
         return [
@@ -68,6 +180,137 @@ class HeadmasterDashboardController extends Controller
                 $registrations->where('gender', 'Perempuan')->count(),
                 $registrations->where('gender', 'Laki-laki')->count(),
             ],
+        ];
+    }
+
+    private function buildAgeDistributionChart(Collection $registrations): array
+    {
+        $labels = ['4 Tahun', '5 Tahun', '< 6 Tahun', '6 Tahun'];
+        $counts = array_fill_keys($labels, 0);
+        $filledRegistrations = $registrations->filter(fn (StudentRegistration $registration) => $registration->birth_date !== null);
+
+        foreach ($filledRegistrations as $registration) {
+            $age = $registration->birth_date->age;
+
+            if ($age === 4) {
+                $counts['4 Tahun']++;
+                continue;
+            }
+
+            if ($age === 5) {
+                $counts['5 Tahun']++;
+                continue;
+            }
+
+            if ($age < 6) {
+                $counts['< 6 Tahun']++;
+                continue;
+            }
+
+            if ($age === 6) {
+                $counts['6 Tahun']++;
+            }
+        }
+
+        $total = $filledRegistrations->count();
+        $majorityLabel = collect($counts)->sortDesc()->keys()->first() ?? '< 6 Tahun';
+        $majorityCount = $counts[$majorityLabel] ?? 0;
+
+        return [
+            'labels' => array_keys($counts),
+            'series' => array_values($counts),
+            'total' => $total,
+            'note' => $total > 0
+                ? "Mayoritas usia pendaftar adalah {$majorityLabel} ({$this->formatDashboardPercentage($majorityCount, $total)} dari data terisi)."
+                : 'Usia pendaftar akan tampil setelah data tanggal lahir tersedia.',
+        ];
+    }
+
+    private function buildSingleFieldDistributionChart(Collection $registrations, string $field, string $subject): array
+    {
+        $values = $registrations
+            ->map(fn (StudentRegistration $registration) => $this->normalizeDashboardLabel($registration->{$field} ?? null))
+            ->filter()
+            ->values();
+
+        return $this->buildDistributionPayload($values, $subject);
+    }
+
+    private function buildParentFieldDistributionChart(Collection $registrations, array $fields, string $subject): array
+    {
+        $values = $registrations
+            ->flatMap(fn (StudentRegistration $registration) => collect($fields)
+                ->map(fn (string $field) => $this->normalizeDashboardLabel($registration->{$field} ?? null)))
+            ->filter()
+            ->values();
+
+        return $this->buildDistributionPayload($values, $subject);
+    }
+
+    private function buildDistributionPayload(Collection $values, string $subject): array
+    {
+        $counts = $values->countBy()->sortDesc();
+        $total = $values->count();
+        $majorityLabel = $counts->keys()->first() ?? '-';
+        $majorityCount = (int) ($counts->first() ?? 0);
+
+        return [
+            'labels' => $counts->keys()->values()->all(),
+            'series' => $counts->values()->map(fn ($count) => (int) $count)->all(),
+            'total' => $total,
+            'note' => $total > 0
+                ? "Mayoritas pada {$subject} pendaftar adalah {$majorityLabel} ({$this->formatDashboardPercentage($majorityCount, $total)} dari data terisi)."
+                : "Data {$subject} akan tampil setelah biodata orang tua terisi.",
+        ];
+    }
+
+    private function normalizeDashboardLabel(?string $value): ?string
+    {
+        $normalized = trim((string) $value);
+
+        return $normalized === ''
+            ? null
+            : Str::headline(str_replace(['_', '-'], ' ', $normalized));
+    }
+
+    private function buildApplicantStatusChart(Collection $registrations): array
+    {
+        $accepted = $registrations->where('selection_result', 'lulus')->count();
+        $rejected = $registrations
+            ->filter(fn (StudentRegistration $registration) => $registration->selection_result === 'tidak_lulus'
+                || $registration->verification_status === 'ditolak')
+            ->count();
+        $waiting = max($registrations->count() - $accepted - $rejected, 0);
+
+        return [
+            'labels' => ['Diterima', 'Menunggu', 'Ditolak'],
+            'series' => [$accepted, $waiting, $rejected],
+            'note' => "Diterima {$accepted}, menunggu {$waiting}, ditolak {$rejected} pendaftar.",
+        ];
+    }
+
+    private function buildMonthlyRegistrationTrend(Collection $registrations): array
+    {
+        $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $counts = array_fill(1, 12, 0);
+
+        foreach ($registrations as $registration) {
+            if ($registration->created_at) {
+                $counts[(int) $registration->created_at->format('n')]++;
+            }
+        }
+
+        $series = array_values($counts);
+        $peakCount = max($series);
+        $peakIndex = array_search($peakCount, $series, true);
+        $peakMonth = $peakIndex === false ? '-' : $monthLabels[$peakIndex];
+
+        return [
+            'labels' => $monthLabels,
+            'series' => $series,
+            'note' => $peakCount > 0
+                ? "Puncak pendaftaran terjadi pada bulan {$peakMonth} dengan {$peakCount} pendaftar."
+                : 'Tren pendaftaran bulanan akan tampil setelah data pendaftar tersedia.',
         ];
     }
 
@@ -102,12 +345,7 @@ class HeadmasterDashboardController extends Controller
 
     private function buildClassQuotaChart(Collection $registrations, array $classColumns): array
     {
-        $distribution = [
-            'A' => 0,
-            'B1' => 0,
-            'B2' => 0,
-            'B3' => 0,
-        ];
+        $distribution = ['A' => 0, 'B1' => 0, 'B2' => 0, 'B3' => 0];
 
         foreach ($registrations as $registration) {
             $distribution[$this->resolveClassLabel($registration, $classColumns)]++;
@@ -170,23 +408,16 @@ class HeadmasterDashboardController extends Controller
         return [
             'labels' => array_map(fn (int $year) => (string) $year, $years),
             'series' => array_map(function (int $year) use ($manualCounts, $systemCounts) {
-                if ($year >= 2026) {
-                    return $systemCounts[$year] ?? 0;
-                }
-
-                return (int) ($manualCounts[$year] ?? 0);
+                return $year >= 2026
+                    ? ($systemCounts[$year] ?? 0)
+                    : (int) ($manualCounts[$year] ?? 0);
             }, $years),
         ];
     }
 
     private function getStudentClassColumns(): array
     {
-        return collect([
-            'class_name',
-            'class_group',
-            'assigned_class',
-            'target_class',
-        ])
+        return collect(['class_name', 'class_group', 'assigned_class', 'target_class'])
             ->filter(fn (string $column) => Schema::hasColumn('student_registrations', $column))
             ->values()
             ->all();

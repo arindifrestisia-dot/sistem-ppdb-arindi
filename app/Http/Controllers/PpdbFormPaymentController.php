@@ -76,6 +76,8 @@ class PpdbFormPaymentController extends Controller
             return response()->json([
                 'status' => 'pending',
                 'snap_token' => $payment->snap_token,
+                'order_id' => $payment->order_id,
+                'payment_method_label' => $this->getPaymentMethodLabel($payment),
             ]);
         }
 
@@ -99,6 +101,8 @@ class PpdbFormPaymentController extends Controller
             'status' => 'pending',
             'snap_token' => $payment->snap_token,
             'redirect_url' => $payment->snap_redirect_url,
+            'order_id' => $payment->order_id,
+            'payment_method_label' => $this->getPaymentMethodLabel($payment),
         ]);
     }
 
@@ -154,6 +158,10 @@ class PpdbFormPaymentController extends Controller
             Storage::disk('public')->delete($oldProof);
         }
 
+        if ($request->hasFile('proof')) {
+            $this->notifications->send('form_payment_proof_uploaded', $request->user(), $request->user()->studentRegistration);
+        }
+
         return back()->with('status', 'Pembayaran berhasil dikirim dan sedang menunggu verifikasi panitia.');
     }
 
@@ -184,6 +192,8 @@ class PpdbFormPaymentController extends Controller
         return response()->json([
             'status' => $payment->status,
             'paid' => $payment->isPaid(),
+            'order_id' => $payment->order_id,
+            'payment_method_label' => $this->getPaymentMethodLabel($payment),
         ]);
     }
 

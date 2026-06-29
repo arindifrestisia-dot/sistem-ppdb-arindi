@@ -54,7 +54,7 @@
                                 <div class="mt-8 grid gap-4 md:grid-cols-3">
                                     <div class="rounded-3xl bg-blue-50 p-5">
                                         <p class="text-sm font-semibold text-blue-700">1. Bayar</p>
-                                        <p class="mt-2 text-sm leading-6 text-slate-600">Bayar melalui Snap Midtrans, Transfer rekening atau Cash ke sekolah. Status lunas terverifikasi otomatis tanpa upload bukti.</p>
+                                        <p class="mt-2 text-sm leading-6 text-slate-600" id="paymentMethodGuide">Bayar melalui Snap Midtrans, transfer BRI/DANA, atau cash ke sekolah. Pembayaran manual akan diverifikasi panitia.</p>
                                     </div>
                                     <div class="rounded-3xl bg-emerald-50 p-5">
                                         <p class="text-sm font-semibold text-emerald-700">2. Isi Formulir</p>
@@ -82,11 +82,11 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-4 border-b border-white/15 pb-4">
                                         <span class="text-sky-100">Metode Pembayaran</span>
-                                        <span class="text-right font-semibold">{{ $formPaymentMethodLabel }}</span>
+                                        <span class="text-right font-semibold" id="summaryPaymentMethod">{{ $formPaymentMethodLabel }}</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-4">
                                         <span class="text-sky-100">Order ID</span>
-                                        <span class="text-right text-xs font-semibold">{{ $payment?->order_id ?: 'Dibuat saat bayar' }}</span>
+                                        <span class="text-right text-xs font-semibold" id="summaryOrderId">{{ $payment?->order_id ?: 'Dibuat saat bayar' }}</span>
                                     </div>
                                 </div>
                             </aside>
@@ -165,6 +165,23 @@
             const payFormButton = document.getElementById('payFormButton');
             const formPaymentMessage = document.getElementById('formPaymentMessage');
             const formPaymentStatusLabel = document.getElementById('formPaymentStatusLabel');
+            const summaryPaymentMethod = document.getElementById('summaryPaymentMethod');
+            const summaryOrderId = document.getElementById('summaryOrderId');
+            const paymentMethodGuide = document.getElementById('paymentMethodGuide');
+
+            window.updateFormPaymentSummary = (methodLabel, orderId = null, guide = null) => {
+                if (summaryPaymentMethod) {
+                    summaryPaymentMethod.textContent = methodLabel;
+                }
+
+                if (summaryOrderId && orderId) {
+                    summaryOrderId.textContent = orderId;
+                }
+
+                if (paymentMethodGuide && guide) {
+                    paymentMethodGuide.textContent = guide;
+                }
+            };
 
             const setFormPaymentMessage = (message, tone = 'slate') => {
                 formPaymentMessage.textContent = message;
@@ -191,6 +208,7 @@
                 const data = await response.json();
 
                 if (data.paid) {
+                    window.updateFormPaymentSummary(data.payment_method_label || 'Midtrans Sandbox', data.order_id);
                     formPaymentStatusLabel.textContent = 'Pembayaran formulir lunas';
                     formPaymentStatusLabel.className = 'mt-2 text-2xl font-bold text-emerald-600';
                     payFormButton.disabled = true;
@@ -201,6 +219,11 @@
 
             payFormButton?.addEventListener('click', async () => {
                 payFormButton.disabled = true;
+                window.updateFormPaymentSummary(
+                    'Midtrans Sandbox',
+                    null,
+                    'Bayar melalui Snap Midtrans. Status lunas akan tersinkron otomatis setelah transaksi berhasil.'
+                );
                 setFormPaymentMessage('Menyiapkan transaksi Midtrans sandbox...');
 
                 try {
@@ -223,6 +246,8 @@
                         window.location.reload();
                         return;
                     }
+
+                    window.updateFormPaymentSummary(data.payment_method_label || 'Midtrans Sandbox', data.order_id);
 
                     window.snap.pay(data.snap_token, {
                         onSuccess: syncFormPaymentStatus,
@@ -251,6 +276,47 @@
         const formPaymentProofBox = document.getElementById('formPaymentProofBox');
         const formPaymentProof = document.getElementById('formPaymentProof');
 
+        if (! window.updateFormPaymentSummary) {
+            window.updateFormPaymentSummary = (methodLabel, orderId = null, guide = null) => {
+                const summaryPaymentMethod = document.getElementById('summaryPaymentMethod');
+                const summaryOrderId = document.getElementById('summaryOrderId');
+                const paymentMethodGuide = document.getElementById('paymentMethodGuide');
+
+                if (summaryPaymentMethod) {
+                    summaryPaymentMethod.textContent = methodLabel;
+                }
+
+                if (summaryOrderId && orderId) {
+                    summaryOrderId.textContent = orderId;
+                }
+
+                if (paymentMethodGuide && guide) {
+                    paymentMethodGuide.textContent = guide;
+                }
+            };
+        }
+
+        const updateManualPaymentSummary = () => {
+            if (! formPaymentMethod) {
+                return;
+            }
+
+            if (formPaymentMethod.value === 'cash') {
+                window.updateFormPaymentSummary(
+                    'Cash ke Sekolah',
+                    null,
+                    'Bayar cash langsung ke sekolah. Status pembayaran akan lunas setelah diverifikasi panitia.'
+                );
+                return;
+            }
+
+            window.updateFormPaymentSummary(
+                'Transfer BRI / DANA',
+                null,
+                'Bayar melalui transfer BRI atau DANA, lalu unggah bukti pembayaran untuk diverifikasi panitia.'
+            );
+        };
+
         const toggleFormPaymentProof = () => {
             const shouldShowProof = formPaymentMethod?.value !== 'cash';
 
@@ -262,6 +328,8 @@
                     formPaymentProof.value = '';
                 }
             }
+
+            updateManualPaymentSummary();
         };
 
         formPaymentMethod?.addEventListener('change', toggleFormPaymentProof);

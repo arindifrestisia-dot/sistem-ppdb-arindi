@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class PanitiaFinanceController extends Controller
 {
     private const FORM_PAYMENT_AMOUNT = 150000;
-    private const REREGISTRATION_AMOUNT = 2500000;
+    private const REREGISTRATION_AMOUNT = 1550000;
 
     public function __construct(private readonly PpdbNotificationService $notifications)
     {
@@ -54,33 +54,65 @@ class PanitiaFinanceController extends Controller
     {
         abort_unless($registration->selection_result === 'lulus', 404);
         abort_if($registration->reregistration_payment_type === 'midtrans', 422);
+        abort_unless($registration->reregistration_status === 'manual_pending', 422);
 
-        if (! $registration->reregistration_paid_at) {
+        if (! $this->isReRegistrationFullyPaid($registration)) {
+            $verifiedAt = now();
+            $this->recordReRegistrationInstallmentPayment(
+                $registration,
+                $registration->reregistration_order_id,
+                $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT),
+                $registration->reregistration_payment_type ?: 'manual_cash',
+                $verifiedAt
+            );
+
+            $isFullyPaid = $this->isReRegistrationFullyPaid($registration);
+
             $registration->forceFill([
-                'reregistration_status' => 'settlement',
+                'reregistration_status' => $isFullyPaid ? 'settlement' : 'installment_partial',
                 'reregistration_payment_type' => $registration->reregistration_payment_type ?: 'manual_cash',
                 'reregistration_amount' => $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT),
-                'reregistration_paid_at' => now(),
+                'reregistration_paid_at' => $isFullyPaid ? $verifiedAt : null,
                 'reregistration_verified_by' => $request->user()->id,
-                'reregistration_verified_at' => now(),
+                'reregistration_verified_at' => $verifiedAt,
+                'reregistration_order_id' => $isFullyPaid ? $registration->reregistration_order_id : null,
+                'reregistration_proof_path' => $registration->reregistration_proof_path,
             ])->save();
 
-            $this->notifications->send('re_registration_approved', $registration->user, $registration);
-            $this->notifications->send('student_officially_registered', $registration->user, $registration);
+            if ($isFullyPaid) {
+                $this->notifications->send('re_registration_approved', $registration->user, $registration);
+                $this->notifications->send('student_officially_registered', $registration->user, $registration);
+            }
         }
 
         return back()->with('status', 'Pembayaran daftar ulang berhasil diverifikasi.');
     }
 
-    public function reRegistrationProof(StudentRegistration $registration): BinaryFileResponse
+    public function reRegistrationProof(Request $request, StudentRegistration $registration): BinaryFileResponse
     {
+        $proofPath = $registration->reregistration_proof_path;
+
+        if ($request->filled('termin')) {
+            $termin = (int) $request->integer('termin');
+            $installment = collect(data_get($registration->custom_form_data ?? [], 'reregistration_paid_installments', []))
+                ->firstWhere('installment', $termin);
+            $proofPath = $installment['proof_path'] ?? null;
+
+            if (! $proofPath && $registration->reregistration_status === 'manual_pending') {
+                $status = $this->getReRegistrationInstallmentStatus($registration);
+
+                if ($status['current_installment'] === $termin) {
+                    $proofPath = $registration->reregistration_proof_path;
+                }
+            }
+        }
+
         abort_unless(
-            $registration->reregistration_proof_path
-                && Storage::disk('public')->exists($registration->reregistration_proof_path),
+            $proofPath && Storage::disk('public')->exists($proofPath),
             404
         );
 
-        return response()->file(Storage::disk('public')->path($registration->reregistration_proof_path));
+        return response()->file(Storage::disk('public')->path($proofPath));
     }
 
     public function formPayments(Request $request): View
@@ -371,7 +403,7 @@ class PanitiaFinanceController extends Controller
         $paymentTypeKey = str_starts_with((string) $registration->reregistration_payment_type, 'manual_')
             ? $registration->reregistration_payment_type
             : 'midtrans';
-        $statusKey = $registration->reregistration_paid_at && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+        $statusKey = $this->isReRegistrationFullyPaid($registration) && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
             ? 'lunas'
             : 'belum_lunas';
         $installments = $this->buildInstallments($registration, $paymentTypeKey, $statusKey);
@@ -405,15 +437,116 @@ class PanitiaFinanceController extends Controller
 
     private function buildInstallments(StudentRegistration $registration, string $paymentTypeKey, string $statusKey): array
     {
+        $status = $this->getReRegistrationInstallmentStatus($registration);
+
+        return collect($status['amounts'])
+            ->map(function (int $amount, int $index) use ($status, $registration) {
+                $installmentNumber = $index + 1;
+                $paidItem = collect($status['paid_items'])->firstWhere('installment', $installmentNumber);
+                $isCurrentPending = $registration->reregistration_status === 'manual_pending'
+                    && $status['current_installment'] === $installmentNumber;
+                $proofPath = $paidItem['proof_path'] ?? ($isCurrentPending ? $registration->reregistration_proof_path : null);
+
+                return [
+                    'label' => 'Termin ' . $installmentNumber . '/' . $status['total_installments'],
+                    'tone' => $paidItem ? 'emerald' : ($isCurrentPending ? 'amber' : 'slate'),
+                    'installment' => $installmentNumber,
+                    'proof_path' => $proofPath,
+                    'is_paid' => (bool) $paidItem,
+                    'is_pending_verification' => $isCurrentPending,
+                    'can_verify' => $isCurrentPending && $registration->reregistration_payment_type !== 'midtrans',
+                    'text' => $paidItem
+                        ? 'Lunas ' . $this->formatCurrency((int) ($paidItem['amount'] ?? $amount))
+                        : ($isCurrentPending ? 'Menunggu Verifikasi' : 'Belum Dibayar'),
+                ];
+            })
+            ->all();
+    }
+
+    private function getReRegistrationPaymentPlans(): array
+    {
+        $total = (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT);
+
         return [
-            [
-                'label' => $statusKey === 'lunas' ? 'Lunas' : 'Menunggu',
-                'tone' => $statusKey === 'lunas' ? 'emerald' : 'amber',
-                'text' => $statusKey === 'lunas'
-                    ? 'Dibayar pada ' . optional($registration->reregistration_paid_at)->translatedFormat('j M Y')
-                    : 'Belum ada pembayaran berhasil',
-            ],
+            'full' => ['name' => 'Lunas', 'installments' => 1, 'amounts' => [$total]],
+            'installment_2' => ['name' => 'Cicilan 2x', 'installments' => 2, 'amounts' => [775000, 775000]],
+            'installment_3' => ['name' => 'Cicilan 3x', 'installments' => 3, 'amounts' => [518000, 518000, 514000]],
         ];
+    }
+
+    private function getSelectedReRegistrationPlan(StudentRegistration $registration): string
+    {
+        $plan = data_get($registration->custom_form_data, 'reregistration_plan');
+
+        return array_key_exists($plan, $this->getReRegistrationPaymentPlans()) ? $plan : 'full';
+    }
+
+    private function getReRegistrationInstallmentStatus(StudentRegistration $registration): array
+    {
+        $plans = $this->getReRegistrationPaymentPlans();
+        $plan = $plans[$this->getSelectedReRegistrationPlan($registration)];
+        $paidInstallments = data_get($registration->custom_form_data ?? [], 'reregistration_paid_installments', []);
+        $paidInstallments = is_array($paidInstallments) ? $paidInstallments : [];
+
+        if (
+            $paidInstallments === []
+            && $registration->reregistration_paid_at
+            && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+        ) {
+            $paidInstallments[] = [
+                'installment' => 1,
+                'amount' => $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', self::REREGISTRATION_AMOUNT),
+                'method' => $registration->reregistration_payment_type ?: 'midtrans',
+                'order_id' => $registration->reregistration_order_id,
+                'proof_path' => $registration->reregistration_proof_path,
+                'paid_at' => $registration->reregistration_paid_at->toDateTimeString(),
+            ];
+        }
+
+        $paidCount = count($paidInstallments);
+
+        return [
+            'total_installments' => $plan['installments'],
+            'paid_installments' => $paidCount,
+            'current_installment' => min($paidCount + 1, $plan['installments']),
+            'is_fully_paid' => $paidCount >= $plan['installments'],
+            'paid_items' => $paidInstallments,
+            'amounts' => $plan['amounts'],
+        ];
+    }
+
+    private function isReRegistrationFullyPaid(StudentRegistration $registration): bool
+    {
+        return $this->getReRegistrationInstallmentStatus($registration)['is_fully_paid'];
+    }
+
+    private function recordReRegistrationInstallmentPayment(
+        StudentRegistration $registration,
+        ?string $orderId,
+        int $amount,
+        string $method,
+        Carbon $paidAt
+    ): void {
+        $customData = $registration->custom_form_data ?? [];
+        $paidInstallments = data_get($customData, 'reregistration_paid_installments', []);
+        $paidInstallments = is_array($paidInstallments) ? $paidInstallments : [];
+
+        if ($orderId && collect($paidInstallments)->contains(fn (array $item) => ($item['order_id'] ?? null) === $orderId)) {
+            return;
+        }
+
+        $paidInstallments[] = [
+            'installment' => count($paidInstallments) + 1,
+            'amount' => $amount,
+            'method' => $method,
+            'order_id' => $orderId,
+            'proof_path' => $registration->reregistration_proof_path,
+            'paid_at' => $paidAt->toDateTimeString(),
+        ];
+
+        $customData['reregistration_paid_installments'] = $paidInstallments;
+        $customData['reregistration_current_installment'] = count($paidInstallments) + 1;
+        $registration->custom_form_data = $customData;
     }
 
     private function resolveFormNumber(StudentRegistration $registration): string

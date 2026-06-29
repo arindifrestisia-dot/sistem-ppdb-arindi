@@ -41,6 +41,7 @@
                     <div class="mt-8 flex flex-wrap justify-center gap-3">
                         <span class="rounded-full bg-lime-100 px-4 py-2 text-sm font-semibold text-lime-700">✓ Formulir Aktif</span>
                         <span class="rounded-full bg-lime-100 px-4 py-2 text-sm font-semibold text-lime-700">✓ Pembayaran Lunas</span>
+                        <span class="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">• Pilih Jadwal Wawancara</span>
                         <span class="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">• Menunggu Verifikasi Berkas</span>
                     </div>
 

@@ -137,18 +137,40 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-5">
-                                    <div class="flex min-w-40 flex-col gap-2">
-                                        @if ($record->reregistration_proof_path)
-                                            <a href="{{ route('panitia.finances.re-registrations.proof', $record) }}" target="_blank" class="font-semibold text-sky-600 hover:underline">Lihat Bukti</a>
-                                        @else
-                                            <span class="text-xs text-slate-400">Tidak ada bukti</span>
-                                        @endif
-                                        @if (! $record->reregistration_paid_at && $record->reregistration_payment_type !== 'midtrans')
-                                            <form method="POST" action="{{ route('panitia.finances.re-registrations.verify', $record) }}" onsubmit="return confirm('Verifikasi pembayaran daftar ulang ini?');">
-                                                @csrf @method('PATCH')
-                                                <button class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Verifikasi Lunas</button>
-                                            </form>
-                                        @endif
+                                    <div class="flex min-w-48 flex-col gap-3">
+                                        @foreach ($record->display_installments as $installment)
+                                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                                <p class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">{{ $installment['label'] }}</p>
+                                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                                    @if (! empty($installment['proof_path']))
+                                                        <a
+                                                            href="{{ route('panitia.finances.re-registrations.proof', ['registration' => $record, 'termin' => $installment['installment']]) }}"
+                                                            target="_blank"
+                                                            class="rounded-xl bg-sky-100 px-3 py-2 text-xs font-bold text-sky-700 hover:bg-sky-200"
+                                                        >
+                                                            Lihat Bukti
+                                                        </a>
+                                                    @elseif (! empty($installment['can_verify']))
+                                                        <span class="rounded-xl bg-amber-100 px-3 py-2 text-xs font-bold text-amber-700">Tanpa bukti/cash</span>
+                                                    @else
+                                                        <span class="text-xs text-slate-400">Tidak ada bukti</span>
+                                                    @endif
+
+                                                    @if (! empty($installment['is_paid']))
+                                                        <span class="rounded-xl bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700">Terverifikasi</span>
+                                                    @elseif (! empty($installment['is_pending_verification']))
+                                                        <span class="rounded-xl bg-amber-100 px-3 py-2 text-xs font-bold text-amber-700">Menunggu Verifikasi</span>
+                                                    @endif
+                                                </div>
+
+                                                @if (! empty($installment['can_verify']))
+                                                    <form class="mt-2" method="POST" action="{{ route('panitia.finances.re-registrations.verify', $record) }}" onsubmit="return confirm('Verifikasi pembayaran {{ $installment['label'] }}?');">
+                                                        @csrf @method('PATCH')
+                                                        <button class="w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700">Verifikasi {{ $installment['label'] }}</button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </td>
                             </tr>

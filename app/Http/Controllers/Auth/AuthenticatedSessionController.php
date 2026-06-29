@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\PpdbNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        if ($request->user()?->isParent()) {
+            app(PpdbNotificationService::class)->send('login_success', $request->user(), data: [
+                'deduplication_suffix' => now()->format('YmdHis'),
+            ]);
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

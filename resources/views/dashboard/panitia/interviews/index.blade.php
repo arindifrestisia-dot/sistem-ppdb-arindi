@@ -20,7 +20,13 @@
             </div>
         @endif
 
-        <div class="grid gap-5 md:grid-cols-3">
+        @if (session('status'))
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-[1.75rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <p class="text-sm font-medium text-slate-400">Total Siap Wawancara</p>
                 <p class="mt-2 text-5xl font-extrabold text-slate-950">{{ $stats['total'] }}</p>
@@ -34,6 +40,11 @@
             <article class="rounded-[1.75rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <p class="text-sm font-medium text-slate-400">Belum Memilih Jadwal</p>
                 <p class="mt-2 text-5xl font-extrabold text-amber-700">{{ $stats['waiting'] }}</p>
+            </article>
+
+            <article class="rounded-[1.75rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="text-sm font-medium text-slate-400">Sudah Selesai Wawancara</p>
+                <p class="mt-2 text-5xl font-extrabold text-blue-700">{{ $stats['completed'] }}</p>
             </article>
         </div>
 
@@ -102,6 +113,16 @@
                                     <span class="inline-flex rounded-full px-3 py-1 text-sm font-semibold {{ $badgeClasses }}">
                                         {{ $registration->display_interview_status_label }}
                                     </span>
+                                    @if ($registration->interview_selected_at)
+                                        @php
+                                            $completionClasses = $registration->display_interview_completion_tone === 'blue'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'bg-slate-100 text-slate-600';
+                                        @endphp
+                                        <span class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $completionClasses }}">
+                                            {{ $registration->display_interview_completion_label }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-5 text-slate-700">
                                     @if ($registration->interview_selected_at)
@@ -120,9 +141,32 @@
                                 </td>
                                 <td class="px-6 py-5">
                                     @if ($registration->interview_selected_at)
-                                        <span class="inline-flex rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
-                                            Tidak dapat diubah
-                                        </span>
+                                        <div class="space-y-3">
+                                            <span class="inline-flex rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+                                                Jadwal tidak dapat diubah
+                                            </span>
+
+                                            <form method="POST" action="{{ route('panitia.interviews.status.update', $registration) }}" class="space-y-2">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="q" value="{{ $search }}">
+                                                <input type="hidden" name="status" value="{{ $status }}">
+                                                <input type="hidden" name="ta" value="{{ $academicYear }}">
+                                                <input type="hidden" name="page" value="{{ $registrations->currentPage() }}">
+                                                <input type="hidden" name="interview_status" value="{{ $registration->interview_completed_at ? 'belum_selesai' : 'selesai' }}">
+
+                                                @if ($registration->interview_completed_at)
+                                                    <p class="text-xs text-slate-500">Selesai pada {{ $registration->interview_completed_at->format('d-m-Y H:i') }} WIB</p>
+                                                    <button type="submit" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                                                        Tandai Belum Selesai
+                                                    </button>
+                                                @else
+                                                    <button type="submit" class="rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800">
+                                                        Tandai Selesai Wawancara
+                                                    </button>
+                                                @endif
+                                            </form>
+                                        </div>
                                     @else
                                         <form method="POST" action="{{ route('panitia.interviews.assign', $registration) }}" class="space-y-3">
                                             @csrf

@@ -15,6 +15,13 @@ class SchoolContent extends Model
     public const TYPE_ACTIVITY = 'kegiatan';
     public const TYPE_TEACHER = 'tenaga_pendidik';
     public const TYPE_TESTIMONIAL = 'testimoni';
+    public const TYPE_PROFILE_LOGO = 'profil_logo';
+    public const TYPE_PROFILE_NAME = 'profil_nama_sekolah';
+    public const TYPE_PROFILE_GREETING = 'profil_kata_sambutan';
+    public const TYPE_PROFILE_VISION = 'profil_visi_misi';
+    public const TYPE_PROFILE_HISTORY = 'profil_sejarah';
+    public const TYPE_PROFILE_PROGRAM = 'profil_program_kegiatan';
+    public const TYPE_PROFILE_CONTACT = 'profil_kontak';
 
     protected $fillable = [
         'type',
@@ -58,5 +65,23 @@ class SchoolContent extends Model
             self::TYPE_TEACHER => 'Tenaga Pendidik',
             self::TYPE_TESTIMONIAL => 'Testimoni',
         ];
+    }
+
+    public static function profileTypeOptions(): array
+    {
+        return [
+            self::TYPE_PROFILE_LOGO => 'Logo',
+            self::TYPE_PROFILE_NAME => 'Nama Sekolah',
+            self::TYPE_PROFILE_GREETING => 'Kata Sambutan',
+            self::TYPE_PROFILE_VISION => 'Visi Misi & Strategi Pembelajaran',
+            self::TYPE_PROFILE_HISTORY => 'Sejarah',
+            self::TYPE_PROFILE_PROGRAM => 'Program Kegiatan RA Fadhilah',
+            self::TYPE_PROFILE_CONTACT => 'Kontak Kami',
+        ];
+    }
+
+    public static function allTypeOptions(): array
+    {
+        return self::typeOptions() + self::profileTypeOptions();
     }
 }

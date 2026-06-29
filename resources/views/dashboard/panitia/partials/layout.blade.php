@@ -20,6 +20,7 @@
             ?: ($contentRouteModel?->type ?? null)
             ?: \App\Models\SchoolContent::TYPE_INFORMATION;
         $contentMenuItems = \App\Models\SchoolContent::typeOptions();
+        $profileMenuItems = \App\Models\SchoolContent::profileTypeOptions();
         $activeStudentSegment = request()->query('segment', 'saat_ini');
         $studentMenuItems = [
             'saat_ini' => 'Siswa Aktif',
@@ -145,10 +146,9 @@
         $isParentFormFieldsActive = request()->routeIs('panitia.parent-form-fields.*');
         $isFinanceFormPaymentsActive = request()->routeIs('panitia.finances.form-payments.*');
         $isFinanceReRegistrationsActive = request()->routeIs('panitia.finances.re-registrations.*');
-        $isSchoolInformationActive = request()->routeIs('panitia.banners.*', 'panitia.contents.*');
+        $isSchoolInformationActive = request()->routeIs('panitia.banners.*', 'panitia.contents.*', 'panitia.parent-form-fields.*');
         $isStudentDataActive = request()->routeIs('panitia.registrations.*');
         $isFormMenuActive = $isInterviewMenuActive
-            || $isParentFormFieldsActive
             || $isFinanceFormPaymentsActive
             || $isFinanceReRegistrationsActive;
     @endphp
@@ -216,6 +216,40 @@
                                 <span>{{ $label }}</span>
                             </a>
                         @endforeach
+                        <details class="group/profile rounded-2xl bg-slate-900/30" {{ array_key_exists($activeContentType, $profileMenuItems) ? 'open' : '' }}>
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-slate-200 transition hover:bg-slate-800 [&::-webkit-details-marker]:hidden">
+                                <span class="flex items-center gap-3">
+                                    {!! $sidebarIcon('informasi') !!}
+                                    <span>Profil Sekolah</span>
+                                </span>
+                                <svg class="h-4 w-4 transition-transform duration-200 group-open/profile:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="m6 9 6 6 6-6"></path>
+                                </svg>
+                            </summary>
+                            <div class="space-y-1 pb-2 pl-6 pr-2">
+                                @foreach ($profileMenuItems as $typeKey => $label)
+                                    <a
+                                        href="{{ route('panitia.contents.index', ['type' => $typeKey]) }}"
+                                        class="block rounded-2xl px-4 py-2 text-sm {{ request()->routeIs('panitia.contents.*') && $activeContentType === $typeKey ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}"
+                                    >
+                                        {{ $label }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </details>
+                        <a
+                            href="{{ route('panitia.parent-form-fields.index') }}"
+                            class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isParentFormFieldsActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
+                        >
+                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 3h6"></path>
+                                <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h8"></path>
+                                <path d="M8 17h5"></path>
+                            </svg>
+                            <span>Formulir Orang Tua</span>
+                        </a>
                     </div>
                 </details>
 
@@ -261,20 +295,6 @@
                                 <path d="M15 14h.01"></path>
                             </svg>
                             <span>Jadwal Wawancara</span>
-                        </a>
-
-                        <a
-                            href="{{ route('panitia.parent-form-fields.index') }}"
-                            class="flex items-center gap-3 rounded-2xl px-4 py-3 {{ $isParentFormFieldsActive ? 'bg-slate-800 text-amber-300 ring-1 ring-amber-300/30' : 'text-slate-200 hover:bg-slate-800' }}"
-                        >
-                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 3h6"></path>
-                                <rect x="5" y="3" width="14" height="18" rx="2"></rect>
-                                <path d="M8 9h8"></path>
-                                <path d="M8 13h8"></path>
-                                <path d="M8 17h5"></path>
-                            </svg>
-                            <span>Formulir Orang Tua</span>
                         </a>
 
                         <a

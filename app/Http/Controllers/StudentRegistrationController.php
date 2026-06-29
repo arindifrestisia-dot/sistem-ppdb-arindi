@@ -392,7 +392,7 @@ class StudentRegistrationController extends Controller
 
         return view('dashboard.panel-ortu.daftar-ulang', [
             'registration' => $registration,
-            'reRegistrationAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1500000)),
+            'reRegistrationAmountLabel' => $this->formatCurrency((int) config('ppdb_notifications.amounts.re_registration', 1550000)),
             'reRegistrationDeadline' => $registration?->selection_published_at
                 ? $registration->selection_published_at->copy()->addDays((int) config('ppdb_notifications.deadlines.re_registration_days', 7))
                 : null,
@@ -400,6 +400,9 @@ class StudentRegistrationController extends Controller
             'midtransClientKey' => (string) config('services.midtrans.client_key'),
             'isMidtransConfigured' => $this->midtrans->isConfigured(),
             'isReRegistrationPaid' => $this->isReRegistrationPaid($registration),
+            'reRegistrationPaymentPlans' => $this->getReRegistrationPaymentPlans(),
+            'selectedReRegistrationPlan' => $this->getSelectedReRegistrationPlan($registration),
+            'reRegistrationInstallmentStatus' => $this->getReRegistrationInstallmentStatus($registration),
         ]);
     }
 
@@ -427,9 +430,15 @@ class StudentRegistrationController extends Controller
             return response()->json(['message' => 'Konfigurasi Midtrans sandbox belum lengkap.'], 422);
         }
 
-        $amount = (int) config('ppdb_notifications.amounts.re_registration', 1500000);
+        $validated = $request->validate([
+            'payment_plan' => ['required', Rule::in(array_keys($this->getReRegistrationPaymentPlans()))],
+        ]);
 
-        if (! $registration->reregistration_order_id || in_array($registration->reregistration_status, ['deny', 'cancel', 'expire', 'failure'], true)) {
+        $this->saveReRegistrationPlan($registration, $validated['payment_plan']);
+
+        $amount = $this->getCurrentReRegistrationPaymentAmount($registration);
+
+        if (! $registration->reregistration_order_id || in_array($registration->reregistration_status, ['deny', 'cancel', 'expire', 'failure', 'installment_partial'], true)) {
             $registration->forceFill([
                 'reregistration_order_id' => $this->generateReRegistrationOrderId($registration),
                 'reregistration_snap_token' => null,
@@ -443,6 +452,10 @@ class StudentRegistrationController extends Controller
             return response()->json([
                 'status' => 'pending',
                 'snap_token' => $registration->reregistration_snap_token,
+                'order_id' => $registration->reregistration_order_id,
+                'payment_method_label' => $this->getReRegistrationPaymentMethodLabel($registration),
+                'payment_plan_label' => $this->getSelectedReRegistrationPlanDefinition($registration)['name'],
+                'installment_status' => $this->getReRegistrationInstallmentStatus($registration),
             ]);
         }
 
@@ -464,6 +477,10 @@ class StudentRegistrationController extends Controller
             'status' => 'pending',
             'snap_token' => $registration->reregistration_snap_token,
             'redirect_url' => $registration->reregistration_snap_redirect_url,
+            'order_id' => $registration->reregistration_order_id,
+            'payment_method_label' => $this->getReRegistrationPaymentMethodLabel($registration),
+            'payment_plan_label' => $this->getSelectedReRegistrationPlanDefinition($registration)['name'],
+            'installment_status' => $this->getReRegistrationInstallmentStatus($registration),
         ]);
     }
 
@@ -487,6 +504,10 @@ class StudentRegistrationController extends Controller
         return response()->json([
             'status' => $registration->reregistration_status,
             'paid' => $this->isReRegistrationPaid($registration),
+            'order_id' => $registration->reregistration_order_id,
+            'payment_method_label' => $this->getReRegistrationPaymentMethodLabel($registration),
+            'payment_plan_label' => $this->getSelectedReRegistrationPlanDefinition($registration)['name'],
+            'installment_status' => $this->getReRegistrationInstallmentStatus($registration),
         ]);
     }
 
@@ -509,6 +530,7 @@ class StudentRegistrationController extends Controller
         }
 
         $validated = $request->validate([
+            'payment_plan' => ['required', Rule::in(array_keys($this->getReRegistrationPaymentPlans()))],
             'payment_method' => ['required', 'in:transfer,cash'],
             'proof' => ['nullable', 'required_if:payment_method,transfer', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ], [
@@ -517,6 +539,8 @@ class StudentRegistrationController extends Controller
             'proof.max' => 'Ukuran bukti pembayaran maksimal 5 MB.',
         ]);
 
+        $this->saveReRegistrationPlan($registration, $validated['payment_plan']);
+
         $oldProof = $registration->reregistration_proof_path;
         $proofPath = $request->hasFile('proof')
             ? $request->file('proof')->store('payment-proofs/reregistration', 'public')
@@ -524,7 +548,7 @@ class StudentRegistrationController extends Controller
 
         $registration->forceFill([
             'reregistration_order_id' => $registration->reregistration_order_id ?: $this->generateReRegistrationOrderId($registration),
-            'reregistration_amount' => (int) config('ppdb_notifications.amounts.re_registration', 1500000),
+            'reregistration_amount' => $this->getCurrentReRegistrationPaymentAmount($registration),
             'reregistration_status' => 'manual_pending',
             'reregistration_payment_type' => 'manual_' . $validated['payment_method'],
             'reregistration_proof_path' => $proofPath,
@@ -533,8 +557,21 @@ class StudentRegistrationController extends Controller
             'reregistration_verified_at' => null,
         ])->save();
 
-        if ($request->hasFile('proof') && $oldProof && $oldProof !== $proofPath) {
+        $verifiedProofPaths = collect(data_get($registration->custom_form_data ?? [], 'reregistration_paid_installments', []))
+            ->pluck('proof_path')
+            ->filter()
+            ->all();
+
+        if ($request->hasFile('proof') && $oldProof && $oldProof !== $proofPath && ! in_array($oldProof, $verifiedProofPaths, true)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($oldProof);
+        }
+
+        if ($request->hasFile('proof')) {
+            $this->notifications->send('re_registration_proof_uploaded', $request->user(), $registration, [
+                'payment_amount' => $this->formatCurrency((int) $registration->reregistration_amount),
+                'payment_method' => $this->getReRegistrationPaymentMethodLabel($registration),
+                'deduplication_suffix' => 'termin-' . $this->getCurrentReRegistrationInstallment($registration) . ':' . now()->format('YmdHis'),
+            ]);
         }
 
         return back()->with('status', 'Pembayaran daftar ulang dikirim dan sedang menunggu verifikasi panitia.');
@@ -784,9 +821,20 @@ class StudentRegistrationController extends Controller
 
     protected function isReRegistrationPaid(?StudentRegistration $registration): bool
     {
+        if (! $registration) {
+            return false;
+        }
+
+        $installmentStatus = $this->getReRegistrationInstallmentStatus($registration);
+
+        if ($installmentStatus['total_installments'] > 1) {
+            return $installmentStatus['paid_installments'] >= $installmentStatus['total_installments']
+                && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+                && $registration->reregistration_paid_at;
+        }
+
         return (bool) (
-            $registration
-            && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+            in_array($registration->reregistration_status, ['settlement', 'capture'], true)
             && $registration->reregistration_paid_at
         );
     }
@@ -805,10 +853,27 @@ class StudentRegistrationController extends Controller
             'reregistration_midtrans_payload' => $payload,
         ]);
 
-        if ($isPaid && ! $registration->reregistration_paid_at) {
-            $registration->reregistration_paid_at = $this->parseMidtransDate(
-                $payload['settlement_time'] ?? $payload['transaction_time'] ?? null
+        if ($isPaid) {
+            $paidAt = $this->parseMidtransDate($payload['settlement_time'] ?? $payload['transaction_time'] ?? null);
+            $this->recordReRegistrationInstallmentPayment(
+                $registration,
+                $registration->reregistration_order_id,
+                (int) $registration->reregistration_amount,
+                $payload['payment_type'] ?? 'midtrans',
+                $paidAt
             );
+
+            $installmentStatus = $this->getReRegistrationInstallmentStatus($registration);
+
+            if ($installmentStatus['is_fully_paid']) {
+                $registration->reregistration_paid_at = $registration->reregistration_paid_at ?: $paidAt;
+                $registration->reregistration_status = $transactionStatus;
+            } else {
+                $registration->reregistration_paid_at = null;
+                $registration->reregistration_status = 'installment_partial';
+                $registration->reregistration_snap_token = null;
+                $registration->reregistration_snap_redirect_url = null;
+            }
         }
 
         $registration->save();
@@ -817,6 +882,151 @@ class StudentRegistrationController extends Controller
             $this->notifications->send('re_registration_approved', $registration->user, $registration);
             $this->notifications->send('student_officially_registered', $registration->user, $registration);
         }
+    }
+
+    protected function getReRegistrationPaymentPlans(): array
+    {
+        $total = (int) config('ppdb_notifications.amounts.re_registration', 1550000);
+
+        return [
+            'full' => [
+                'name' => 'Lunas',
+                'installments' => 1,
+                'amounts' => [$total],
+            ],
+            'installment_2' => [
+                'name' => 'Cicilan 2x',
+                'installments' => 2,
+                'amounts' => [775000, 775000],
+            ],
+            'installment_3' => [
+                'name' => 'Cicilan 3x',
+                'installments' => 3,
+                'amounts' => [518000, 518000, 514000],
+            ],
+        ];
+    }
+
+    protected function getSelectedReRegistrationPlan(?StudentRegistration $registration): string
+    {
+        $plan = data_get($registration?->custom_form_data, 'reregistration_plan');
+
+        return array_key_exists($plan, $this->getReRegistrationPaymentPlans()) ? $plan : 'full';
+    }
+
+    protected function getSelectedReRegistrationPlanDefinition(?StudentRegistration $registration): array
+    {
+        $plans = $this->getReRegistrationPaymentPlans();
+
+        return $plans[$this->getSelectedReRegistrationPlan($registration)];
+    }
+
+    protected function saveReRegistrationPlan(StudentRegistration $registration, string $plan): void
+    {
+        $currentData = $registration->custom_form_data ?? [];
+        $currentPlan = data_get($currentData, 'reregistration_plan');
+        $hasPaidInstallments = count(data_get($currentData, 'reregistration_paid_installments', [])) > 0;
+
+        if ($hasPaidInstallments && $currentPlan && $currentPlan !== $plan) {
+            return;
+        }
+
+        if ($currentPlan === $plan) {
+            return;
+        }
+
+        $currentData['reregistration_plan'] = $plan;
+        $currentData['reregistration_paid_installments'] = [];
+        $currentData['reregistration_current_installment'] = 1;
+
+        $registration->custom_form_data = $currentData;
+        $registration->reregistration_order_id = null;
+        $registration->reregistration_snap_token = null;
+        $registration->reregistration_snap_redirect_url = null;
+        $registration->reregistration_status = null;
+        $registration->reregistration_amount = null;
+        $registration->save();
+    }
+
+    protected function getCurrentReRegistrationInstallment(StudentRegistration $registration): int
+    {
+        $paidCount = count(data_get($registration->custom_form_data ?? [], 'reregistration_paid_installments', []));
+        $plan = $this->getSelectedReRegistrationPlanDefinition($registration);
+
+        return min($paidCount + 1, $plan['installments']);
+    }
+
+    protected function getCurrentReRegistrationPaymentAmount(StudentRegistration $registration): int
+    {
+        $plan = $this->getSelectedReRegistrationPlanDefinition($registration);
+        $installmentIndex = $this->getCurrentReRegistrationInstallment($registration) - 1;
+
+        return (int) ($plan['amounts'][$installmentIndex] ?? $plan['amounts'][0]);
+    }
+
+    protected function getReRegistrationInstallmentStatus(?StudentRegistration $registration): array
+    {
+        $plan = $this->getSelectedReRegistrationPlanDefinition($registration);
+        $paidInstallments = data_get($registration?->custom_form_data ?? [], 'reregistration_paid_installments', []);
+        $paidInstallments = is_array($paidInstallments) ? $paidInstallments : [];
+
+        if (
+            $registration
+            && $paidInstallments === []
+            && $registration->reregistration_paid_at
+            && in_array($registration->reregistration_status, ['settlement', 'capture'], true)
+        ) {
+            $paidInstallments[] = [
+                'installment' => 1,
+                'amount' => $registration->reregistration_amount ?: (int) config('ppdb_notifications.amounts.re_registration', 1550000),
+                'method' => $registration->reregistration_payment_type ?: 'midtrans',
+                'order_id' => $registration->reregistration_order_id,
+                'proof_path' => $registration->reregistration_proof_path,
+                'paid_at' => $registration->reregistration_paid_at->toDateTimeString(),
+            ];
+        }
+
+        $paidCount = count($paidInstallments);
+
+        return [
+            'plan' => $this->getSelectedReRegistrationPlan($registration),
+            'plan_label' => $plan['name'],
+            'total_installments' => $plan['installments'],
+            'paid_installments' => $paidCount,
+            'current_installment' => min($paidCount + 1, $plan['installments']),
+            'is_fully_paid' => $paidCount >= $plan['installments'],
+            'paid_items' => $paidInstallments,
+            'amounts' => $plan['amounts'],
+        ];
+    }
+
+    protected function recordReRegistrationInstallmentPayment(
+        StudentRegistration $registration,
+        ?string $orderId,
+        int $amount,
+        string $method,
+        Carbon $paidAt
+    ): void {
+        $customData = $registration->custom_form_data ?? [];
+        $paidInstallments = data_get($customData, 'reregistration_paid_installments', []);
+        $paidInstallments = is_array($paidInstallments) ? $paidInstallments : [];
+
+        if ($orderId && collect($paidInstallments)->contains(fn (array $item) => ($item['order_id'] ?? null) === $orderId)) {
+            return;
+        }
+
+        $paidInstallments[] = [
+            'installment' => count($paidInstallments) + 1,
+            'amount' => $amount,
+            'method' => $method,
+            'order_id' => $orderId,
+            'proof_path' => $registration->reregistration_proof_path,
+            'paid_at' => $paidAt->toDateTimeString(),
+        ];
+
+        $customData['reregistration_paid_installments'] = $paidInstallments;
+        $customData['reregistration_current_installment'] = count($paidInstallments) + 1;
+        $registration->custom_form_data = $customData;
     }
 
     protected function generateReRegistrationOrderId(StudentRegistration $registration): string
