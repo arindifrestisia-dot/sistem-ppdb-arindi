@@ -67,8 +67,7 @@ class ManualPaymentVerificationTest extends TestCase
             ->assertSee('Pembayaran Formulir Berhasil Diverifikasi')
             ->assertSee('Pembayaran formulir Anda telah diverifikasi oleh panitia. Silakan klik tombol di bawah untuk melanjutkan pengisian formulir pendaftaran peserta didik baru.')
             ->assertSee('Pembayaran Terverifikasi')
-            ->assertSee('Isi Formulir Pendaftaran')
-            ->assertSee('href="' . route('ortu.formulir') . '"', false)
+            ->assertSee('Buka Formulir Pendaftaran')
             ->assertSee(route('data-diri'), false);
     }
 
@@ -86,6 +85,88 @@ class ManualPaymentVerificationTest extends TestCase
             'status' => 'manual_pending',
             'proof_path' => null,
         ]);
+    }
+
+    public function test_pending_form_payment_is_visible_from_candidate_student_list(): void
+    {
+        $parent = User::factory()->create(['role' => User::ROLE_PARENT]);
+        $panitia = User::factory()->create(['role' => User::ROLE_COMMITTEE]);
+
+        $registration = StudentRegistration::create([
+            'user_id' => $parent->id,
+            'full_name' => 'Nabila Fadhilah',
+            'nickname' => 'Nabila',
+            'gender' => 'Perempuan',
+            'birth_place' => 'Pekanbaru',
+            'birth_date' => now()->subYears(5)->toDateString(),
+            'weight_kg' => 18,
+            'height_cm' => 105,
+            'home_address' => 'Pekanbaru',
+            'origin_region' => 'Pekanbaru',
+            'citizenship' => 'WNI',
+            'special_needs' => false,
+            'child_order' => 1,
+            'siblings_total' => 0,
+            'registration_number' => 'PPDB-2026-90001',
+            'submitted_at' => now(),
+        ]);
+
+        PpdbFormPayment::create([
+            'user_id' => $parent->id,
+            'order_id' => 'FORM-PENDING-90001',
+            'amount' => 150000,
+            'status' => 'manual_pending',
+            'payment_type' => 'manual_transfer',
+        ]);
+
+        $this->actingAs($panitia)
+            ->get(route('panitia.registrations.index', ['segment' => 'calon']))
+            ->assertOk()
+            ->assertSee($registration->full_name)
+            ->assertSee('Formulir perlu verifikasi')
+            ->assertSee('Transfer BRI / DANA')
+            ->assertSee('Cek pembayaran')
+            ->assertSee('FORM-PENDING-90001', false)
+            ->assertSee('status=menunggu', false);
+    }
+
+    public function test_pending_reregistration_payment_is_visible_from_registration_list(): void
+    {
+        $parent = User::factory()->create(['role' => User::ROLE_PARENT]);
+        $panitia = User::factory()->create(['role' => User::ROLE_COMMITTEE]);
+
+        $registration = StudentRegistration::create([
+            'user_id' => $parent->id,
+            'full_name' => 'Rafi Fadhilah',
+            'nickname' => 'Rafi',
+            'gender' => 'Laki-laki',
+            'birth_place' => 'Pekanbaru',
+            'birth_date' => now()->subYears(5)->toDateString(),
+            'weight_kg' => 18,
+            'height_cm' => 105,
+            'home_address' => 'Pekanbaru',
+            'origin_region' => 'Pekanbaru',
+            'citizenship' => 'WNI',
+            'special_needs' => false,
+            'child_order' => 1,
+            'siblings_total' => 0,
+            'registration_number' => 'PPDB-2026-90002',
+            'submitted_at' => now(),
+            'selection_result' => 'lulus',
+            'selection_published_at' => now(),
+            'reregistration_status' => 'manual_pending',
+            'reregistration_payment_type' => 'manual_cash',
+        ]);
+
+        $this->actingAs($panitia)
+            ->get(route('panitia.registrations.index', ['segment' => 'daftar_ulang']))
+            ->assertOk()
+            ->assertSee($registration->full_name)
+            ->assertSee('Daftar ulang perlu verifikasi')
+            ->assertSee('Cash ke sekolah')
+            ->assertSee('Cek pembayaran')
+            ->assertSee('status=belum_lunas', false)
+            ->assertSee('PPDB-2026-90002', false);
     }
 
     public function test_panitia_cannot_manually_verify_a_midtrans_payment(): void
@@ -132,6 +213,7 @@ class ManualPaymentVerificationTest extends TestCase
         ]);
 
         $this->actingAs($parent)->post(route('daftar-ulang.manual'), [
+            'payment_plan' => 'full',
             'payment_method' => 'transfer',
             'proof' => UploadedFile::fake()->image('bukti-daftar-ulang.png'),
         ])->assertRedirect();

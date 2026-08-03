@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Mockery;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Tests\TestCase;
 
@@ -88,10 +91,40 @@ class ChatbotControllerTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_it_logs_chatbot_question_answer_and_response_time(): void
+    {
+        $faq = self::SCHOOL_FAQ[0];
+        $logger = Mockery::mock(LoggerInterface::class);
+
+        Http::fake();
+        Log::shouldReceive('channel')
+            ->once()
+            ->with('chatbot')
+            ->andReturn($logger);
+
+        $logger->shouldReceive('info')
+            ->once()
+            ->with('Chatbot message answered', Mockery::on(function (array $context) use ($faq) {
+                return $context['question'] === $faq['question']
+                    && $context['answer'] === $faq['answer']
+                    && $context['error_message'] === null
+                    && $context['source'] === 'knowledge'
+                    && $context['status_code'] === 200
+                    && is_float($context['duration_seconds'])
+                    && $context['duration_seconds'] >= 0;
+            }));
+
+        $this->postJson('/chatbot/message', [
+            'message' => $faq['question'],
+        ])->assertOk();
+
+        Http::assertNothingSent();
+    }
+
     public function test_it_forwards_non_faq_messages_to_ollama(): void
     {
         Config::set('services.ollama.base_url', 'http://127.0.0.1:11434');
-        Config::set('services.ollama.model', 'gemma:2b');
+        Config::set('services.ollama.model', 'mistral');
         Config::set('services.ollama.system_prompt', 'Jawab dalam bahasa Indonesia.');
         Config::set('services.ollama.timeout', 120);
         Config::set('services.ollama.keep_alive', '10m');
@@ -116,7 +149,7 @@ class ChatbotControllerTest extends TestCase
 
         Http::assertSent(function ($request) {
             return $request->url() === 'http://127.0.0.1:11434/api/generate'
-                && $request['model'] === 'gemma:2b'
+                && $request['model'] === 'mistral'
                 && $request['prompt'] === 'Apakah boleh menemui langsung kepala sekolah?'
                 && $request['stream'] === false
                 && str_contains($request['system'], 'Jawab dalam bahasa Indonesia.')
@@ -126,6 +159,104 @@ class ChatbotControllerTest extends TestCase
                 && $request['keep_alive'] === '10m'
                 && $request['options']['num_predict'] === 128;
         });
+    }
+
+    public function test_it_returns_clean_direct_answers_for_school_operational_questions(): void
+    {
+        Http::fake();
+
+        $cases = [
+            [
+                'message' => 'Bagaimana cara menghubungi pihak sekolah jika ada pertanyaan?',
+                'reply' => 'Anda dapat menghubungi pihak sekolah melalui kontak yang tersedia di website resmi sekolah atau datang langsung ke bagian administrasi sekolah.',
+            ],
+            [
+                'message' => 'Apakah sekolah menyediakan makan siang untuk siswa?',
+                'reply' => 'Sekolah tidak menyediakan makan siang, sarapan, atau makan malam. Saat ini yang tersedia adalah MBG (Makanan Bergizi Gratis) dari pemerintah sekitar pukul 10.00 pagi.',
+            ],
+            [
+                'message' => 'Apakah ada diskon untuk anak kedua jika mendaftar selanjutnya?',
+                'reply' => 'Informasi diskon untuk anak kedua belum tersedia. Silakan menghubungi pihak sekolah atau datang langsung ke bagian administrasi untuk konfirmasi lebih lanjut.',
+            ],
+            [
+                'message' => 'Jam berapa anak pulang sekolah?',
+                'reply' => 'Anak-anak pulang sekolah pukul 12.00, kecuali hari Jumat pulang pukul 11.00 pagi.',
+            ],
+            [
+                'message' => 'Apakah ada kegiatan anak berenang di kolam renang?',
+                'reply' => 'Ada. RA Fadhilah memiliki kegiatan outing, termasuk kegiatan berenang di kolam renang yang dilakukan 1-2 kali dalam seminggu.',
+            ],
+        ];
+
+        foreach ($cases as $case) {
+            $this->postJson('/chatbot/message', [
+                'message' => $case['message'],
+            ])
+                ->assertOk()
+                ->assertJson([
+                    'reply' => $case['reply'],
+                    'source' => 'knowledge',
+                ])
+                ->assertJsonMissing([
+                    'reply' => 'Jawaban: '.$case['reply'],
+                ]);
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_it_understands_typo_in_school_questions(): void
+    {
+        Http::fake();
+
+        $cases = [
+            [
+                'message' => 'brpa biya formulr?',
+                'reply' => 'Pendaftaran dikenakan biaya Rp150.000 per formulir.',
+            ],
+            [
+                'message' => 'jam brpa ank plang skolah?',
+                'reply' => 'Anak-anak pulang sekolah pukul 12.00, kecuali hari Jumat pulang pukul 11.00 pagi.',
+            ],
+            [
+                'message' => 'apkah ada kgiatan renang di kolam?',
+                'reply' => 'Ada. RA Fadhilah memiliki kegiatan outing, termasuk kegiatan berenang di kolam renang yang dilakukan 1-2 kali dalam seminggu.',
+            ],
+        ];
+
+        foreach ($cases as $case) {
+            $this->postJson('/chatbot/message', [
+                'message' => $case['message'],
+            ])
+                ->assertOk()
+                ->assertJson([
+                    'reply' => $case['reply'],
+                    'source' => 'knowledge',
+                ]);
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_it_strips_internal_answer_labels_from_ollama_reply(): void
+    {
+        Config::set('services.ollama.base_url', 'http://127.0.0.1:11434');
+        Config::set('services.ollama.model', 'mistral');
+
+        Http::fake([
+            'http://127.0.0.1:11434/api/generate' => Http::response([
+                'response' => 'Pertanyaan: Jam berapa anak pulang sekolah? Jawaban: Anak-anak pulang sekolah pukul 12.00.',
+            ], 200),
+        ]);
+
+        $this->postJson('/chatbot/message', [
+            'message' => 'Apakah boleh menemui langsung kepala sekolah?',
+        ])
+            ->assertOk()
+            ->assertJson([
+                'reply' => 'Anak-anak pulang sekolah pukul 12.00.',
+                'source' => 'ollama',
+            ]);
     }
 
     public function test_it_rejects_out_of_scope_messages_without_calling_ollama(): void

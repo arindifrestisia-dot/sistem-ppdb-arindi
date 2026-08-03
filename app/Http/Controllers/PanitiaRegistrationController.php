@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\ParentFormField;
 use App\Models\StudentRegistration;
 use App\Services\PpdbNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -19,8 +19,7 @@ class PanitiaRegistrationController extends Controller
 {
     public function __construct(
         private readonly PpdbNotificationService $notifications,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -30,13 +29,14 @@ class PanitiaRegistrationController extends Controller
         $academicYear = (string) $request->string('ta');
 
         $allRegistrations = StudentRegistration::query()
-            ->with(['user', 'verifier'])
+            ->with(['user.ppdbFormPayments', 'verifier'])
             ->orderByDesc('submitted_at')
             ->orderByDesc('id')
             ->get()
             ->map(function (StudentRegistration $registration) {
                 $registration->display_class = $this->resolveClassLabel($registration);
                 $registration->display_academic_year = $this->resolveAcademicYear($registration);
+                $this->decoratePaymentVerification($registration);
 
                 return $registration;
             });
@@ -77,6 +77,48 @@ class PanitiaRegistrationController extends Controller
         ]);
     }
 
+    private function decoratePaymentVerification(StudentRegistration $registration): void
+    {
+        $pendingFormPayment = $registration->user?->ppdbFormPayments
+            ?->where('status', 'manual_pending')
+            ->sortByDesc('created_at')
+            ->first();
+
+        if ($pendingFormPayment) {
+            $registration->display_payment_verification_label = 'Formulir perlu verifikasi';
+            $registration->display_payment_verification_detail = match ($pendingFormPayment->payment_type) {
+                'manual_transfer' => 'Transfer BRI / DANA',
+                'manual_cash' => 'Cash ke sekolah',
+                default => 'Pembayaran manual',
+            };
+            $registration->display_payment_verification_route = route('panitia.finances.form-payments.index', [
+                'q' => $pendingFormPayment->order_id ?: $registration->registration_number ?: $registration->full_name,
+                'status' => 'menunggu',
+            ]);
+
+            return;
+        }
+
+        if ($registration->selection_result === 'lulus' && $registration->reregistration_status === 'manual_pending') {
+            $registration->display_payment_verification_label = 'Daftar ulang perlu verifikasi';
+            $registration->display_payment_verification_detail = match ($registration->reregistration_payment_type) {
+                'manual_transfer' => 'Transfer BRI / DANA',
+                'manual_cash' => 'Cash ke sekolah',
+                default => 'Pembayaran manual',
+            };
+            $registration->display_payment_verification_route = route('panitia.finances.re-registrations.index', [
+                'q' => $registration->registration_number ?: $registration->full_name,
+                'status' => 'belum_lunas',
+            ]);
+
+            return;
+        }
+
+        $registration->display_payment_verification_label = 'Tidak ada verifikasi';
+        $registration->display_payment_verification_detail = 'Pembayaran tidak menunggu verifikasi';
+        $registration->display_payment_verification_route = null;
+    }
+
     public function export(Request $request): Response
     {
         $search = trim((string) $request->string('q'));
@@ -115,7 +157,7 @@ class PanitiaRegistrationController extends Controller
             ->when($academicYear !== '', fn (Collection $items) => $items->where('display_academic_year', $academicYear))
             ->values();
 
-        $csv = collect([
+        $exportRows = collect([
             ['NIS', 'Nama Siswa', 'Kelas', 'Jenis Kelamin', 'Tahun Ajaran', 'Status Verifikasi', 'Hasil Seleksi', 'Email Orang Tua'],
         ])->concat(
             $rows->map(fn (StudentRegistration $registration) => [
@@ -128,14 +170,13 @@ class PanitiaRegistrationController extends Controller
                 $registration->selection_result ? str_replace('_', ' ', $registration->selection_result) : '-',
                 $registration->user?->email ?? '-',
             ])
-        )->map(fn (array $columns) => implode(',', array_map(fn ($value) => '"' . str_replace('"', '""', (string) $value) . '"', $columns)))
-            ->implode("\n");
+        );
 
-        $fileName = 'data-siswa-' . $segment . '-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'data-siswa-'.$segment.'-'.now()->format('Ymd-His').'.xls';
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        return response($this->excelTable($exportRows), 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
     }
 
@@ -167,7 +208,7 @@ class PanitiaRegistrationController extends Controller
             'classLabel' => $this->resolveClassLabel($registration),
         ])->setPaper('a4', 'portrait');
 
-        $fileName = 'biodata-siswa-' . Str::slug($registration->registration_number ?: $registration->full_name ?: 'ra-fadhilah') . '.pdf';
+        $fileName = 'biodata-siswa-'.Str::slug($registration->registration_number ?: $registration->full_name ?: 'ra-fadhilah').'.pdf';
 
         return $pdf->download($fileName);
     }
@@ -288,10 +329,26 @@ class PanitiaRegistrationController extends Controller
         $year = (int) $baseDate->format('Y');
 
         if ((int) $baseDate->format('n') < 7) {
-            return ($year - 1) . '/' . $year;
+            return ($year - 1).'/'.$year;
         }
 
-        return $year . '/' . ($year + 1);
+        return $year.'/'.($year + 1);
+    }
+
+    private function excelTable(Collection $rows): string
+    {
+        $tableRows = $rows
+            ->map(function (array $columns, int $index) {
+                $tag = $index === 0 ? 'th' : 'td';
+                $cells = collect($columns)
+                    ->map(fn ($value) => '<'.$tag.'>'.e((string) $value).'</'.$tag.'>')
+                    ->implode('');
+
+                return '<tr>'.$cells.'</tr>';
+            })
+            ->implode('');
+
+        return '<html><head><meta charset="UTF-8"></head><body><table border="1">'.$tableRows.'</table></body></html>';
     }
 
     private function paginateCollection(Collection $items, Request $request, int $perPage): LengthAwarePaginator

@@ -210,7 +210,7 @@ class PanitiaFinanceController extends Controller
             ->when($academicYear !== '', fn (Collection $items) => $items->where('display_academic_year', $academicYear))
             ->values();
 
-        $csv = collect([
+        $exportRows = collect([
             ['No. Formulir', 'Nama Pembeli', 'Nama Calon Siswa', 'Tanggal Bayar', 'Jumlah', 'Metode', 'Status', 'Status Pengisian', 'Tahun Ajaran'],
         ])->concat(
             $rows->map(fn (PpdbFormPayment $payment) => [
@@ -224,13 +224,12 @@ class PanitiaFinanceController extends Controller
                 $payment->display_filling_status_label,
                 $payment->display_academic_year,
             ])
-        )->map(fn (array $columns) => implode(',', array_map(fn ($value) => '"' . str_replace('"', '""', (string) $value) . '"', $columns)))
-            ->implode("\n");
+        );
 
-        $fileName = 'keuangan-bayar-formulir-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'keuangan-bayar-formulir-' . now()->format('Ymd-His') . '.xls';
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+        return response($this->excelTable($exportRows), 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
@@ -340,7 +339,7 @@ class PanitiaFinanceController extends Controller
             ->when($academicYear !== '', fn (Collection $items) => $items->where('display_academic_year', $academicYear))
             ->values();
 
-        $csv = collect([
+        $exportRows = collect([
             ['No. Formulir', 'Nama Siswa', 'Kelas', 'Total Biaya', 'Jenis Pembayaran', 'Detail Cicilan', 'Status Pelunasan', 'Tahun Ajaran'],
         ])->concat(
             $rows->map(fn (StudentRegistration $registration) => [
@@ -353,13 +352,12 @@ class PanitiaFinanceController extends Controller
                 $registration->display_rereg_status_label,
                 $registration->display_academic_year,
             ])
-        )->map(fn (array $columns) => implode(',', array_map(fn ($value) => '"' . str_replace('"', '""', (string) $value) . '"', $columns)))
-            ->implode("\n");
+        );
 
-        $fileName = 'keuangan-daftar-ulang-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'keuangan-daftar-ulang-' . now()->format('Ymd-His') . '.xls';
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+        return response($this->excelTable($exportRows), 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
@@ -592,6 +590,22 @@ class PanitiaFinanceController extends Controller
     private function formatCurrency(int $amount): string
     {
         return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    private function excelTable(Collection $rows): string
+    {
+        $tableRows = $rows
+            ->map(function (array $columns, int $index) {
+                $tag = $index === 0 ? 'th' : 'td';
+                $cells = collect($columns)
+                    ->map(fn ($value) => '<'.$tag.'>'.e((string) $value).'</'.$tag.'>')
+                    ->implode('');
+
+                return '<tr>'.$cells.'</tr>';
+            })
+            ->implode('');
+
+        return '<html><head><meta charset="UTF-8"></head><body><table border="1">'.$tableRows.'</table></body></html>';
     }
 
     private function paginateCollection(Collection $items, Request $request, int $perPage): LengthAwarePaginator

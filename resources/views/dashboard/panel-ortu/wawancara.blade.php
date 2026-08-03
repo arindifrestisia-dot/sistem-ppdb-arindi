@@ -64,22 +64,28 @@
                             </div>
 
                             <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                <div class="rounded-xl bg-slate-50 p-5">
-                                    <p class="text-sm font-medium text-slate-500">Hari</p>
-                                    <p class="mt-2 text-lg font-bold text-slate-800">{{ $registration->interview_day_name ?: '-' }}</p>
+                                <div class="rounded-xl bg-blue-950 p-5 text-yellow-300 shadow-lg shadow-blue-950/10">
+                                    <p class="text-sm font-medium text-yellow-300">Hari</p>
+                                    <p class="mt-2 text-lg font-bold text-yellow-300">{{ $registration->interview_day_name ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-xl bg-slate-50 p-5">
-                                    <p class="text-sm font-medium text-slate-500">Tanggal</p>
-                                    <p class="mt-2 text-lg font-bold text-slate-800">{{ optional($registration->interview_date)->translatedFormat('d F Y') ?: '-' }}</p>
+                                <div class="rounded-xl bg-blue-950 p-5 text-yellow-300 shadow-lg shadow-blue-950/10">
+                                    <p class="text-sm font-medium text-yellow-300">Tanggal</p>
+                                    <p class="mt-2 text-lg font-bold text-yellow-300">{{ optional($registration->interview_date)->translatedFormat('d F Y') ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-xl bg-slate-50 p-5">
-                                    <p class="text-sm font-medium text-slate-500">Jam</p>
-                                    <p class="mt-2 text-lg font-bold leading-7 text-slate-800">Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00</p>
+                                <div class="rounded-xl bg-blue-950 p-5 text-yellow-300 shadow-lg shadow-blue-950/10">
+                                    <p class="text-sm font-medium text-yellow-300">Jam</p>
+                                    <p class="mt-2 text-lg font-bold leading-7 text-yellow-300">{{ $registration->interview_time ?: '-' }}</p>
                                 </div>
-                                <div class="rounded-xl bg-slate-50 p-5">
-                                    <p class="text-sm font-medium text-slate-500">Ruangan</p>
-                                    <p class="mt-2 text-lg font-bold text-slate-800">RUANGAN TU</p>
+                                <div class="rounded-xl bg-blue-950 p-5 text-yellow-300 shadow-lg shadow-blue-950/10">
+                                    <p class="text-sm font-medium text-yellow-300">Ruangan</p>
+                                    <p class="mt-2 text-lg font-bold text-yellow-300">{{ $registration->interview_room ?: '-' }}</p>
                                 </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end">
+                                <a href="{{ route('data-diri.download.kartu') }}" class="inline-flex w-full items-center justify-center rounded-[1.25rem] border border-blue-300 bg-white px-6 py-4 text-base font-bold text-blue-900 transition hover:bg-blue-50 sm:w-auto sm:min-w-[280px]">
+                                    Cetak Kartu Bukti
+                                </a>
                             </div>
                         </section>
                     @else

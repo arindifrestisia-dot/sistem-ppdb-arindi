@@ -59,6 +59,7 @@ class StudentRegistration extends Model
         'interview_room',
         'interview_selected_at',
         'interview_completed_at',
+        'interview_notes',
         'selection_result',
         'selection_published_at',
         'reregistration_order_id',

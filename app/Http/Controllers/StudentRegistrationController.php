@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ParentFormField;
+use App\Models\InterviewSchedule;
 use App\Models\StudentRegistration;
 use App\Services\MidtransSnapService;
 use App\Services\PpdbNotificationService;
@@ -12,6 +13,8 @@ use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -20,6 +23,9 @@ use Illuminate\View\View;
 
 class StudentRegistrationController extends Controller
 {
+    private const INTERVIEW_SCHEDULE_START_DATE = '2025-10-01';
+    private const INTERVIEW_SCHEDULE_END_DATE = '2026-07-31';
+
     public function __construct(
         private readonly PpdbNotificationService $notifications,
         private readonly MidtransSnapService $midtrans,
@@ -702,26 +708,38 @@ class StudentRegistrationController extends Controller
     {
         Carbon::setLocale('id');
 
-        $options = [];
-        $period = $this->interviewSchedulePeriod();
-        $date = $period['start']->copy();
-
-        while ($date->lte($period['end'])) {
-            $key = $date->toDateString();
-            $options[$key] = [
-                'key' => $key,
-                'session_label' => 'Jadwal Wawancara',
-                'date' => $date->copy(),
-                'day_name' => Str::headline($date->translatedFormat('l')),
-                'formatted_date' => $date->translatedFormat('d F Y'),
-                'time' => 'Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00',
-                'room' => 'RUANGAN TU',
-            ];
-
-            $date->addDay();
+        if (! Schema::hasTable('interview_schedules')) {
+            return $this->defaultInterviewScheduleOptions();
         }
 
-        return $options;
+        $schedules = InterviewSchedule::query()
+            ->where('is_active', true)
+            ->whereBetween('interview_date', [self::INTERVIEW_SCHEDULE_START_DATE, self::INTERVIEW_SCHEDULE_END_DATE])
+            ->orderBy('interview_date')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->reject(fn (InterviewSchedule $schedule) => $schedule->interview_date->isSunday());
+
+        if ($schedules->isEmpty()) {
+            return [];
+        }
+
+        return $schedules
+            ->mapWithKeys(function (InterviewSchedule $schedule) {
+                return [
+                    $schedule->schedule_key => [
+                        'key' => $schedule->schedule_key,
+                        'session_label' => $schedule->session_label,
+                        'date' => $schedule->interview_date->copy(),
+                        'day_name' => Str::headline($schedule->interview_date->translatedFormat('l')),
+                        'formatted_date' => $schedule->interview_date->translatedFormat('d F Y'),
+                        'time' => $schedule->interview_time,
+                        'room' => $schedule->room,
+                    ],
+                ];
+            })
+            ->all();
     }
 
     protected function getInterviewScheduleCalendar(): array
@@ -740,7 +758,7 @@ class StudentRegistrationController extends Controller
             ])->values()->all())
             ->all();
 
-        $period = $this->interviewSchedulePeriod();
+        $period = $this->interviewSchedulePeriod($options);
         $months = [];
         $month = $period['start']->copy()->startOfMonth();
 
@@ -761,12 +779,63 @@ class StudentRegistrationController extends Controller
         ];
     }
 
-    protected function interviewSchedulePeriod(): array
+    protected function interviewSchedulePeriod(?Collection $options = null): array
     {
+        $options ??= collect($this->getInterviewScheduleOptions());
+
+        if ($options->isNotEmpty()) {
+            return [
+                'start' => $options->min(fn (array $option) => $option['date'])->copy()->startOfDay(),
+                'end' => $options->max(fn (array $option) => $option['date'])->copy()->endOfDay(),
+            ];
+        }
+
         return [
-            'start' => Carbon::create(2026, 1, 1)->startOfDay(),
-            'end' => Carbon::create(2026, 12, 31)->endOfDay(),
+            'start' => $this->interviewScheduleStartDate(),
+            'end' => $this->interviewScheduleEndDate(),
         ];
+    }
+
+    protected function defaultInterviewScheduleOptions(): array
+    {
+        $options = [];
+        $period = [
+            'start' => $this->interviewScheduleStartDate(),
+            'end' => $this->interviewScheduleEndDate(),
+        ];
+        $date = $period['start']->copy();
+
+        while ($date->lte($period['end'])) {
+            if ($date->isSunday()) {
+                $date->addDay();
+                continue;
+            }
+
+            $key = $date->toDateString();
+            $options[$key] = [
+                'key' => $key,
+                'session_label' => 'Jadwal Wawancara',
+                'date' => $date->copy(),
+                'day_name' => Str::headline($date->translatedFormat('l')),
+                'formatted_date' => $date->translatedFormat('d F Y'),
+                'time' => 'Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00',
+                'room' => 'RUANGAN TU',
+            ];
+
+            $date->addDay();
+        }
+
+        return $options;
+    }
+
+    protected function interviewScheduleStartDate(): Carbon
+    {
+        return Carbon::parse(self::INTERVIEW_SCHEDULE_START_DATE)->startOfDay();
+    }
+
+    protected function interviewScheduleEndDate(): Carbon
+    {
+        return Carbon::parse(self::INTERVIEW_SCHEDULE_END_DATE)->endOfDay();
     }
 
     protected function interviewRoomForDate(Carbon $date): string

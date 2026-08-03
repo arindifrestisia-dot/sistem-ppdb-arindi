@@ -17,7 +17,6 @@
         $profileContact = $publicSchoolProfile[\App\Models\SchoolContent::TYPE_PROFILE_CONTACT] ?? null;
         $schoolName = $profileName?->title ?: 'FADHILAH';
         $schoolSubtitle = $profileName?->excerpt ?: 'Pekanbaru, Riau';
-        $schoolEmail = $profileContact?->excerpt ?: 'admin@rafadhilah.sch.id';
         $schoolPhone = $profileContact?->content ?: 'Telp: 0821 6207 736, WA: 0822 8681 7315';
         $schoolLogoUrl = $profileLogo?->image_path ? asset('storage/' . $profileLogo->image_path) : asset('image/logo_RA.png');
     @endphp
@@ -35,18 +34,6 @@
                 </a>
 
                 <div class="hidden items-center gap-4 lg:flex">
-                    <div class="flex items-center gap-3 rounded-md border border-slate-200 px-4 py-3">
-                        <span class="flex h-10 w-10 items-center justify-center rounded border border-[var(--brand-blue)] text-[var(--brand-blue)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8.25 10.2 13.5a3 3 0 0 0 3.6 0L21 8.25M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 19.5 4.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" />
-                            </svg>
-                        </span>
-                        <div>
-                            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Email</p>
-                            <a href="mailto:{{ $schoolEmail }}" class="text-sm font-semibold text-slate-800">{{ $schoolEmail }}</a>
-                        </div>
-                    </div>
-
                     <div class="flex items-center gap-3 rounded-md border border-slate-200 px-4 py-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded border border-[var(--brand-blue)] text-[var(--brand-blue)]">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

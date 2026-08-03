@@ -7,10 +7,13 @@
         $footerSchoolSubtitle = $profileName?->excerpt ?: 'Yayasan Darel Fadhilah';
         $footerSchoolSummary = $profileName?->content ?: 'Mewujudkan generasi yang Islami, berakhlak mulia, cerdas, ceria, dan mandiri melalui pendidikan anak usia dini yang berkualitas.';
         $footerSchoolEmail = $profileContact?->excerpt ?: 'admin@rafadhilah.sch.id';
-        $footerSchoolPhone = $profileContact?->content ?: '0821 6207 736 / 0822 8681 7315';
         $footerLogoUrl = $profileLogo?->image_path ? asset('storage/' . $profileLogo->image_path) : asset('image/logo_RA.png');
     @endphp
-    <div class="mx-auto grid max-w-[1260px] gap-10 px-6 py-14 sm:px-8 lg:grid-cols-[1.3fr_0.7fr_1.15fr_0.85fr] lg:gap-12 lg:py-16">
+    <div class="h-2 bg-[var(--brand-emerald)]">
+        <div class="h-full w-32 bg-[var(--brand-yellow)]"></div>
+    </div>
+
+    <div class="mx-auto grid max-w-[1260px] grid-cols-1 gap-10 px-6 py-14 sm:px-8 md:grid-cols-2 lg:grid-cols-[1.35fr_0.7fr_1.25fr_0.85fr] lg:gap-16 lg:py-16">
         <div>
             <div class="flex items-center gap-4">
                 <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/10 p-2 ring-1 ring-white/15">
@@ -40,7 +43,7 @@
         </div>
 
         <div>
-            <h3 class="text-base font-black">Tautan</h3>
+            <h3 class="text-lg font-black">Tautan</h3>
             <div class="mt-5 grid gap-3 text-sm text-white/75">
                 <a href="{{ route('profile.dashboard') }}" class="transition hover:text-[var(--brand-yellow)]">Beranda</a>
                 <a href="{{ route('profile.program-kegiatan-ra') }}" class="transition hover:text-[var(--brand-yellow)]">Program Kegiatan</a>
@@ -52,7 +55,7 @@
         </div>
 
         <div>
-            <h3 class="text-base font-black">Informasi Kontak</h3>
+            <h3 class="text-lg font-black">Informasi Kontak</h3>
             <div class="mt-5 space-y-4 text-sm leading-6 text-white/75">
                 <div class="flex gap-3">
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -64,7 +67,7 @@
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fill-rule="evenodd" d="m1.885 3.056.638-.638a2.25 2.25 0 0 1 3.183 0l1.376 1.376a2.25 2.25 0 0 1 .43 2.584l-.613 1.226a.75.75 0 0 0 .14.865l4.492 4.492a.75.75 0 0 0 .865.14l1.226-.613a2.25 2.25 0 0 1 2.584.43l1.376 1.376a2.25 2.25 0 0 1 0 3.183l-.638.638c-1.272 1.272-3.189 1.727-4.845.95a24.056 24.056 0 0 1-11.164-11.164c-.777-1.656-.322-3.573.95-4.845Z" clip-rule="evenodd" />
                     </svg>
-                    <span>{{ $footerSchoolPhone }}</span>
+                    <span>0821 6207 736</span>
                 </a>
                 <a href="https://wa.me/6282286817315" target="_blank" rel="noreferrer" class="flex gap-3 transition hover:text-white">
                     <svg class="mt-1 h-4 w-4 shrink-0 text-[var(--brand-yellow)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -82,7 +85,7 @@
         </div>
 
         <div>
-            <h3 class="text-base font-black">Jam Operasional</h3>
+            <h3 class="text-lg font-black">Jam Operasional</h3>
             <div class="mt-5 space-y-4 text-sm leading-7 text-white/75">
                 <div>
                     <p class="font-bold text-white">Senin - Sabtu</p>

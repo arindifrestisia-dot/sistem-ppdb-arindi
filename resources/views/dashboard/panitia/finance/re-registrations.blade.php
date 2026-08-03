@@ -70,7 +70,7 @@
                             href="{{ route('panitia.finances.re-registrations.export', ['q' => $search, 'jenis' => $paymentType, 'status' => $status, 'ta' => $academicYear]) }}"
                             class="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
-                            Ekspor
+                            Ekspor Excel
                         </a>
                     </div>
                 </form>

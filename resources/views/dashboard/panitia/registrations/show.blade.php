@@ -207,11 +207,6 @@
                         <span>Tampilkan hasil seleksi ke dashboard orang tua</span>
                     </label>
 
-                    <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        <p><span class="font-semibold text-slate-800">Diverifikasi oleh:</span> {{ $registration->verifier?->name ?? '-' }}</p>
-                        <p class="mt-1"><span class="font-semibold text-slate-800">Waktu verifikasi:</span> {{ $formatDateTime($registration->verified_at) }}</p>
-                    </div>
-
                     @if ($verificationLocked)
                         <button type="button" disabled class="w-full rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white opacity-90">
                             Verifikasi Selesai

@@ -6,40 +6,41 @@ use App\Services\ChatbotKnowledgeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ChatbotController extends Controller
 {
     public function __construct(
         private readonly ChatbotKnowledgeService $knowledgeService
-    ) {
-    }
+    ) {}
 
     public function message(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
         ]);
+        $startedAt = microtime(true);
 
         if ($directAnswer = $this->knowledgeService->findDirectAnswer($validated['message'])) {
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'reply' => $directAnswer,
                 'source' => 'knowledge',
-            ]);
+            ], 200, $startedAt);
         }
 
         if ($dataAnswer = $this->knowledgeService->findDataBackedAnswer($validated['message'])) {
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'reply' => $dataAnswer,
                 'source' => 'database',
-            ]);
+            ], 200, $startedAt);
         }
 
         if (! $this->knowledgeService->isSchoolScope($validated['message'])) {
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'reply' => $this->outOfScopeReply(),
                 'source' => 'scope',
-            ]);
+            ], 200, $startedAt);
         }
 
         $baseUrl = rtrim((string) config('services.ollama.base_url'), '/');
@@ -52,15 +53,15 @@ class ChatbotController extends Controller
 
         if ($baseUrl === '' || $model === '') {
             if ($fallbackAnswer = $this->knowledgeService->buildScopedFallbackAnswer($validated['message'])) {
-                return response()->json([
+                return $this->chatbotResponse($request, $validated['message'], [
                     'reply' => $fallbackAnswer,
                     'source' => 'fallback',
-                ]);
+                ], 200, $startedAt);
             }
 
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'message' => 'Konfigurasi chatbot belum lengkap. Isi OLLAMA_BASE_URL dan OLLAMA_MODEL terlebih dahulu.',
-            ], 500);
+            ], 500, $startedAt);
         }
 
         $this->extendPhpExecutionTime($timeout);
@@ -92,30 +93,30 @@ class ChatbotController extends Controller
             report($exception);
 
             if ($fallbackAnswer = $this->knowledgeService->buildScopedFallbackAnswer($validated['message'])) {
-                return response()->json([
+                return $this->chatbotResponse($request, $validated['message'], [
                     'reply' => $fallbackAnswer,
                     'source' => 'fallback',
-                ]);
+                ], 200, $startedAt);
             }
 
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'message' => 'Koneksi ke Ollama gagal atau waktunya habis. Coba lagi, ringkas pertanyaan, atau gunakan model yang lebih ringan.',
-            ], 504);
+            ], 504, $startedAt);
         }
 
         if ($response->failed()) {
             report('Ollama request failed: '.$response->body());
 
             if ($fallbackAnswer = $this->knowledgeService->buildScopedFallbackAnswer($validated['message'])) {
-                return response()->json([
+                return $this->chatbotResponse($request, $validated['message'], [
                     'reply' => $fallbackAnswer,
-                    'source' => 'fallback',
-                ]);
+                    'source' => ' fallback',
+                ], 200, $startedAt);
             }
 
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'message' => 'Chatbot sedang tidak bisa menjawab. Silakan coba beberapa saat lagi.',
-            ], 502);
+            ], 502, $startedAt);
         }
 
         $data = $response->json();
@@ -123,22 +124,22 @@ class ChatbotController extends Controller
 
         if (! is_string($reply) || trim($reply) === '') {
             if ($fallbackAnswer = $this->knowledgeService->buildScopedFallbackAnswer($validated['message'])) {
-                return response()->json([
+                return $this->chatbotResponse($request, $validated['message'], [
                     'reply' => $fallbackAnswer,
                     'source' => 'fallback',
-                ]);
+                ], 200, $startedAt);
             }
 
-            return response()->json([
+            return $this->chatbotResponse($request, $validated['message'], [
                 'message' => 'Ollama merespons, tetapi format jawabannya belum dikenali.',
                 'raw' => $data,
-            ], 502);
+            ], 502, $startedAt);
         }
 
-        return response()->json([
+        return $this->chatbotResponse($request, $validated['message'], [
             'reply' => $reply,
             'source' => 'ollama',
-        ]);
+        ], 200, $startedAt);
     }
 
     private function findFaqAnswer(string $message): ?string
@@ -171,6 +172,42 @@ class ChatbotController extends Controller
         @set_time_limit($requestBudget);
     }
 
+    private function chatbotResponse(Request $request, string $question, array $payload, int $status, float $startedAt): JsonResponse
+    {
+        $durationSeconds = round(microtime(true) - $startedAt, 3);
+
+        if (isset($payload['reply']) && is_string($payload['reply'])) {
+            $payload['reply'] = $this->cleanChatbotReply($payload['reply']);
+        }
+
+        Log::channel('chatbot')->info('Chatbot message answered', [
+            'question' => $question,
+            'answer' => $payload['reply'] ?? null,
+            'error_message' => $payload['message'] ?? null,
+            'source' => $payload['source'] ?? 'error',
+            'duration_seconds' => $durationSeconds,
+            'status_code' => $status,
+            'user_id' => $request->user()?->id,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return response()->json($payload, $status);
+    }
+
+    private function cleanChatbotReply(string $reply): string
+    {
+        $reply = trim($reply);
+
+        if (preg_match('/(?:^|\s)Jawaban\s*:\s*(.+)$/isu', $reply, $matches) === 1) {
+            $reply = trim($matches[1]);
+        }
+
+        $reply = preg_replace('/^(Pembukaan|Pertanyaan|Jawaban)\s*:\s*/iu', '', $reply) ?? $reply;
+
+        return trim($reply);
+    }
+
     private function buildSystemPrompt(string $basePrompt, string $message): string
     {
         $prompt = trim($basePrompt)."\n\n"
@@ -181,7 +218,7 @@ class ChatbotController extends Controller
             ."- Jangan mengarang angka, tanggal, nominal, alamat, atau kebijakan resmi baru yang tidak tersedia di data.\n"
             ."- Jika pertanyaan di luar ruang lingkup sekolah/PPDB, jawab bahwa kamu hanya membantu pertanyaan seputar RA Fadhilah dan PPDB.\n"
             ."- Jangan menampilkan label internal seperti Pertanyaan, Jawaban, Kata kunci, atau relevansi.\n"
-            ."- Ringkas, jelas, dan gunakan bahasa Indonesia.";
+            .'- Ringkas, jelas, dan gunakan bahasa Indonesia.';
 
         $context = $this->knowledgeService->buildPromptContext($message);
 

@@ -28,12 +28,6 @@
         .info { border: 1px solid #4b5563; margin-top: 12px; padding: 8px; }
         .info-title { margin: 0 0 7px; font-weight: 700; font-size: 12px; }
         .info ol { margin: 0; padding-left: 18px; line-height: 1.55; }
-        .verify { margin-top: 14px; }
-        .qr { width: 100px; border-collapse: collapse; }
-        .qr td { width: 5px; height: 5px; padding: 0; }
-        .black { background: #111827; }
-        .white { background: #ffffff; }
-        .small { font-size: 9px; color: #475569; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -55,7 +49,6 @@
             'tidak_lulus' => 'Tidak Lulus',
             default => 'Pengumuman Hasil Akhir Belum Tersedia',
         };
-        $qrSeed = crc32(($registration->registration_number ?? '') . '|' . ($registration->full_name ?? ''));
     @endphp
 
     <div class="page">
@@ -130,28 +123,6 @@
                 <li>Membawa seluruh dokumen asli yang sudah diunggah pada formulir pendaftaran.</li>
                 <li>Hubungi RA Fadhilah jika terdapat data yang perlu diperbaiki.</li>
             </ol>
-        </div>
-
-        <div class="verify">
-            <table class="qr">
-                @for ($row = 0; $row < 21; $row++)
-                    <tr>
-                        @for ($col = 0; $col < 21; $col++)
-                            @php
-                                $finder = ($row < 7 && $col < 7) || ($row < 7 && $col > 13) || ($row > 13 && $col < 7);
-                                $finderInner = ($row > 1 && $row < 5 && $col > 1 && $col < 5)
-                                    || ($row > 1 && $row < 5 && $col > 15 && $col < 19)
-                                    || ($row > 15 && $row < 19 && $col > 1 && $col < 5);
-                                $cellOn = $finder
-                                    ? ($row === 0 || $row === 6 || $col === 0 || $col === 6 || $col === 14 || $col === 20 || $finderInner)
-                                    : (($row * 31 + $col * 17 + $qrSeed) % 5 < 2);
-                            @endphp
-                            <td class="{{ $cellOn ? 'black' : 'white' }}"></td>
-                        @endfor
-                    </tr>
-                @endfor
-            </table>
-            <div class="small">Kode verifikasi: {{ $registration->registration_number }}</div>
         </div>
     </div>
 </body>

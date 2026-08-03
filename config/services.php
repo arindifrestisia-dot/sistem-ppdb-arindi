@@ -37,7 +37,7 @@ return [
 
     'ollama' => [
         'base_url' => env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
-        'model' => env('OLLAMA_MODEL', 'gemma:2b'),
+        'model' => env('OLLAMA_MODEL', 'mistral'),
         'system_prompt' => env('OLLAMA_SYSTEM_PROMPT', 'Kamu adalah asisten virtual RA Fadhilah. Jawab dengan bahasa Indonesia yang ramah, singkat, dan membantu. Jika informasi sekolah tidak tersedia, katakan dengan jujur dan sarankan menghubungi pihak sekolah.'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
         'keep_alive' => env('OLLAMA_KEEP_ALIVE', '10m'),

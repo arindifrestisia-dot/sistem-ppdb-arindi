@@ -114,6 +114,10 @@ Route::middleware(['auth', 'role:panitia_ppdb,panitia'])->prefix('panitia')->nam
     Route::put('/pendaftaran/{registration}', [PanitiaRegistrationController::class, 'update'])->name('registrations.update');
     Route::get('/wawancara', [PanitiaInterviewScheduleController::class, 'index'])->name('interviews.index');
     Route::get('/wawancara/export', [PanitiaInterviewScheduleController::class, 'export'])->name('interviews.export');
+    Route::post('/wawancara/jadwal', [PanitiaInterviewScheduleController::class, 'storeSchedule'])->name('interviews.schedules.store');
+    Route::post('/wawancara/jadwal/massal', [PanitiaInterviewScheduleController::class, 'bulkStoreSchedules'])->name('interviews.schedules.bulk-store');
+    Route::put('/wawancara/jadwal/{schedule}', [PanitiaInterviewScheduleController::class, 'updateSchedule'])->name('interviews.schedules.update');
+    Route::delete('/wawancara/jadwal/{schedule}', [PanitiaInterviewScheduleController::class, 'destroySchedule'])->name('interviews.schedules.destroy');
     Route::post('/wawancara/{registration}/jadwalkan', [PanitiaInterviewScheduleController::class, 'assign'])->name('interviews.assign');
     Route::patch('/wawancara/{registration}/status', [PanitiaInterviewScheduleController::class, 'updateStatus'])->name('interviews.status.update');
     Route::resource('/formulir-orang-tua', PanitiaParentFormFieldController::class)

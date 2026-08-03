@@ -68,8 +68,8 @@
                             </span>
                         </td>
                         <td class="px-5 py-4">
-                            @if (! $user->isParent())
-                                <span class="text-slate-400">Tidak memerlukan registrasi siswa</span>
+                            @if ($user->isStaff())
+                                <span class="text-slate-400">-</span>
                             @elseif (! $paymentPaid)
                                 <p class="font-semibold text-amber-700">Perlu pembayaran formulir</p>
                                 <p class="mt-1 text-xs text-slate-500">Akun belum dapat mengisi data calon siswa.</p>
@@ -82,7 +82,7 @@
                             @else
                                 <p class="font-semibold text-emerald-700">{{ $registration->registration_number ?? 'Registrasi terkirim' }}</p>
                                 <p class="mt-1 text-xs text-slate-500">
-                                    {{ $registration->full_name }} · {{ \Illuminate\Support\Str::headline($registration->verification_status ?? 'menunggu') }}
+                                    {{ $registration->full_name }} <span aria-hidden="true">&middot;</span> {{ \Illuminate\Support\Str::headline($registration->verification_status ?? 'menunggu') }}
                                 </p>
                             @endif
                         </td>
@@ -134,3 +134,4 @@
 
     <div class="mt-5">{{ $users->links() }}</div>
 </x-panitia-layout>
+

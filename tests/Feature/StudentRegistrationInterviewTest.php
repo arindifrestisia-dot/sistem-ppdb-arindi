@@ -45,7 +45,7 @@ class StudentRegistrationInterviewTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => '2026-10-01',
+                'interview_schedule_key' => '2026-07-01',
             ]);
 
         $response
@@ -54,7 +54,7 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration->refresh();
 
-        $this->assertSame('2026-10-01', $registration->interview_schedule_key);
+        $this->assertSame('2026-07-01', $registration->interview_schedule_key);
         $this->assertSame('Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00', $registration->interview_time);
         $this->assertSame('RUANGAN TU', $registration->interview_room);
         $this->assertNotNull($registration->interview_selected_at);
@@ -69,9 +69,9 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration = $this->createSubmittedRegistration($user, [
             'locked_at' => null,
-            'interview_schedule_key' => '2026-10-01-session-1',
-            'interview_date' => '2026-10-01',
-            'interview_day_name' => 'Kamis',
+            'interview_schedule_key' => '2026-07-01',
+            'interview_date' => '2026-07-01',
+            'interview_day_name' => 'Rabu',
             'interview_time' => '08.00 - 08.30 WIB',
             'interview_room' => 'Ruang Wawancara A',
             'interview_selected_at' => now(),
@@ -81,7 +81,7 @@ class StudentRegistrationInterviewTest extends TestCase
             ->actingAs($user)
             ->from(route('wawancara'))
             ->post(route('wawancara.update'), [
-                'interview_schedule_key' => '2026-10-02',
+                'interview_schedule_key' => '2026-07-02',
             ]);
 
         $response
@@ -92,7 +92,7 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $registration->refresh();
 
-        $this->assertSame('2026-10-01-session-1', $registration->interview_schedule_key);
+        $this->assertSame('2026-07-01', $registration->interview_schedule_key);
         $this->assertSame('08.00 - 08.30 WIB', $registration->interview_time);
     }
 
@@ -104,9 +104,9 @@ class StudentRegistrationInterviewTest extends TestCase
 
         $this->createSubmittedRegistration($user, [
             'locked_at' => null,
-            'interview_schedule_key' => '2026-10-01-session-1',
-            'interview_date' => '2026-10-01',
-            'interview_day_name' => 'Kamis',
+            'interview_schedule_key' => '2026-07-01',
+            'interview_date' => '2026-07-01',
+            'interview_day_name' => 'Rabu',
             'interview_time' => '08.00 - 08.30 WIB',
             'interview_room' => 'Ruang Wawancara A',
             'interview_selected_at' => now(),
@@ -119,9 +119,65 @@ class StudentRegistrationInterviewTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Jadwal Terpilih')
-            ->assertSee('Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00')
-            ->assertSee('RUANGAN TU')
+            ->assertSee('08.00 - 08.30 WIB')
+            ->assertSee('Ruang Wawancara A')
+            ->assertSee('Cetak Kartu Bukti')
             ->assertDontSee('Simpan Jadwal Wawancara');
+    }
+
+    public function test_panitia_can_save_interview_result_notes_for_each_registration(): void
+    {
+        $parent = User::factory()->create([
+            'role' => User::ROLE_PARENT,
+        ]);
+        $panitia = User::factory()->create([
+            'role' => User::ROLE_COMMITTEE,
+        ]);
+
+        $registration = $this->createSubmittedRegistration($parent, [
+            'interview_schedule_key' => '2026-07-01',
+            'interview_date' => '2026-07-01',
+            'interview_day_name' => 'Rabu',
+            'interview_time' => 'Silahkan datang ke sekolah RA FADHILAH pada jam 08.00 - 13.00',
+            'interview_room' => 'RUANGAN TU',
+            'interview_selected_at' => now(),
+        ]);
+
+        $this->actingAs($panitia)
+            ->get(route('panitia.interviews.index'))
+            ->assertOk()
+            ->assertSee('Catatan hasil wawancara');
+
+        $this->actingAs($panitia)
+            ->patch(route('panitia.interviews.status.update', $registration), [
+                'interview_status' => 'simpan_catatan',
+                'interview_notes' => 'Ananda sudah komunikatif dan siap mengikuti kegiatan kelas.',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(
+            'Ananda sudah komunikatif dan siap mengikuti kegiatan kelas.',
+            $registration->fresh()->interview_notes
+        );
+
+        $this->actingAs($panitia)
+            ->get(route('panitia.interviews.index'))
+            ->assertOk()
+            ->assertSee('Ananda sudah komunikatif dan siap mengikuti kegiatan kelas.')
+            ->assertSee('Catatan sudah disimpan dan tidak dapat diubah lagi.')
+            ->assertDontSee('Tandai Selesai Wawancara');
+
+        $this->actingAs($panitia)
+            ->patch(route('panitia.interviews.status.update', $registration), [
+                'interview_status' => 'simpan_catatan',
+                'interview_notes' => 'Catatan ini tidak boleh mengganti catatan lama.',
+            ])
+            ->assertSessionHasErrors('interview_status');
+
+        $this->assertSame(
+            'Ananda sudah komunikatif dan siap mengikuti kegiatan kelas.',
+            $registration->fresh()->interview_notes
+        );
     }
 
     protected function createSubmittedRegistration(User $user, array $overrides = []): StudentRegistration

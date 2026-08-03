@@ -71,13 +71,14 @@
             </div>
 
             <div class="overflow-x-auto rounded-b-[2rem] border-t border-slate-200">
-                <table class="min-w-[900px] divide-y divide-slate-200 text-sm">
+                <table class="min-w-[1100px] divide-y divide-slate-200 text-sm">
                     <thead class="bg-[#f9f5ea] text-slate-700">
                         <tr>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">NIS</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Nama Siswa</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Kelas</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Jenis Kelamin</th>
+                            <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Pembayaran</th>
                             <th class="px-6 py-4 text-left font-bold uppercase tracking-[0.08em]">Data</th>
                         </tr>
                     </thead>
@@ -111,6 +112,28 @@
                                 <td class="px-6 py-5 text-slate-700">{{ $registration->display_class }}</td>
                                 <td class="px-6 py-5 text-slate-700">{{ $registration->gender }}</td>
                                 <td class="px-6 py-5">
+                                    @if ($registration->display_payment_verification_route)
+                                        <div class="flex min-w-48 flex-col items-start gap-2">
+                                            <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+                                                {{ $registration->display_payment_verification_label }}
+                                            </span>
+                                            <span class="text-xs text-slate-500">{{ $registration->display_payment_verification_detail }}</span>
+                                            @if (auth()->user()?->isPanitia())
+                                                <a
+                                                    href="{{ $registration->display_payment_verification_route }}"
+                                                    class="inline-flex rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+                                                >
+                                                    Cek pembayaran
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                                            Tidak ada verifikasi
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-5">
                                     <a href="{{ route($registrationRoutePrefix . '.registrations.show', ['registration' => $registration, 'segment' => $segment, 'q' => $search, 'class' => $class, 'ta' => $academicYear]) }}" class="inline-flex rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800">
                                         Lihat data
                                     </a>
@@ -118,7 +141,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data siswa pada kategori ini.</td>
+                                <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada data siswa pada kategori ini.</td>
                             </tr>
                         @endforelse
                     </tbody>

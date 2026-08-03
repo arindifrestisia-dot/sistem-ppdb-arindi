@@ -258,7 +258,7 @@
                                     <label for="father_income" class="text-sm font-medium text-slate-600">Penghasilan</label>
                                     <select id="father_income" name="father_income" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
                                         <option value="">Pilih rentang penghasilan</option>
-                                        @foreach (['Kurang dari Rp 1.000.000', 'Rp 1.000.000 - Rp 3.000.000', 'Rp 3.000.001 - Rp 5.000.000', 'Rp 5.000.001 - Rp 10.000.000', 'Lebih dari Rp 10.000.000'] as $option)
+                                        @foreach (['Tidak Punya Penghasilan', 'Kurang dari Rp 1.000.000', 'Rp 1.000.000 - Rp 3.000.000', 'Rp 3.000.001 - Rp 5.000.000', 'Rp 5.000.001 - Rp 10.000.000', 'Lebih dari Rp 10.000.000'] as $option)
                                             <option value="{{ $option }}" @selected(old('father_income', $registration?->father_income) === $option)>{{ $option }}</option>
                                         @endforeach
                                     </select>
@@ -346,7 +346,7 @@
                                     <label for="mother_income" class="text-sm font-medium text-slate-600">Penghasilan</label>
                                     <select id="mother_income" name="mother_income" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 focus:border-fuchsia-400 focus:outline-none">
                                         <option value="">Pilih rentang penghasilan</option>
-                                        @foreach (['Kurang dari Rp 1.000.000', 'Rp 1.000.000 - Rp 3.000.000', 'Rp 3.000.001 - Rp 5.000.000', 'Rp 5.000.001 - Rp 10.000.000', 'Lebih dari Rp 10.000.000'] as $option)
+                                        @foreach (['Tidak Punya Penghasilan', 'Kurang dari Rp 1.000.000', 'Rp 1.000.000 - Rp 3.000.000', 'Rp 3.000.001 - Rp 5.000.000', 'Rp 5.000.001 - Rp 10.000.000', 'Lebih dari Rp 10.000.000'] as $option)
                                             <option value="{{ $option }}" @selected(old('mother_income', $registration?->mother_income) === $option)>{{ $option }}</option>
                                         @endforeach
                                     </select>
@@ -456,16 +456,24 @@
                                         </button>
                                     </div>
                                 @elseif ($isRegistrationLocked)
-                                    <div>
-                                        <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-5 py-3 font-semibold text-slate-500">
-                                            <span aria-hidden="true">&#128274;</span>
-                                            Data telah dikunci
-                                        </button>
+                                    <div class="flex flex-col items-start gap-3 sm:items-end">
+                                        <div class="flex flex-col gap-3 sm:flex-row">
+                                            <button type="button" disabled class="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-5 py-3 font-semibold text-slate-500">
+                                                <span aria-hidden="true">&#128274;</span>
+                                                Data telah dikunci
+                                            </button>
+                                            <a href="{{ route('data-diri.download.kartu') }}" class="inline-flex items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 font-semibold text-blue-900 transition hover:bg-blue-50">
+                                                Cetak Kartu Bukti
+                                            </a>
+                                        </div>
                                         <p class="mt-3 border-l-2 border-slate-300 pl-3 text-sm text-slate-500">Tombol tidak aktif &middot; Tidak ada aksi yang bisa dilakukan &middot; Jika perlu perubahan, hubungi admin sekolah</p>
                                     </div>
                                 @else
                                     <div class="ml-auto flex flex-col items-end">
                                         <div id="viewModeActions" class="{{ $startInEditMode ? 'hidden' : 'flex' }} flex-col items-end gap-3 sm:flex-row sm:justify-end">
+                                            <a href="{{ route('data-diri.download.kartu') }}" class="inline-flex items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 font-semibold text-blue-900 transition hover:bg-blue-50">
+                                                Cetak Kartu Bukti
+                                            </a>
                                             <button type="button" id="editDataButton" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50">
                                                 <span aria-hidden="true">&#9998;</span>
                                                 Edit data

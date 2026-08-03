@@ -213,13 +213,8 @@
                         @endif
                     </section>
 
-                    @unless ($isReRegistrationPaid)
+                    @if (! $isReRegistrationPaid && $registration->reregistration_status !== 'manual_pending')
                         <section class="mt-8 rounded-[2rem] bg-white p-6 shadow-[0_14px_30px_rgba(15,23,42,0.12)] ring-1 ring-emerald-100 md:p-8">
-                            @if ($registration->reregistration_status === 'manual_pending')
-                                <div class="flex min-h-32 items-center justify-center text-center">
-                                    <span class="inline-flex rounded-full bg-amber-100 px-7 py-4 text-base font-extrabold text-amber-700">Menunggu Verifikasi Panitia</span>
-                                </div>
-                            @else
                             <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Pembayaran Manual</p><h2 class="mt-2 text-2xl font-bold text-blue-950">Transfer/DANA atau cash ke sekolah</h2>
                             <div class="mt-5 grid gap-4 md:grid-cols-2"><div class="rounded-3xl bg-emerald-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-emerald-900">Bank BRI</p><p class="mt-1 text-lg font-bold">5510 0106 1682 530</p><p>a.n Arindi Frestisia Ningtias</p></div><div class="rounded-3xl bg-sky-50 p-5 text-sm leading-7 text-slate-700"><p class="font-extrabold text-sky-900">DANA</p><p class="mt-1 text-lg font-bold">0853 6294 4666</p><p>a.n Arindi Frestisia Ningtias</p></div></div>
                             <form method="POST" action="{{ route('daftar-ulang.manual') }}" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">@csrf
@@ -228,9 +223,8 @@
                                 <div id="reregistrationPaymentProofBox"><label class="text-sm font-bold text-slate-700">Upload bukti pembayaran</label><input id="reregistrationPaymentProof" name="proof" type="file" accept="image/jpeg,image/png,application/pdf" class="mt-2 block w-full rounded-2xl border border-slate-300 bg-white text-sm file:mr-3 file:border-0 file:bg-emerald-600 file:px-4 file:py-3 file:font-semibold file:text-white"><p class="mt-2 text-xs text-slate-500">Wajib untuk transfer/DANA. Maksimal 5 MB.</p></div>
                                 <div class="md:col-span-2 flex flex-wrap items-center gap-4"><button class="rounded-full bg-emerald-600 px-7 py-3 font-bold text-white hover:bg-emerald-500">Kirim untuk Verifikasi</button>@if ($registration->reregistration_status === 'manual_pending')<span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-700">Menunggu verifikasi panitia</span>@endif</div>
                             </form>
-                            @endif
                         </section>
-                    @endunless
+                    @endif
                 </div>
             </main>
 
@@ -405,10 +399,9 @@
             paymentPlanStatusRows.innerHTML = amounts.map((amount, index) => {
                 const installmentNumber = index + 1;
                 const paidItem = paidInstallmentItems.find((item) => Number(item.installment) === installmentNumber);
-                const isCurrent = installmentNumber === currentInstallment && !paidItem;
                 const status = paidItem
                     ? statusBadge('Sudah Dibayar', 'emerald')
-                    : statusBadge(isCurrent ? 'Siap Dibayar' : 'Belum Dibayar', isCurrent ? 'amber' : 'slate');
+                    : statusBadge('Belum Dibayar', 'slate');
 
                 return `
                     <tr>
